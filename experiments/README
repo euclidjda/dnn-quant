@@ -1,0 +1,9 @@
+
+The is the experiments directory. All experiments related
+to the project should be in a sub-directory of this directory.
+
+To train a model, for example, the typical pattern is of
+the form:
+
+python3 ../../scripts/train_net.py --config=param.conf --data_dir=../../datasets > stdout.txt 2> stderr.txt &
+
