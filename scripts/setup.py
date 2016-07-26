@@ -87,15 +87,19 @@ def gunzip_file(gz_path, new_path):
 def main():
 
     shfile = os.environ['HOME']+'/.bash_profile'
-    pwd    = os.getcwd()+'/'
-    envar  = "\n\n# Setting ROOT directory for quant-dnn\n" + \
-             "export QUANT_DNN_ROOT=""" + pwd
+    pwd    = os.getcwd()
+    lines  = """
+# Setting PATH and ROOT directory for quant-dnn
+export QUANT_DNN_ROOT=%s/
+PATH=%s/scripts/:${PATH}
+export PATH
+""" % (pwd,pwd)
 
     with open(shfile, 'a') as file:
-        file.write(envar)
+        file.write(lines)
 
-    access_key = input("Enter Access Key: ")
-    secret_key = input("Enter Secret Key: ")
+    access_key = input("Enter Access Key []: ")
+    secret_key = input("Enter Secret Key [None]: ")
 
     print("Downloading data ...")
 
