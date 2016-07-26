@@ -106,7 +106,7 @@ def main():
                 access_key=access_key,
                 secret_key=secret_key,
                 https=False,
-                expiry=int(60*60*24) # expires in 24hours
+                expiry=int(60*60*24) # expires in 24 hours
             )
         maybe_download(data_dir, remote_files[i], url)
         gunzip_file(data_dir+'/'+remote_files[i], data_dir+'/'+local_files[i])
