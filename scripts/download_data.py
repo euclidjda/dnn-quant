@@ -29,7 +29,7 @@ import requests
 from six.moves import urllib
 from boto.s3.connection import S3Connection
 
-data_dir   = 'test'
+data_dir   = 'datasets'
 access_key = 'AKIAJ64KVRWA3P74CIHA'
 secret_key = '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'
 s3_bucket  = 'euclidean-traindata'
