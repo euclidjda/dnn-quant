@@ -1,9 +1,0 @@
-
-The is the experiments directory. All experiments related to the project should be in a sub-directory of this directory.
-
-Do the follow to see an example of training a model:
-
-cd system-test
-train_net.py --config=system-test.conf
-
-
