@@ -84,38 +84,52 @@ def gunzip_file(gz_path, new_path):
         for line in gz_file:
           new_file.write(line)
 
-def main():
 
+def download_data():
+
+    access_key = input("Enter Access Key: ")
+    secret_key = input("Enter Secret Key: ")
+
+    if len(access_key) and len(secret_key):
+        print("Downloading data ...")
+        for i in range(len(remote_files)):
+            url = s3sign(bucket=s3_bucket,
+                    path=remote_files[i],
+                    access_key=access_key,
+                    secret_key=secret_key,
+                    https=False,
+                    expiry=int(60*60*24) # expires in 24 hours
+                )
+            maybe_download(data_dir, remote_files[i], url)
+            gunzip_file(data_dir+'/'+remote_files[i],
+                            data_dir+'/'+local_files[i])
+    else:
+        print('Skipping data download.')
+
+        
+def setup_environment():
     shfile = os.environ['HOME']+'/.bash_profile'
     pwd    = os.getcwd()
     lines  = """
 # Setting PATH and ROOT directory for quant-dnn
-export QUANT_DNN_ROOT=%s/
+export DNN_QUANT_ROOT=%s/
 PATH=%s/scripts/:${PATH}
 export PATH
 """ % (pwd,pwd)
-
     with open(shfile, 'a') as file:
         file.write(lines)
-
-    access_key = input("Enter Access Key []: ")
-    secret_key = input("Enter Secret Key [None]: ")
-
-    print("Downloading data ...")
-
-    for i in range(len(remote_files)):
-        
-        url = s3sign(bucket=s3_bucket,
-                path=remote_files[i],
-                access_key=access_key,
-                secret_key=secret_key,
-                https=False,
-                expiry=int(60*60*24) # expires in 24 hours
-            )
-        maybe_download(data_dir, remote_files[i], url)
-        gunzip_file(data_dir+'/'+remote_files[i], data_dir+'/'+local_files[i])
-
     print('To complete setup, run the following from the terminal prompt:')
     print('source ~/.bash_profile')
+    
+        
+def main():
+    a = input("Download training data [y/n]? ")
+    
+    if len(a) and (a[0].lower() == 'y'):
+        download_data()
+    else:
+        print('Skipping data download.')
+
+    setup_environment()
 
 main()
