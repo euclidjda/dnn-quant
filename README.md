@@ -15,3 +15,4 @@ cd experiments/system-test
 train_net.py --config=system-test.conf
 
 classify_data.py --config=system-test.conf > test.out
+
