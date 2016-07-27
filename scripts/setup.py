@@ -32,6 +32,7 @@ from boto.s3.connection import S3Connection
 data_dir   = 'datasets'
 s3_bucket  = 'euclidean-traindata'
 
+# we should read this list from file in datasets
 remote_files = ['dev-small-1yr.dat.gz',
                 'dev-1yr.dat.gz',
                 'train-1yr.dat.gz',
@@ -40,9 +41,6 @@ remote_files = ['dev-small-1yr.dat.gz',
                 'all-1yr.dat.gz']
 
 #remote_files = ['dev-small-1yr.dat.gz', 'dev-1yr.dat.gz']
-
-local_files  = [ os.path.splitext(remote_files[i])[0]
-                     for i in range(len(remote_files)) ]
 
 def s3sign(bucket, path, access_key, secret_key, https, expiry):
     c = S3Connection(access_key, secret_key)
@@ -90,6 +88,9 @@ def download_data():
     access_key = input("Enter Access Key: ")
     secret_key = input("Enter Secret Key: ")
 
+    local_files  = [ os.path.splitext(remote_files[i])[0]
+                         for i in range(len(remote_files)) ]
+    
     if len(access_key) and len(secret_key):
         print("Downloading data ...")
         for i in range(len(remote_files)):

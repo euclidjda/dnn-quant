@@ -2,17 +2,26 @@
 
 Tool for building deep / recurrent neural network models for systematic fundamental investing.
 
-Once cloned, the following should be done to setup and test installation:
 
-cd dnn-quant
+## Installation and Setup
 
-sudo pip3 install -r requirements.txt
+You will need to have a working installation of tensorflow for your platform.
+See https://www.tensorflow.org/versions/r0.9/get_started/os_setup.html
 
-./scripts/setup.py
 
-cd experiments/system-test
+Clone this repository with:
 
-train_net.py --config=system-test.conf
+```shell
+$git clone git@github.com:euclidjda/dnn-quant.git
+```
 
-classify_data.py --config=system-test.conf > test.out
+To install prerequisites, setup your enviroment, and test the system run the following commands:
 
+```shell
+$ cd dnn-quant
+$ sudo pip3 install -r requirements.txt
+$ ./scripts/setup.py
+$ cd experiments/system-test
+$ train_net.py --config=system-test.conf
+$ classify_data.py --config=system-test.conf > test.out 
+```
