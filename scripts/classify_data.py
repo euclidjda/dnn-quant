@@ -27,6 +27,7 @@ import copy
 import numpy as np
 import tensorflow as tf
 
+import model_utils
 import configs
 
 from tensorflow.python.platform import gfile
@@ -34,14 +35,14 @@ from batch_generator import BatchGenerator
 
 def main(_):
 
-  config = configs.CONFIG
+  config = configs.get_configs()
 
   batch_size = 1
   num_unrollings = 1
+
+  data_path = model_utils.get_data_path(config,config.test_datafile)
   
-  data = BatchGenerator(config.test_datafile
-                          config.key_name,
-                          config.target_name,
+  data = BatchGenerator(data_path,config.key_name,config.target_name,
                           config.num_inputs, config.num_outputs,
                           batch_size, num_unrollings )
 
