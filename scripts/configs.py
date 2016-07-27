@@ -123,14 +123,16 @@ def DEFINE_float(config_name, default_value, docstring):
   _define_helper(config_name, default_value, docstring, float)
 
 def get_configs():
-    
-    DEFINE_string("default_gpu",'/gpu:0',"The default GPU to use")
-    DEFINE_string("key_name", 'gvkey',"Key column name header in datafile")
-    DEFINE_string("target_name", 'target',"Target column name header in datafile")
-    DEFINE_string("train_datafile", 'datasets/dev-small-1yr.dat',"Training file")
-    DEFINE_string("valid_datafile", 'datasets/dev-small-1yr.dat',"Validation file")
-    DEFINE_string("datafile", 'datasets/dev-small-1yr.dat',"All data")
-    DEFINE_string("model_dir", 'train-tst',"Model directory")
+    """Defines all configuration params passable to command line.
+    """
+    DEFINE_string("default_gpu",'',"The default GPU to use e.g., /gpu:0")
+    DEFINE_string("key_name", '',"Key column name header in datafile")
+    DEFINE_string("target_name", '',"Target column name header in datafile")
+    DEFINE_string("train_datafile", '',"Training file")
+    DEFINE_string("valid_datafile", '',"Validation file")
+    DEFINE_string("test_datafile", '',"Datafile used by classify_data.py")
+    DEFINE_string("data_dir",'datasets',"The data directory")
+    DEFINE_string("model_dir", '',"Model directory")
     DEFINE_float("lr_decay",0.9, "Learning rate decay")
     DEFINE_float("init_scale",0.1, "Initial scale for weights")
     DEFINE_float("max_grad_norm",5.0,"Gradient clipping")

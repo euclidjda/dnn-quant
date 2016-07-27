@@ -39,7 +39,9 @@ def main(_):
   batch_size = 1
   num_unrollings = 1
   
-  data = BatchGenerator(config.datafile, model_utils.DATA_FILE_FIELDS,
+  data = BatchGenerator(config.test_datafile
+                          config.key_name,
+                          config.target_name,
                           config.num_inputs, config.num_outputs,
                           batch_size, num_unrollings )
 

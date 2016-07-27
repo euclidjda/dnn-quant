@@ -35,7 +35,9 @@ from batch_generator import BatchGenerator
 
 def run_epoch(session, mdl, batches, eval_op, passes=1, eval_all=True,
                 verbose=False):
-  """Runs the model on the given data."""
+  """Run the model on given data.
+
+  """
   num_steps = batches.num_steps
   start_time = time.time()
   costs = 0.0
@@ -48,10 +50,6 @@ def run_epoch(session, mdl, batches, eval_op, passes=1, eval_all=True,
   if not num_steps > 0:
     raise RuntimeError("batch_size*num_unrollings is larger "
                          "than the training set size.")
-  # print("num_steps = ",num_steps)
-  # print("data_points = ",batches.num_data_points())
-  # print("batch_size = ",mdl.batch_size)
-  # print("unrollings = ",mdl.num_unrollings)
 
   batches.rewind_cursor()
 
@@ -90,15 +88,14 @@ def main(_):
 
   config = configs.get_configs()
 
-  train_batches = BatchGenerator(config.train_datafile,
-                                   config.key_name,
-                                   config.target_name,
+  train_path = model_utils.get_data_path(config,config.train_datafile)
+  valid_path = model_utils.get_data_path(config,config.valid_datafile)
+ 
+  train_batches = BatchGenerator(train_path, config.key_name, config.target_name,
                                    config.num_inputs, config.num_outputs,
                                    config.batch_size, config.num_unrollings )
 
-  valid_batches = BatchGenerator(config.valid_datafile,
-                                   config.key_name,
-                                   config.target_name,                                   
+  valid_batches = BatchGenerator(valid_path, config.key_name, config.target_name,                                   
                                    config.num_inputs, config.num_outputs,
                                    config.batch_size, config.num_unrollings )
   
@@ -141,13 +138,18 @@ def main(_):
       sys.stdout.flush()
 
       perf_history.append( train_xentrop )
+
+      if not os.path.exists(config.model_dir):
+        print("Creating directory %s" % config.model_dir)
+        os.mkdir(config.model_dir)
       
       checkpoint_path = os.path.join(config.model_dir, "training.ckpt" )
       tf.train.Saver().save(session, checkpoint_path, global_step=i)
       
-      # If train and valid are the same data then this is a test to make
+      # If train and valid are the same data (e.g. as in the system-test)
+      # then this is a test to make
       # sure that the model is producing the same error on both. Note,
-      # however, that if keep_prob < 1 then the train model is probabilistic
+      # however, if keep_prob < 1 then the train model is probabilistic
       # and so these can only be approx equal.
       if (False):
         check_xentrop, check_error = run_epoch(session,

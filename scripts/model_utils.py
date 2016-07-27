@@ -12,6 +12,12 @@ import tensorflow as tf
 from tensorflow.python.platform import gfile
 from deep_rnn_model import DeepRnnModel
 
+def get_data_path(config,filename):
+    path = config.data_dir + '/' + filename
+    if 'DNN_QUANT_ROOT' in os.environ:
+        path = os.environ['DNN_QUANT_ROOT'] + '/' + path
+    return path
+
 def get_training_models(session, config, verbose=True):
     mtrain, mvalid, mdeploy = _get_all_models(session,config,verbose)
     return mtrain, mvalid
@@ -30,7 +36,6 @@ def adjust_learning_rate(session, config, model, learning_rate, batch_perfs):
         learning_rate = learning_rate * config.lr_decay
   model.assign_lr(session, learning_rate)
   return learning_rate
-
 
 def _get_all_models(session, config, verbose=False):
 
