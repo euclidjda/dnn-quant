@@ -12,7 +12,7 @@ See https://www.tensorflow.org/versions/r0.9/get_started/os_setup.html
 Clone this repository with:
 
 ```shell
-$git clone git@github.com:euclidjda/dnn-quant.git
+$ git clone git@github.com:euclidjda/dnn-quant.git
 ```
 
 To install prerequisites, setup your enviroment, and test the system run the following commands:
