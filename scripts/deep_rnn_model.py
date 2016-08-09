@@ -30,7 +30,7 @@ _NUM_OUTPUTS = 2
 
 class DeepRnnModel(object):
   """
-  An Deep Rnn Model that supports a binary (two class) output with an
+  A Deep Rnn Model that supports a binary (two class) output with an
   arbitrary number of fixed width hidden layers.
   """
   def __init__(self, num_layers, num_inputs, num_hidden,
@@ -48,7 +48,8 @@ class DeepRnnModel(object):
         batch_size: the size of the data batch processed in each step
         max_grad_norm: max gardient norm size for gradient clipping
         keep_prob: the keep probability for dropout training
-        training: should training be enabled for this model
+        training: booling indicating whether training should be enabled
+          for this model
       """
       self._training = training
       self._batch_size = batch_size = batch_size
