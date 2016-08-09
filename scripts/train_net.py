@@ -38,7 +38,7 @@ def run_epoch(session, model, batches, passes=1, verbose=False):
 
   Args:
     session: The tf session to run graph in
-    mld: The model. An object of type deep_rnn_model
+    model: The model. An object of type deep_rnn_model
     batches: The data. An object created by BatchGenerator
     passes: The number of times to run the the dataset batches
     verbose: Display iteration output to stdout
@@ -49,15 +49,15 @@ def run_epoch(session, model, batches, passes=1, verbose=False):
     RuntimeError: the batch size cannot be larger than the training
       data set size
   """
-  num_steps = batches.num_steps
+  num_batches = batches.num_batches
   start_time = time.time()
   costs = 0.0
   errors = 0.0
   count = 0
   dot_count = 0
-  prog_int = passes*num_steps/100 # progress interval for stdout
+  prog_int = passes*num_batches/100 # progress interval for stdout
   
-  if not num_steps > 0:
+  if not num_batches > 0:
     raise RuntimeError("batch_size*num_unrollings is larger "
                          "than the training set size.")
 
@@ -65,7 +65,7 @@ def run_epoch(session, model, batches, passes=1, verbose=False):
 
   for _ in range(passes):
 
-    for step in range(num_steps):
+    for step in range(num_batches):
 
       cost, error, _, _ = model.step(session, batches)
       costs  += cost
