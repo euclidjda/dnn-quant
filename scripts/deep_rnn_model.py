@@ -26,17 +26,36 @@ import tensorflow as tf
 from tensorflow.python.ops import array_ops
 from tensorflow.models.rnn import rnn
 
+_NUM_OUTPUTS = 2
+
 class DeepRnnModel(object):
-  """The deep rnn model."""
-
-  def __init__(self, training, config):
-
+  """
+  An Deep Rnn Model that supports a binary (two class) output with an
+  arbitrary number of fixed width hidden layers.
+  """
+  def __init__(self, num_layers, num_inputs, num_hidden,
+                   num_unrollings, batch_size,
+                   max_grad_norm=5.0, keep_prob=1.0, training=True):
+      """
+      Initialize the model
+      Args:
+        num_layers: number of hidden layers
+        num_inputs: number input units. this should be less than or
+          or equal to width of feature data in the data file
+        num_hidden: number of hidden units in each hidden layer
+        num_unrollings: the size of the time window processed in 
+          each step (see step() function below)
+        batch_size: the size of the data batch processed in each step
+        max_grad_norm: max gardient norm size for gradient clipping
+        keep_prob: the keep probability for dropout training
+        training: should training be enabled for this model
+      """
       self._training = training
-      self._batch_size = batch_size = config.batch_size
-      self._num_unrollings = num_unrollings = config.num_unrollings
-      num_hidden  = config.num_hidden
-      num_inputs  = config.num_inputs
-      num_outputs = config.num_outputs
+      self._batch_size = batch_size = batch_size
+      self._num_unrollings = num_unrollings = num_unrollings
+      num_hidden  = num_hidden
+      num_inputs  = num_inputs
+      num_outputs = _NUM_OUTPUTS
 
       self._seq_lengths = tf.placeholder(tf.int32, [batch_size])
     
@@ -44,60 +63,79 @@ class DeepRnnModel(object):
       self._targets = list()
 
       for _ in range(num_unrollings):
-        self._inputs.append( tf.placeholder(tf.float32,shape=[batch_size,num_inputs]) )
+        self._inputs.append( tf.placeholder(tf.float32,
+                                              shape=[batch_size,num_inputs]) )
 
       for _ in range(num_unrollings):
-        self._targets.append( tf.placeholder(tf.float32,shape=[batch_size,num_outputs]) )
+        self._targets.append( tf.placeholder(tf.float32,
+                                               shape=[batch_size,num_outputs]) )
 
       # GRUCell alternative: lstm_cell = tf.nn.rnn_cell.GRUCell(num_hidden)
       lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(num_hidden,forget_bias=0.0)
 
-      if training and config.keep_prob < 1:
+      if training and keep_prob < 1:
         lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
-          lstm_cell, output_keep_prob=config.keep_prob)
+          lstm_cell, output_keep_prob=keep_prob)
       
-      cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * config.num_layers)
+      cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * num_layers)
 
       self._state_size = cell.state_size
       # print("State size is: %d"%self._state_size)
-      
-      self._reset_state_flags = tf.placeholder(tf.float32,shape=[batch_size,cell.state_size])
-      self._saved_state = tf.Variable(tf.zeros([batch_size, cell.state_size]), dtype=tf.float32,
-                                      trainable=False)
-      self._reset_state = self._saved_state.assign( tf.zeros([batch_size, cell.state_size] ) )  
+
+      state_shape=[batch_size, cell.state_size]
+      self._reset_state_flags = tf.placeholder(tf.float32, shape=state_shape)
+      self._saved_state = tf.Variable(tf.zeros(state_shape), dtype=tf.float32,
+                                          trainable=False)
+      self._reset_state = self._saved_state.assign( tf.zeros( state_shape ) )  
     
       state = tf.mul( self._saved_state, self._reset_state_flags )
     
       outputs, state = rnn.rnn(cell, self._inputs,
-                               initial_state=state, sequence_length=self._seq_lengths)
+                               initial_state=state,
+                                   sequence_length=self._seq_lengths)
 
       softmax_w = tf.get_variable("softmax_w", [num_hidden, num_outputs])
       softmax_b = tf.get_variable("softmax_b", [num_outputs])
 
       with tf.control_dependencies([self._saved_state.assign(state)]):
         logits = tf.nn.xw_plus_b( tf.concat(0, outputs), softmax_w, softmax_b)
-        loss = tf.nn.softmax_cross_entropy_with_logits(logits, tf.concat(0, self._targets))
+        targets = tf.concat(0, self._targets)
+        loss = tf.nn.softmax_cross_entropy_with_logits(logits, targets)
 
-      #iters = batch_size*num_unrollings
       iters = tf.reduce_sum( tf.to_float( self._seq_lengths ) )
 
       self._cost = cost = tf.reduce_sum(loss) / iters
       self._final_state = state
       self._predictions = tf.nn.softmax(logits)
-      self._error = 1.0 - tf.reduce_sum( tf.mul( tf.floor( self._predictions + 0.5 ),
-                                                   tf.concat(0, self._targets) ) ) / iters
+      errors = tf.mul( tf.floor( self._predictions + 0.5 ), targets )
+      self._error = 1.0 - tf.reduce_sum(errors) / iters
     
       if not training:
+        self._train_op = tf.no_op()
         return
 
       self._lr = tf.Variable(0.0, trainable=False)
       tvars = tf.trainable_variables()
-      grads, _ = tf.clip_by_global_norm(tf.gradients(cost, tvars),config.max_grad_norm)
+      grads, _ = tf.clip_by_global_norm(tf.gradients(cost, tvars),max_grad_norm)
       optimizer = tf.train.GradientDescentOptimizer(self.lr)
       self._train_op = optimizer.apply_gradients(zip(grads, tvars))
 
-  def step(self, sess,eval_op, x_batches, y_batches, seq_lengths, reset_flags):
-    
+  def step(self, sess, batches):
+    """
+    Take one step through the data set. A step contains a sequences of batches
+    where the sequence is of size num_unrollings. The batches are size
+    batch_size. 
+    Args:
+      sess: current tf session the model is being run in
+      batches: an obect of type BatchGenerator
+    Returns:
+      cost: cross entropy cost function for the next batch in batches
+      error: binary classifcation error rate for the next batch in batches
+      state: the final states of model after a step through the batch
+      predictions: the model predictions for each data point in batch
+    """
+    x_batches, y_batches, seq_lengths, reset_flags = batches.next()
+        
     feed_dict = dict()
       
     flags = np.repeat( reset_flags.reshape( [self._batch_size, 1] ),
@@ -114,7 +152,7 @@ class DeepRnnModel(object):
                                                   self._error,
                                                   self._final_state,
                                                   self._predictions,
-                                                  eval_op],
+                                                  self._train_op],
                                               feed_dict)
 
     return cost, error, state, predictions
@@ -141,10 +179,6 @@ class DeepRnnModel(object):
   @property
   def lr(self):
     return self._lr
-
-  @property
-  def train_op(self):
-    return self._train_op
 
   @property
   def batch_size(self):

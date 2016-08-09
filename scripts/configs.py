@@ -23,7 +23,10 @@ import argparse
 _global_parser = argparse.ArgumentParser()
 
 class _ConfigValues(object):
-
+  """
+  Command line argument helper class.
+  """
+  
   def __init__(self):
     """Global container and accessor for configs and their values."""
     self.__dict__['__configs'] = {}
@@ -146,7 +149,6 @@ def get_configs():
     DEFINE_integer("num_layers",2, "Numer of RNN layers")
     DEFINE_integer("num_inputs",84,"Number of inputs")
     DEFINE_integer("num_hidden",128,"Number of hidden layer units")
-    DEFINE_integer("num_outputs",2,"Number of classes for output")
 
     _global_parser.add_argument('--config', type=open,
                                     action=_LoadFromFile,

@@ -33,10 +33,21 @@ import configs
 from tensorflow.python.platform import gfile
 from batch_generator import BatchGenerator
 
-def run_epoch(session, mdl, batches, eval_op, passes=1, eval_all=True,
-                verbose=False):
-  """Run the model on given data.
+def run_epoch(session, model, batches, passes=1, verbose=False):
+  """Run the specified data set (batches) through the model.
 
+  Args:
+    session: The tf session to run graph in
+    mld: The model. An object of type deep_rnn_model
+    batches: The data. An object created by BatchGenerator
+    passes: The number of times to run the the dataset batches
+    verbose: Display iteration output to stdout
+  Returns:
+    cost: average cross-entropy loss value on data
+    error: average binary classification error rate on data
+  Raises:
+    RuntimeError: the batch size cannot be larger than the training
+      data set size
   """
   num_steps = batches.num_steps
   start_time = time.time()
@@ -57,14 +68,7 @@ def run_epoch(session, mdl, batches, eval_op, passes=1, eval_all=True,
 
     for step in range(num_steps):
 
-      #if eval_all is False:
-      #  predata = batches.is_predata(FLAGS.min_history)
-
-      x_batches, y_batches, seq_lengths, reset_flags = batches.next()
-      
-      cost, error, state, predictions = mdl.step( session, eval_op,
-                                                    x_batches, y_batches,
-                                                    seq_lengths, reset_flags )
+      cost, error, _, _ = model.step(session, batches )
       if not predata:
         costs  += cost
         errors += error
@@ -77,34 +81,42 @@ def run_epoch(session, mdl, batches, eval_op, passes=1, eval_all=True,
   if verbose:
     print("."*(100-dot_count),end='')
     print(" evals: %d (of %d), speed: %.0f seconds"%
-            (count * mdl.batch_size * mdl.num_unrollings,
-               passes * num_steps * mdl.batch_size * mdl.num_unrollings,
+            (count * model.batch_size * model.num_unrollings,
+               passes * num_steps * model.batch_size * model.num_unrollings,
                   (time.time() - start_time) ) )
   sys.stdout.flush()
 
   return np.exp(costs / count), (errors / count)
 
 def main(_):
-
+  """
+  Entry point and main loop for train_net.py. Uses command line arguments to get
+  model and training specification (see config.py).
+  """
   config = configs.get_configs()
 
-  train_path = model_utils.get_data_path(config,config.train_datafile)
-  valid_path = model_utils.get_data_path(config,config.valid_datafile)
+  train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
+  valid_path = model_utils.get_data_path(config.data_dir,config.valid_datafile)
  
-  train_batches = BatchGenerator(train_path, config.key_name, config.target_name,
-                                   config.num_inputs, config.num_outputs,
-                                   config.batch_size, config.num_unrollings )
+  train_batches = BatchGenerator(train_path,
+                                   config.key_name, config.target_name,
+                                   config.num_inputs,
+                                   config.batch_size,
+                                   config.num_unrollings )
 
-  valid_batches = BatchGenerator(valid_path, config.key_name, config.target_name,                                   
-                                   config.num_inputs, config.num_outputs,
-                                   config.batch_size, config.num_unrollings )
+  valid_batches = BatchGenerator(valid_path,
+                                   config.key_name, config.target_name,
+                                   config.num_inputs,
+                                   config.batch_size,
+                                   config.num_unrollings )
   
   tf_config = tf.ConfigProto( allow_soft_placement=True, 
                               log_device_placement=False )
 
   with tf.Graph().as_default(), tf.Session(config=tf_config) as session:
 
-    mtrain, mvalid = model_utils.get_training_models(session, config, verbose=True)
+    mtrain, mvalid = model_utils.get_training_models(session, config,
+                                                       verbose=True)
     
     lr = config.initial_learning_rate
     perf_history = list()
@@ -112,23 +124,19 @@ def main(_):
     for i in range(config.max_epoch):
 
       lr = model_utils.adjust_learning_rate(session,
-                                              config,
                                               mtrain,
                                               lr,
+                                              config.lr_decay,
                                               perf_history )
 
       train_xentrop, train_error = run_epoch(session,
                                                   mtrain, train_batches,
-                                                  mtrain.train_op,
                                                   passes=config.passes,
-                                                  eval_all=True,
                                                   verbose=True)
 
       valid_xentrop, valid_error = run_epoch(session,
                                                   mvalid, valid_batches,
-                                                  tf.no_op(),
                                                   passes=1,
-                                                  eval_all=False,
                                                   verbose=True)
       
       print( ('Epoch: %d XEntrop: %.6f %.6f'
@@ -154,9 +162,7 @@ def main(_):
       if (False):
         check_xentrop, check_error = run_epoch(session,
                                                     mtrain, train_batches,
-                                                    tf.no_op(),
                                                     passes=1,
-                                                    eval_all=False,
                                                     verbose=True)
         print("Check: %d XEntrop: %.2f =? %.2f Error: %.6f =? %.6f " %
                 (i + 1, check_xentrop, valid_xentrop, check_error, valid_error))
