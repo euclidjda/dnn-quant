@@ -40,7 +40,7 @@ def run_epoch(session, model, batches, passes=1, verbose=False):
     session: The tf session to run graph in
     model: The model. An object of type deep_rnn_model
     batches: The data. An object created by BatchGenerator
-    passes: The number of times to run the the dataset batches
+    passes: The number of times to run through the entire dataset
     verbose: Display iteration output to stdout
   Returns:
     cost: average cross-entropy loss value on data
