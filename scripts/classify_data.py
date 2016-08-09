@@ -34,16 +34,24 @@ from tensorflow.python.platform import gfile
 from batch_generator import BatchGenerator
 
 def main(_):
-
+  """
+  The model specified command line arg --model_dir is applied to every data
+  point in --test_datafile and the model output is set to stdout. The unix
+  command 'paste' can be used to stich the input file and output together.
+  e.g.,
+  $ classifiy_data.py --config=train.conf --test_datafile=test.dat > output.dat
+  $ paste -d ' ' test.dat output.dat > input_and_output.dat
+  """
   config = configs.get_configs()
 
   batch_size = 1
   num_unrollings = 1
 
-  data_path = model_utils.get_data_path(config,config.test_datafile)
+  data_path = model_utils.get_data_path(config.data_dir,config.test_datafile)
   
-  data = BatchGenerator(data_path,config.key_name,config.target_name,
-                          config.num_inputs, config.num_outputs,
+  data = BatchGenerator(data_path,
+                          config.key_name, config.target_name,
+                          config.num_inputs,
                           batch_size, num_unrollings )
 
   num_data_points = data.num_data_points()
@@ -54,7 +62,6 @@ def main(_):
   with tf.Graph().as_default(), tf.Session(config=tf_config) as session:
 
     model = model_utils.get_trained_model(session, config)
-    eval_op = tf.no_op()
 
     # print the headers so it is easy to "paste" data file and output file
     # together to create a final, single result file
@@ -62,9 +69,9 @@ def main(_):
     
     for i in range(num_data_points):
       xvals, yvals, seq_length, reset_flag = data.next()
-      _, _, _, preds = model.step(session, eval_op, xvals, yvals,
+      _, _, _, preds = model.step(session, xvals, yvals,
                                     seq_length, reset_flag )
-      print("%.2f %.2f" % (preds[0][0],preds[0][1]))
+      print("%.4f %.4f" % (preds[0][0],preds[0][1]))
       sys.stdout.flush()    
 
     

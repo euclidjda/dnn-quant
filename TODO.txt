@@ -3,7 +3,7 @@
 unrollings that produce zero steps? User "raise RuntimeError(msg) to handle bad 
 config"
 
-2. Re-organize configs.py and make some arguments mandatory
+2. Re-organize configs.py and make some arguments mandatory 
 
 3. Test for bad configs such as training files doesn't exist
 
@@ -13,4 +13,5 @@ config"
 
 6  Make check point directory if doesn't exist.
 
-7. Document, document, document! ...
+7. Make training step number pick up the last number from last save
+instead of starting over
