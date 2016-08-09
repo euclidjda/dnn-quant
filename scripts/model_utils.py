@@ -54,16 +54,16 @@ def adjust_learning_rate(session, model, learning_rate, lr_decay, batch_perfs):
   return learning_rate
 
 def get_training_models(session, config, verbose=True):
-    mtrain, mvalid, mdeploy = get_all_models(session,config,verbose)
+    mtrain, mvalid, mdeploy = get_all_models(session, config, verbose)
     return mtrain, mvalid
 
 def get_trained_model(session, config, verbose=False):
-    mtrain, mvalid, mdeploy = get_all_models(session,config,verbose)
+    mtrain, mvalid, mdeploy = get_all_models(session, config, verbose)
     return mdeploy
 
 def get_all_models(session, config, verbose=False):
 
-    mtrain, mvalid, mdeploy = _create_all_models(session,config,verbose)
+    mtrain, mvalid, mdeploy = _create_all_models(session, config, verbose)
     
     ckpt = tf.train.get_checkpoint_state(config.model_dir)
     if ckpt and gfile.Exists(ckpt.model_checkpoint_path):
@@ -84,12 +84,12 @@ def _create_all_models(session,config,verbose=False):
 
     if verbose is True:
       print("Model has the following geometry:")
-      print("  num_unroll = %d"% config.num_unrollings)
-      print("  batch_size = %d"% config.batch_size)
-      print("  stps/epoch = %d"% (config.batch_size*config.num_unrollings))
-      print("  num_inputs = %d"% config.num_inputs)
-      print("  num_hidden = %d"% config.num_hidden)
-      print("  num_layers = %d"% config.num_layers)
+      print("  num_unroll  = %d"% config.num_unrollings)
+      print("  batch_size  = %d"% config.batch_size)
+      print("  evals/batch = %d"% (config.batch_size*config.num_unrollings))
+      print("  num_inputs  = %d"% config.num_inputs)
+      print("  num_hidden  = %d"% config.num_hidden)
+      print("  num_layers  = %d"% config.num_layers)
 
     # Training graph  
     with tf.variable_scope("model", reuse=None, initializer=initer), \

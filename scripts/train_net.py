@@ -56,7 +56,6 @@ def run_epoch(session, model, batches, passes=1, verbose=False):
   count = 0
   dot_count = 0
   prog_int = passes*num_steps/100 # progress interval for stdout
-  predata = False
   
   if not num_steps > 0:
     raise RuntimeError("batch_size*num_unrollings is larger "
@@ -68,11 +67,10 @@ def run_epoch(session, model, batches, passes=1, verbose=False):
 
     for step in range(num_steps):
 
-      cost, error, _, _ = model.step(session, batches )
-      if not predata:
-        costs  += cost
-        errors += error
-        count  += 1
+      cost, error, _, _ = model.step(session, batches)
+      costs  += cost
+      errors += error
+      count  += 1
       if ( verbose and ((prog_int<=1) or (step % (int(prog_int)+1)) == 0) ):
         dot_count += 1
         print('.',end='')
@@ -80,9 +78,8 @@ def run_epoch(session, model, batches, passes=1, verbose=False):
 
   if verbose:
     print("."*(100-dot_count),end='')
-    print(" evals: %d (of %d), speed: %.0f seconds"%
-            (count * model.batch_size * model.num_unrollings,
-               passes * num_steps * model.batch_size * model.num_unrollings,
+    print(" passes: %d evals: %d, speed: %.0f seconds"%
+            (passes, count * model.batch_size * model.num_unrollings,
                   (time.time() - start_time) ) )
   sys.stdout.flush()
 
