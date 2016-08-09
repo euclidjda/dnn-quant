@@ -2,7 +2,7 @@ library(ggplot2)
 library(tidyr)
 library(ggthemes)
 
-df <- read.table("~/work/research/research-cetox/source-data/train-3yr.dat",header=TRUE)
+df <- read.table("datasets/train-1yr.dat",header=TRUE)
 
 df.wide <- df[9:47]
 

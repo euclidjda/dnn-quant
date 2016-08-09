@@ -9,7 +9,9 @@ library(RColorBrewer)
 library(plyr)
 library(tidyr)
 
-df <- read.table("~/work/research/research-cetox/build-model-3yr/output-001.dat",header=TRUE)
+# For this script to work we need the file output.dat
+
+df <- read.table("output_data.dat",header=TRUE)
 
 df$y0 <- floor(df$p0+0.49)
 df$y1 <- floor(df$p1+0.49)
