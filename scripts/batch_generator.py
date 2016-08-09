@@ -13,15 +13,48 @@
 # limitations under the License.
 # ==============================================================================
 
+import os
 import numpy as np
 import pandas as pd
 
 _NUM_CLASSES = 2
 
 class BatchGenerator(object):
-
+    """
+    BatchGenerator object takes a data file are returns an object with
+    a next() function. The next() function yields a batch of data 
+    sequences from the datafile whose shape is specified by batch_size 
+    and num_unrollings.
+    """
     def __init__(self,filename,key_name,target_name,num_inputs,
                      batch_size,num_unrollings):
+        """
+        Init a BatchGenerator
+        Args:
+          filename: Name of file containing data. Each row of the file is a 
+            record in a data sequence and each column (space seperated) is a 
+            field. The columns have headers that are used to identify the field.
+          key_name: The column with the header key_name is the column
+            that contains the unique id for the sequences.
+          target_name: The column with the header target_name is the name of
+            the column containing the target values (-1 or +1) for the record
+          num_inputs: The input fields are the first num_inputs columns
+            following the target_name column. For example the data might look
+            like this if key_name=ID, tareget_name=YY, num_inputs =3:
+            ID YY X1 X2 X3
+            aa +1 .3 .1 .9
+            aa +1 .2 .2 .8
+            bb +1 .6 .5 .0
+            bb -1 .5 .4 .1
+            bb -1 .5 .5 .0
+          batch_size: The size of a batch
+          num_unrollings: The time window for each batch. The number of data
+            points in a batch is batch_size * num_unrollings
+        Raises:
+          The file specified by filename does not exist
+        """
+        if not os.path.exists(filename):
+            raise RuntimeError("The data file %s does not exists" % filename)
         data = pd.read_csv(filename,sep=' ')
         self._num_inputs = num_inputs
         self._key_name = key_name = key_name
@@ -72,9 +105,12 @@ class BatchGenerator(object):
                 reset_flags[b] = 0.0
         return reset_flags
         
-    def _next_batch(self,step):
-        x_batch = np.zeros(shape=(self._batch_size, self._num_inputs), dtype=np.float)
-        y_batch = np.zeros(shape=(self._batch_size, self._num_classes), dtype=np.float)
+    def _next_step(self,step):
+        """
+        Get next step in current batch.
+        """
+        x = np.zeros(shape=(self._batch_size, self._num_inputs), dtype=np.float)
+        y = np.zeros(shape=(self._batch_size, self._num_classes), dtype=np.float)
         data = self._data
         start_idx = self._factor_start_idx
         key_name = self._key_name
@@ -82,31 +118,47 @@ class BatchGenerator(object):
         for b in range(self._batch_size):
             idx = self._cursor[b]
             if (step>0 and idx>0 and (data.loc[idx-1,key_name] != data.loc[idx,key_name])):
-                x_batch[b,:] = 0.0
-                y_batch[b,:] = 0.0
+                x[b,:] = 0.0
+                y[b,:] = 0.0
                 if (self._seq_lengths[b]==self._num_unrollings):
                     self._seq_lengths[b] = step
             else:
-                x_batch[b,:] = data.iloc[idx,start_idx:].as_matrix()
+                x[b,:] = data.iloc[idx,start_idx:].as_matrix()
                 val = data.loc[idx,yval_name] # +1, -1
-                y_batch[b,0] = abs(val - 1) / 2 # +1 -> 0 & -1 -> 1
-                y_batch[b,1] = abs(val + 1) / 2 # -1 -> 0 & +1 -> 1
+                y[b,0] = abs(val - 1) / 2 # +1 -> 0 & -1 -> 1
+                y[b,1] = abs(val + 1) / 2 # -1 -> 0 & +1 -> 1
                 self._cursor[b] = (self._cursor[b] + 1) % self._data_size
-        return x_batch,y_batch
+        return x, y
 
     def next(self):
-        """Generate the next array of batches from the data.
+        """Generate the next batch of sequences from the data.
+        Returns:
+          x_batch: The batch's sequences of input values. The number of 
+            sequences is equal to batch_size and the physical size of each
+            sequence is equal to num_unrollings. The seq_lengths return
+            value (see below) might be less than num_unrollings if a sequence 
+            ends in less steps than num_unrollings.
+          y_batch: The batch's sequences of target values. The number of 
+            sequences is equal to batch_size and the physical size of each
+            sequence is equal to num_unrollings.
+          seq_lengths: An integer vectors of size batch_size that contains the
+            length of each sequence in the batch. The maximum length is
+            num_unrollings.
+          reset_flags: A binary vector of size batch_size. A value of 0 in
+            position n indicates that the data in sequence n of the batch is a
+            new entity since the last batch and that the RNN's state should be
+            reset.
         """
         self._seq_lengths[:] = self._num_unrollings
         reset_flags = self._get_reset_flags()
         # print(self._seq_lengths)
-        x_batches = list()
-        y_batches = list()
+        x_batch = list()
+        y_batch = list()
         for step in range(self._num_unrollings):
-            x, y = self._next_batch(step)
-            x_batches.append(x)
-            y_batches.append(y)
-        return x_batches, y_batches, self._seq_lengths, reset_flags
+            x, y = self._next_step(step)
+            x_batch.append(x)
+            y_batch.append(y)
+        return x_batch, y_batch, self._seq_lengths, reset_flags
 
     def num_data_points(self):
         return self._data_size

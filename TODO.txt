@@ -1,17 +1,17 @@
 
-1. Test different size batch configurations, how to handle large batch size x 
+1. (DONE) Test different size batch configurations, how to handle large batch size x 
 unrollings that produce zero steps? User "raise RuntimeError(msg) to handle bad 
-config"
+config" 
 
-2. Re-organize configs.py and make some arguments mandatory 
+2. Re-organize configs.py and allow for arguments to be mandatory 
 
-3. Test for bad configs such as training files doesn't exist
+3. (DONE) Test for bad configs such as training files doesn't exist
 
-4. Report network geometry before training begins (DONE)
+4. (DONE) Report network geometry in verbose mode before training begins
 
-5. Force secret key to be input at stdin in download_data.py
+5. (DONE) Force secret key to be input at stdin in download_data.py
 
-6  Make check point directory if doesn't exist.
+6  (DONE) Make check point directory if doesn't exist.
 
 7. Make training step number pick up the last number from last save
 instead of starting over
