@@ -86,7 +86,6 @@ class DeepRnnModel(object):
       self._reset_state_flags = tf.placeholder(tf.float32, shape=state_shape)
       self._saved_state = tf.Variable(tf.zeros(state_shape), dtype=tf.float32,
                                           trainable=False)
-      self._reset_state = self._saved_state.assign( tf.zeros( state_shape ) )  
     
       state = tf.mul( self._saved_state, self._reset_state_flags )
     

@@ -82,18 +82,18 @@ class BatchGenerator(object):
             if b>0:
                 self._init_cursor[b] = idx
         self._cursor = self._init_cursor[:]
-        self._num_steps = self._calc_num_steps()
+        self._num_batches = self._calc_num_batches()
 
-    def _calc_num_steps(self):
+    def _calc_num_batches(self):
         tmp_cursor = self._cursor[:] # copy cursor
         self.rewind_cursor()
         end_idx = self._init_cursor[1] if self._batch_size > 1 else self._data_size-1
-        num_steps = 0
+        num_batches = 0
         while (self._cursor[0] < end_idx - self._num_unrollings):
             self.next()
-            num_steps += 1
+            num_batches += 1
         self._cursor = tmp_cursor[:]
-        return num_steps
+        return num_batches
         
     def _get_reset_flags(self):
         data = self._data
@@ -167,6 +167,6 @@ class BatchGenerator(object):
         self._cursor = self._init_cursor[:]
 
     @property
-    def num_steps(self):
-        return self._num_steps
+    def num_batches(self):
+        return self._num_batches
         
