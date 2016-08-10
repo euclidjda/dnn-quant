@@ -62,7 +62,19 @@ def get_trained_model(session, config, verbose=False):
     return mdeploy
 
 def get_all_models(session, config, verbose=False):
-
+    """
+    Creates the three graphs for training, validation, and testing/deployment.
+    If a saved model exists in config.model_dir, read it from file.
+    Args:
+      session: the tf session
+      config: a config that specifies the model geometry and learning params
+      verbose: print status output if true
+    Returns:
+      mtrain:  training model, initialized frm config.model_dir if present
+      mvalid:  validation model, initialized frm config.model_dir
+      mdeploy: testing/deployment model, initialized frm config.model_dir
+    """
+    
     mtrain, mvalid, mdeploy = _create_all_models(session, config, verbose)
     
     ckpt = tf.train.get_checkpoint_state(config.model_dir)
@@ -80,7 +92,18 @@ def get_all_models(session, config, verbose=False):
 
 
 def _create_all_models(session,config,verbose=False):
-    initer = tf.random_uniform_initializer(-config.init_scale, config.init_scale)
+    """
+    Creates the three graphs for training, validation, and testing/deployment
+    Args:
+      session: the tf session
+      config: a config that specifies the model geometry and learning params
+      verbose: print status output if true
+    Returns:
+      mtrain:  the training model
+      mvalid:  the validation model
+      mdeploy: the testing and deployment mode
+    """
+    initer = tf.random_uniform_initializer(-config.init_scale,config.init_scale)
 
     if verbose is True:
       print("Model has the following geometry:")

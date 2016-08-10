@@ -18,4 +18,4 @@ instead of starting over
 
 8. (DONE) Confirm that code works under tensorflow version r0.10
 
-9. 
+9. Create test suite that doesn't depend on prorprietary data.

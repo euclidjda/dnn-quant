@@ -124,7 +124,7 @@ export PATH
     
         
 def main():
-    a = input("Download training data [y/n]? ")
+    a = input("Download stock fundamental data [y/n]? ")
     
     if len(a) and (a[0].lower() == 'y'):
         download_data()
