@@ -70,9 +70,9 @@ def get_all_models(session, config, verbose=False):
       config: a config that specifies the model geometry and learning params
       verbose: print status output if true
     Returns:
-      mtrain:  training model, initialized frm config.model_dir if present
-      mvalid:  validation model, initialized frm config.model_dir
-      mdeploy: testing/deployment model, initialized frm config.model_dir
+      mtrain:  training model, initialized frm model_dir if exists
+      mvalid:  validation model, initialized frm model_dir if exists
+      mdeploy: testing/deployment model, initialized frm model_dir if exists
     """
     
     mtrain, mvalid, mdeploy = _create_all_models(session, config, verbose)
