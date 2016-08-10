@@ -1,12 +1,6 @@
-time
-os
-sys
-gzip
 numpy
 pandas
-tensorflow
 boto
-six.moves
 requests
 
 
