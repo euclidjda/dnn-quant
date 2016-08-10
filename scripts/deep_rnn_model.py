@@ -24,7 +24,7 @@ import numpy as np
 import tensorflow as tf
 
 from tensorflow.python.ops import array_ops
-from tensorflow.models.rnn import rnn
+# from tensorflow.models.rnn import rnn
 
 _NUM_OUTPUTS = 2
 
@@ -71,18 +71,19 @@ class DeepRnnModel(object):
         self._targets.append( tf.placeholder(tf.float32,
                                                shape=[batch_size,num_outputs]) )
 
-      # GRUCell alternative: lstm_cell = tf.nn.rnn_cell.GRUCell(num_hidden)
-      lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(num_hidden,forget_bias=0.0)
+      rnn_cell = tf.nn.rnn_cell.GRUCell(num_hidden)
+      #rnn_cell = tf.nn.rnn_cell.BasicLSTMCell(num_hidden,
+      #                                             forget_bias=0.0)
 
       if training and keep_prob < 1:
-        lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
-          lstm_cell, output_keep_prob=keep_prob)
+        rnn_cell = tf.nn.rnn_cell.DropoutWrapper(
+          rnn_cell, output_keep_prob=keep_prob)
       
-      cell = tf.nn.rnn_cell.MultiRNNCell([lstm_cell] * num_layers)
+      cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_layers)
 
       self._state_size = cell.state_size
-      # print("State size is: %d"%self._state_size)
-
+      #print(self._state_size)
+      #exit()
       state_shape=[batch_size, cell.state_size]
       self._reset_state_flags = tf.placeholder(tf.float32, shape=state_shape)
       self._saved_state = tf.Variable(tf.zeros(state_shape), dtype=tf.float32,
@@ -90,9 +91,9 @@ class DeepRnnModel(object):
     
       state = tf.mul( self._saved_state, self._reset_state_flags )
     
-      outputs, state = rnn.rnn(cell, self._inputs,
-                               initial_state=state,
-                                   sequence_length=self._seq_lengths)
+      outputs, state = tf.nn.rnn(cell, self._inputs,
+                                     initial_state=state,
+                                     sequence_length=self._seq_lengths)
 
       softmax_w = tf.get_variable("softmax_w", [num_hidden, num_outputs])
       softmax_b = tf.get_variable("softmax_b", [num_outputs])

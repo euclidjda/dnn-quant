@@ -6,7 +6,7 @@ Tool for building deep / recurrent neural network models for systematic fundamen
 ## Installation and Setup
 
 You will need to have a working installation of tensorflow for your platform.
-See https://www.tensorflow.org/versions/r0.9/get_started/os_setup.html
+See https://www.tensorflow.org/versions/r0.10/get_started/os_setup.html#pip-installation
 
 
 Clone this repository with:

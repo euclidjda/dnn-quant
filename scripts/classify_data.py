@@ -68,9 +68,7 @@ def main(_):
     print('p0 p1')
     
     for i in range(num_data_points):
-      xvals, yvals, seq_length, reset_flag = data.next()
-      _, _, _, preds = model.step(session, xvals, yvals,
-                                    seq_length, reset_flag )
+      _, _, _, preds = model.step(session, data )
       print("%.4f %.4f" % (preds[0][0],preds[0][1]))
       sys.stdout.flush()    
 
