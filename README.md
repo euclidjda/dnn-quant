@@ -2,12 +2,14 @@
 
 Tool for building deep / recurrent neural network models for systematic fundamental investing.
 
-
 ## Installation and Setup
 
 You will need to have a working installation of tensorflow for your platform.
-See https://www.tensorflow.org/versions/r0.10/get_started/os_setup.html#pip-installation
+See https://www.tensorflow.org/versions/r0.10/get_started/os_setup.html
 
+### Tested platforms include:
+- python 3.4, Ubuntu 14.04.5 LTS, with GPU, tensorflow r0.10 & tensorflow r0.08
+- python 3.5, Mac OSX 10.11.5, no GPU, tensorflow r0.10 & tensorflow r0.08
 
 Clone this repository with:
 
