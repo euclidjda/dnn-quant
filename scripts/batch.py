@@ -14,7 +14,26 @@
 # ==============================================================================
 
 class Batch(object):
+    """
+    Attributes:
 
+      inputs: The batch's sequences of input values. The number of 
+        sequences is equal to batch_size and the physical size of each
+        sequence is equal to num_unrollings. The seq_lengths return
+        value (see below) might be less than num_unrollings if a sequence 
+        ends in less steps than num_unrollings.
+      targets: The batch's sequences of target values. The number of 
+        sequences is equal to batch_size and the physical size of each
+        sequence is equal to num_unrollings.
+      seq_lengths: An integer vectors of size batch_size that contains the
+        length of each sequence in the batch. The maximum length is
+        num_unrollings.
+      reset_flags: A binary vector of size batch_size. A value of 0 in
+        position n indicates that the data in sequence n of the batch is a
+        new entity since the last batch and that the RNN's state should be
+        reset.
+    """
+    
     def __init__(self,inputs,targets,seq_lengths,reset_flags):
         self._inputs = inputs
         self._targets = targets

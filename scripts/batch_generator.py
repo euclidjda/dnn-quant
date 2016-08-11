@@ -17,10 +17,8 @@ import os
 import numpy as np
 import pandas as pd
 
-from batch import Batch
-
 _NUM_CLASSES = 2
-        
+
 class BatchGenerator(object):
     """
     BatchGenerator object takes a data file are returns an object with
@@ -135,25 +133,10 @@ class BatchGenerator(object):
     def next_batch(self):
         """Generate the next batch of sequences from the data.
         Returns:
-          x_batch: The batch's sequences of input values. The number of 
-            sequences is equal to batch_size and the physical size of each
-            sequence is equal to num_unrollings. The seq_lengths return
-            value (see below) might be less than num_unrollings if a sequence 
-            ends in less steps than num_unrollings.
-          y_batch: The batch's sequences of target values. The number of 
-            sequences is equal to batch_size and the physical size of each
-            sequence is equal to num_unrollings.
-          seq_lengths: An integer vectors of size batch_size that contains the
-            length of each sequence in the batch. The maximum length is
-            num_unrollings.
-          reset_flags: A binary vector of size batch_size. A value of 0 in
-            position n indicates that the data in sequence n of the batch is a
-            new entity since the last batch and that the RNN's state should be
-            reset.
+          A batch of type Batch (see below)
         """
         self._seq_lengths[:] = self._num_unrollings
         reset_flags = self._get_reset_flags()
-        # print(self._seq_lengths)
         x_batch = list()
         y_batch = list()
         for step in range(self._num_unrollings):
@@ -172,3 +155,46 @@ class BatchGenerator(object):
     def num_batches(self):
         return self._num_batches
         
+class Batch(object):
+    """
+    Attributes:
+
+      inputs: The batch's sequences of input values. The number of 
+        sequences is equal to batch_size and the physical size of each
+        sequence is equal to num_unrollings. The seq_lengths return
+        value (see below) might be less than num_unrollings if a sequence 
+        ends in less steps than num_unrollings.
+      targets: The batch's sequences of target values. The number of 
+        sequences is equal to batch_size and the physical size of each
+        sequence is equal to num_unrollings.
+      seq_lengths: An integer vectors of size batch_size that contains the
+        length of each sequence in the batch. The maximum length is
+        num_unrollings.
+      reset_flags: A binary vector of size batch_size. A value of 0 in
+        position n indicates that the data in sequence n of the batch is a
+        new entity since the last batch and that the RNN's state should be
+        reset.
+    """
+    
+    def __init__(self,inputs,targets,seq_lengths,reset_flags):
+        self._inputs = inputs
+        self._targets = targets
+        self._seq_lengths = seq_lengths
+        self._reset_flags = reset_flags
+
+    @property
+    def inputs(self):
+        return self._inputs
+
+    @property
+    def targets(self):
+        return self._targets
+
+    @property
+    def seq_lengths(self):
+        return self._seq_lengths
+
+    @property
+    def reset_flags(self):
+        return self._reset_flags
+
