@@ -49,12 +49,12 @@ def main(_):
 
   data_path = model_utils.get_data_path(config.data_dir,config.test_datafile)
   
-  data = BatchGenerator(data_path,
-                          config.key_name, config.target_name,
-                          config.num_inputs,
-                          batch_size, num_unrollings )
+  dataset = BatchGenerator(data_path,
+                            config.key_name, config.target_name,
+                            config.num_inputs,
+                            batch_size, num_unrollings )
 
-  num_data_points = data.num_data_points()
+  num_data_points = dataset.num_data_points()
   
   tf_config = tf.ConfigProto( allow_soft_placement=True,
                                 log_device_placement=False )
@@ -68,7 +68,8 @@ def main(_):
     print('p0 p1')
     
     for i in range(num_data_points):
-      _, _, _, preds = model.step(session, data )
+      batch = dataset.next_batch()
+      _, _, _, preds = model.step(session, batch )
       print("%.4f %.4f" % (preds[0][0],preds[0][1]))
       sys.stdout.flush()    
 

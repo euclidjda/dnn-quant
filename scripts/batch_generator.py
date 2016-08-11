@@ -1,4 +1,4 @@
-# Copyright 2015 Euclidean Technologies Management LLC  All Rights Reserved.
+# Copyright 2016 Euclidean Technologies Management LLC  All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@ import os
 import numpy as np
 import pandas as pd
 
-_NUM_CLASSES = 2
+from batch import Batch
 
+_NUM_CLASSES = 2
+        
 class BatchGenerator(object):
     """
     BatchGenerator object takes a data file are returns an object with
-    a next() function. The next() function yields a batch of data 
+    a next_batch() function. The next_batch() function yields a batch of data 
     sequences from the datafile whose shape is specified by batch_size 
     and num_unrollings.
     """
@@ -86,11 +88,11 @@ class BatchGenerator(object):
 
     def _calc_num_batches(self):
         tmp_cursor = self._cursor[:] # copy cursor
-        self.rewind_cursor()
+        self.rewind()
         end_idx = self._init_cursor[1] if self._batch_size > 1 else self._data_size-1
         num_batches = 0
         while (self._cursor[0] < end_idx - self._num_unrollings):
-            self.next()
+            self.next_batch()
             num_batches += 1
         self._cursor = tmp_cursor[:]
         return num_batches
@@ -130,7 +132,7 @@ class BatchGenerator(object):
                 self._cursor[b] = (self._cursor[b] + 1) % self._data_size
         return x, y
 
-    def next(self):
+    def next_batch(self):
         """Generate the next batch of sequences from the data.
         Returns:
           x_batch: The batch's sequences of input values. The number of 
@@ -158,12 +160,12 @@ class BatchGenerator(object):
             x, y = self._next_step(step)
             x_batch.append(x)
             y_batch.append(y)
-        return x_batch, y_batch, self._seq_lengths, reset_flags
+        return Batch(x_batch,y_batch,self._seq_lengths,reset_flags)
 
     def num_data_points(self):
         return self._data_size
 
-    def rewind_cursor(self):
+    def rewind(self):
         self._cursor = self._init_cursor[:]
 
     @property

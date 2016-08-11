@@ -19,7 +19,7 @@ To install prerequisites, setup your enviroment, and test the system run the fol
 $ cd dnn-quant
 $ sudo pip3 install -r requirements.txt
 $ ./scripts/setup.py
-$ cd experiments/system-test
+$ cd exprmnts/system-test
 $ train_net.py --config=system-test.conf
 $ classify_data.py --config=system-test.conf > test.out 
 ```

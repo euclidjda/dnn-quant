@@ -33,13 +33,13 @@ import configs
 from tensorflow.python.platform import gfile
 from batch_generator import BatchGenerator
 
-def run_epoch(session, model, batches, passes=1, verbose=False):
-  """Run the specified data set (batches) through the model.
+def run_epoch(session, model, dataset, passes=1, verbose=False):
+  """Run the specified data set through the model.
 
   Args:
     session: The tf session to run graph in
     model: The model. An object of type deep_rnn_model
-    batches: The data. An object created by BatchGenerator
+    dataset: The data. An object created by BatchGenerator
     passes: The number of times to run through the entire dataset
     verbose: Display iteration output to stdout
   Returns:
@@ -49,7 +49,7 @@ def run_epoch(session, model, batches, passes=1, verbose=False):
     RuntimeError: the batch size cannot be larger than the training
       data set size
   """
-  num_batches = batches.num_batches
+  num_batches = dataset.num_batches
   start_time = time.time()
   costs = 0.0
   errors = 0.0
@@ -61,13 +61,14 @@ def run_epoch(session, model, batches, passes=1, verbose=False):
     raise RuntimeError("batch_size*num_unrollings is larger "
                          "than the training set size.")
 
-  batches.rewind_cursor()
+  dataset.rewind() # make sure we start a beggining
 
   for _ in range(passes):
 
     for step in range(num_batches):
 
-      cost, error, _, _ = model.step(session, batches)
+      batch = dataset.next_batch()
+      cost, error, _, _ = model.step(session, batch)
       costs  += cost
       errors += error
       count  += 1
@@ -95,13 +96,13 @@ def main(_):
   train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
   valid_path = model_utils.get_data_path(config.data_dir,config.valid_datafile)
  
-  train_batches = BatchGenerator(train_path,
+  train_data = BatchGenerator(train_path,
                                    config.key_name, config.target_name,
                                    config.num_inputs,
                                    config.batch_size,
                                    config.num_unrollings )
 
-  valid_batches = BatchGenerator(valid_path,
+  valid_data = BatchGenerator(valid_path,
                                    config.key_name, config.target_name,
                                    config.num_inputs,
                                    config.batch_size,
@@ -127,12 +128,12 @@ def main(_):
                                               perf_history )
 
       train_xentrop, train_error = run_epoch(session,
-                                                  mtrain, train_batches,
+                                                  mtrain, train_data,
                                                   passes=config.passes,
                                                   verbose=True)
 
       valid_xentrop, valid_error = run_epoch(session,
-                                                  mvalid, valid_batches,
+                                                  mvalid, valid_data,
                                                   passes=1,
                                                   verbose=True)
       
@@ -158,7 +159,7 @@ def main(_):
       # and so these can only be approx equal.
       if (False):
         check_xentrop, check_error = run_epoch(session,
-                                                    mtrain, train_batches,
+                                                    mtrain, train_data,
                                                     passes=1,
                                                     verbose=True)
         print("Check: %d XEntrop: %.2f =? %.2f Error: %.6f =? %.6f " %

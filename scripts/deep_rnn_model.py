@@ -121,33 +121,32 @@ class DeepRnnModel(object):
       optimizer = tf.train.GradientDescentOptimizer(self.lr)
       self._train_op = optimizer.apply_gradients(zip(grads, tvars))
 
-  def step(self, sess, batches):
+  def step(self, sess, batch):
     """
     Take one step through the data set. A step contains a sequences of batches
     where the sequence is of size num_unrollings. The batches are size
     batch_size. 
     Args:
       sess: current tf session the model is being run in
-      batches: an obect of type BatchGenerator
+      batch: batch of data of type Batch
     Returns:
       cost: cross entropy cost function for the next batch in batches
       error: binary classifcation error rate for the next batch in batches
       state: the final states of model after a step through the batch
       predictions: the model predictions for each data point in batch
     """
-    x_batches, y_batches, seq_lengths, reset_flags = batches.next()
-        
-    feed_dict = dict()
-      
-    flags = np.repeat( reset_flags.reshape( [self._batch_size, 1] ),
-                         self._state_size, axis=1 )
 
-    feed_dict[self._reset_state_flags] =  flags
-    feed_dict[self._seq_lengths] = seq_lengths
+    feed_dict = dict()
+
+    reset_flags = np.repeat( batch.reset_flags.reshape( [self._batch_size, 1] ),
+                               self._state_size, axis=1 )
+
+    feed_dict[self._reset_state_flags] = reset_flags
+    feed_dict[self._seq_lengths] = batch.seq_lengths
     
     for i in range(self._num_unrollings):
-      feed_dict[self._inputs[i]]  = x_batches[i]
-      feed_dict[self._targets[i]] = y_batches[i]
+      feed_dict[self._inputs[i]]  = batch.inputs[i]
+      feed_dict[self._targets[i]] = batch.targets[i]
 
     cost, error, state, predictions, _ = sess.run([self._cost,
                                                   self._error,
