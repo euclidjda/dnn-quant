@@ -133,7 +133,7 @@ class BatchGenerator(object):
     def next_batch(self):
         """Generate the next batch of sequences from the data.
         Returns:
-          A batch of type Batch (see below)
+          A batch of type Batch (see class def below)
         """
         self._seq_lengths[:] = self._num_unrollings
         reset_flags = self._get_reset_flags()
