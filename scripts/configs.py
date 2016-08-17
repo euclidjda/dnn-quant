@@ -129,6 +129,7 @@ def get_configs():
     """Defines all configuration params passable to command line.
     """
     DEFINE_string("default_gpu",'',"The default GPU to use e.g., /gpu:0")
+    DEFINE_string("nn_type",'rnn',"Net Type: mlp or rnn")
     DEFINE_string("key_name", '',"Key column name header in datafile")
     DEFINE_string("target_name", '',"Target column name header in datafile")
     DEFINE_string("train_datafile", '',"Training file")
@@ -138,17 +139,17 @@ def get_configs():
     DEFINE_string("model_dir", '',"Model directory")
     DEFINE_float("lr_decay",0.9, "Learning rate decay")
     DEFINE_float("init_scale",0.1, "Initial scale for weights")
-    DEFINE_float("max_grad_norm",5.0,"Gradient clipping")
+    DEFINE_float("max_grad_norm",10.0,"Gradient clipping")
     DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
-    DEFINE_float("keep_prob",0.5,"Keep probability for dropout")
-    DEFINE_integer("passes",4,"Passes through day per epoch")
-    DEFINE_integer("max_epoch",200,"Stop after max_epochs")
-    DEFINE_integer("min_history",36,"Minimum history required")
-    DEFINE_integer("num_unrollings",36,"Number of unrolling steps")
-    DEFINE_integer("batch_size",8,"Size of each batch")
-    DEFINE_integer("num_layers",2, "Numer of RNN layers")
-    DEFINE_integer("num_inputs",84,"Number of inputs")
-    DEFINE_integer("num_hidden",128,"Number of hidden layer units")
+    DEFINE_float("keep_prob",1.0,"Keep probability for dropout")
+    DEFINE_integer("passes",1,"Passes through day per epoch")
+    DEFINE_integer("max_epoch",0,"Stop after max_epochs")
+    DEFINE_integer("min_history",1,"Minimum history required")
+    DEFINE_integer("num_unrollings",1,"Number of unrolling steps")
+    DEFINE_integer("batch_size",10,"Size of each batch")
+    DEFINE_integer("num_layers",1, "Numer of RNN layers")
+    DEFINE_integer("num_inputs",10,"Number of inputs")
+    DEFINE_integer("num_hidden",10,"Number of hidden layer units")
 
     _global_parser.add_argument('--config', type=open,
                                     action=_LoadFromFile,

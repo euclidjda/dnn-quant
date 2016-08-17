@@ -19,3 +19,8 @@ instead of starting over
 8. (DONE) Confirm that code works under tensorflow version r0.10
 
 9. Create test suite that doesn't depend on prorprietary data.
+
+10. Create a sample experiment that doesn't depend on proprietary data
+
+11. Implement non-rnn (simple multi-layer perceptron) model
+    Maybe new class defined in deep_mlp_model.py

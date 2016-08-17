@@ -52,10 +52,8 @@ class DeepRnnModel(object):
           for this model
       """
       self._training = training
-      self._batch_size = batch_size = batch_size
-      self._num_unrollings = num_unrollings = num_unrollings
-      num_hidden  = num_hidden
-      num_inputs  = num_inputs
+      self._batch_size = batch_size
+      self._num_unrollings = num_unrollings
       num_outputs = _NUM_OUTPUTS
 
       self._seq_lengths = tf.placeholder(tf.int32, [batch_size])
@@ -82,8 +80,7 @@ class DeepRnnModel(object):
       cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_layers)
 
       self._state_size = cell.state_size
-      #print(self._state_size)
-      #exit()
+
       state_shape=[batch_size, cell.state_size]
       self._reset_state_flags = tf.placeholder(tf.float32, shape=state_shape)
       self._saved_state = tf.Variable(tf.zeros(state_shape), dtype=tf.float32,
@@ -155,7 +152,7 @@ class DeepRnnModel(object):
                                                   self._train_op],
                                               feed_dict)
 
-    return cost, error, state, predictions
+    return cost, error, predictions
 
   def assign_lr(self, session, lr_value):
     session.run(tf.assign(self.lr, lr_value))

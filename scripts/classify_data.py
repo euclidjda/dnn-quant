@@ -69,7 +69,7 @@ def main(_):
     
     for i in range(num_data_points):
       batch = dataset.next_batch()
-      _, _, _, preds = model.step(session, batch )
+      _, _, preds = model.step(session, batch )
       print("%.4f %.4f" % (preds[0][0],preds[0][1]))
       sys.stdout.flush()    
 

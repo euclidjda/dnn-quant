@@ -39,7 +39,7 @@ def run_epoch(session, model, dataset, passes=1, verbose=False):
   Args:
     session: The tf session to run graph in
     model: The model. An object of type deep_rnn_model
-    dataset: The data. An object created by BatchGenerator
+    dataset: The data. An object of type BatchGenerator
     passes: The number of times to run through the entire dataset
     verbose: Display iteration output to stdout
   Returns:
@@ -68,7 +68,7 @@ def run_epoch(session, model, dataset, passes=1, verbose=False):
     for step in range(num_batches):
 
       batch = dataset.next_batch()
-      cost, error, _, _ = model.step(session, batch)
+      cost, error, _ = model.step(session, batch)
       costs  += cost
       errors += error
       count  += 1
@@ -79,9 +79,8 @@ def run_epoch(session, model, dataset, passes=1, verbose=False):
 
   if verbose:
     print("."*(100-dot_count),end='')
-    print(" passes: %d evals: %d, speed: %.0f seconds"%
-            (passes, count * model.batch_size * model.num_unrollings,
-                  (time.time() - start_time) ) )
+    print(" passes: %d itters: %d, speed: %.0f seconds"%
+            (passes, count*model.batch_size, (time.time() - start_time) ) )
   sys.stdout.flush()
 
   return np.exp(costs / count), (errors / count)
