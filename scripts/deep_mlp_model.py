@@ -136,5 +136,5 @@ class DeepMlpModel(object):
     return self._lr
 
   @property
-  def batch_size(self):
+  def step_size(self):
     return self._batch_size

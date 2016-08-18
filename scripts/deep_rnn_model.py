@@ -178,8 +178,8 @@ class DeepRnnModel(object):
     return self._lr
 
   @property
-  def batch_size(self):
-    return self._batch_size
+  def step_size(self):
+    return self._batch_size*self._num_unrollings
 
   @property
   def num_unrollings(self):

@@ -106,9 +106,11 @@ def _create_all_models(session,config,verbose=False):
 
     if config.nn_type == 'rnn':
       return _create_all_models_rnn(session,config,verbose)
-    else:
+    elif config.nn_type == 'mlp':
       return _create_all_models_mlp(session,config,verbose)
-
+    else:
+      raise RuntimeError("Unknown net_type = %s"%config.nn_type)
+  
 
 def _create_all_models_rnn(session,config,verbose=False):    
 
