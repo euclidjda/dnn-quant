@@ -28,6 +28,10 @@ $ classify_data.py --config=system-test.conf > test.out
 - python 3.4, Ubuntu 14.04.5 LTS, with GPU, tensorflow r0.10 & tensorflow r0.08
 - python 3.5, Mac OSX 10.11.5, no GPU, tensorflow r0.10 & tensorflow r0.08
 
+
+---
+
+
 ## Running the System Test Experiments
 
 ```shell
@@ -55,6 +59,11 @@ id target x1 x2 p0 p1
 
 Where p0 and p1 are the model's output. p0 is the probability that the
 target is -1 and p1 is the probability that the target is +1.
+
+
+---
+
+
 
 ## Running the MLP and RNN Holdout Experiments
 
