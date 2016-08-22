@@ -122,9 +122,9 @@ class BatchGenerator(object):
         self._batch_size = batch_size
         self._data = data
         self._data_size = len(data)
-        # Create a cursor of equally spaced indicies into the dataset. The
-        # cursor will be used to keep track of each sequences in a batches position
-        # in the dataset
+        # Create a cursor of equally spaced indicies into the dataset. Each index
+        # in the cursor points to one sequence in a batch and is used to keep
+        # track of where we are in the dataset.
         segment = self._data_size // batch_size
         self._init_cursor = [ offset * segment for offset in range(batch_size) ]
         # The following loop ensures that every starting index in the cursor is
