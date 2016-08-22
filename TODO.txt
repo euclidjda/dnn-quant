@@ -1,26 +1,38 @@
 
-1. (DONE) Test different size batch configurations, how to handle large batch size x 
+- Create python script that takes predications and targets and calcs
+  performance metrics on out of sample data by date (this is done by
+  time_plot.R but it would be nice to have something that doesn't
+  depend on installing R)
+  
+- Change keep_prob for dropout to a tf placeholder so that we dont need two
+  seperate model objects for training and validation
+  
+- Allow RNN model step function to exclude the first num_unrollings
+  from the loss function calculation
+
+- Redo configs.py so that it is not such a kludge and give ability for
+  user to make a command line arg mandatory
+
+- Make training global step number pick up the last number from last save
+instead of starting over at step #0
+
+- (DONE) Test different size batch configurations, how to handle large batch size x 
 unrollings that produce zero steps? User "raise RuntimeError(msg) to handle bad 
 config" 
 
-2. Re-organize configs.py and allow for arguments to be mandatory 
+- (DONE) Test for bad configs such as training files doesn't exist
 
-3. (DONE) Test for bad configs such as training files doesn't exist
+-(DONE) Report network geometry in verbose mode before training begins
 
-4. (DONE) Report network geometry in verbose mode before training begins
+- (DONE) Force secret key to be input at stdin in download_data.py
 
-5. (DONE) Force secret key to be input at stdin in download_data.py
+- (DONE) Make check point directory if doesn't exist.
 
-6  (DONE) Make check point directory if doesn't exist.
+- (DONE) Confirm that code works under tensorflow version r0.10
 
-7. Make training step number pick up the last number from last save
-instead of starting over
+- (DONE) Create test suite that doesn't depend on prorprietary data.
 
-8. (DONE) Confirm that code works under tensorflow version r0.10
+- (DONE) Create a sample experiment that doesn't depend on proprietary data
 
-9. Create test suite that doesn't depend on prorprietary data.
-
-10. Create a sample experiment that doesn't depend on proprietary data
-
-11. Implement non-rnn (simple multi-layer perceptron) model
+- (DONE)  Implement non-rnn (simple multi-layer perceptron) model
     Maybe new class defined in deep_mlp_model.py

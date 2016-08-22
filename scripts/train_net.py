@@ -53,6 +53,7 @@ def run_epoch(session, model, dataset, passes=1, verbose=False):
   start_time = time.time()
   costs = 0.0
   errors = 0.0
+  iters = 0
   count = 0
   dot_count = 0
   prog_int = passes*num_batches/100 # progress interval for stdout
@@ -66,11 +67,12 @@ def run_epoch(session, model, dataset, passes=1, verbose=False):
   for _ in range(passes):
 
     for step in range(num_batches):
-
+      
       batch = dataset.next_batch()
-      cost, error, _ = model.step(session, batch)
+      cost, error, evals, _ = model.step(session, batch)
       costs  += cost
       errors += error
+      iters  += evals
       count  += 1
       if ( verbose and ((prog_int<=1) or (step % (int(prog_int)+1)) == 0) ):
         dot_count += 1
@@ -79,8 +81,8 @@ def run_epoch(session, model, dataset, passes=1, verbose=False):
 
   if verbose:
     print("."*(100-dot_count),end='')
-    print(" passes: %d itters: %d, speed: %.0f seconds"%
-            (passes, count*model.step_size, (time.time() - start_time) ) )
+    print(" passes: %d iters: %d, speed: %.0f seconds"%
+            (passes, iters, (time.time() - start_time) ) )
   sys.stdout.flush()
 
   return np.exp(costs / count), (errors / count)
@@ -94,7 +96,7 @@ def main(_):
 
   train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
   valid_path = model_utils.get_data_path(config.data_dir,config.valid_datafile)
- 
+  
   train_data = BatchGenerator(train_path,
                                    config.key_name, config.target_name,
                                    config.num_inputs,

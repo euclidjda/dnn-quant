@@ -114,7 +114,7 @@ class DeepMlpModel(object):
     #print(predictions)
     #print(error)
     
-    return cost, error, predictions
+    return cost, error, self._batch_size, predictions
 
   def assign_lr(self, session, lr_value):
     session.run(tf.assign(self._lr, lr_value))
@@ -134,7 +134,3 @@ class DeepMlpModel(object):
   @property
   def lr(self):
     return self._lr
-
-  @property
-  def step_size(self):
-    return self._batch_size

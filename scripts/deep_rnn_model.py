@@ -100,13 +100,13 @@ class DeepRnnModel(object):
         targets = tf.concat(0, self._targets)
         loss = tf.nn.softmax_cross_entropy_with_logits(logits, targets)
 
-      iters = tf.reduce_sum( tf.to_float( self._seq_lengths ) )
+      self._evals = evals = tf.reduce_sum( tf.to_float( self._seq_lengths ) )
 
-      self._cost = cost = tf.reduce_sum(loss) / iters
+      self._cost = cost = tf.reduce_sum(loss) / evals
       self._final_state = state
       self._predictions = tf.nn.softmax(logits)
       errors = tf.mul( tf.floor( self._predictions + 0.5 ), targets )
-      self._error = 1.0 - tf.reduce_sum(errors) / iters
+      self._error = 1.0 - tf.reduce_sum(errors) / evals
     
       if not training:
         self._train_op = tf.no_op()
@@ -145,14 +145,15 @@ class DeepRnnModel(object):
       feed_dict[self._inputs[i]]  = batch.inputs[i]
       feed_dict[self._targets[i]] = batch.targets[i]
 
-    cost, error, state, predictions, _ = sess.run([self._cost,
-                                                  self._error,
-                                                  self._final_state,
-                                                  self._predictions,
-                                                  self._train_op],
-                                              feed_dict)
-
-    return cost, error, predictions
+    cost, error, state, evals, predictions, _ = sess.run([self._cost,
+                                                      self._error,
+                                                      self._final_state,
+                                                      self._evals,
+                                                      self._predictions,
+                                                      self._train_op],
+                                                  feed_dict)
+    
+    return cost, error, evals, predictions
 
   def assign_lr(self, session, lr_value):
     session.run(tf.assign(self.lr, lr_value))
@@ -176,10 +177,6 @@ class DeepRnnModel(object):
   @property
   def lr(self):
     return self._lr
-
-  @property
-  def step_size(self):
-    return self._batch_size*self._num_unrollings
 
   @property
   def num_unrollings(self):
