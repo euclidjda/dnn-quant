@@ -134,7 +134,6 @@ def get_configs():
     DEFINE_string("target_name", '',"Target column name header in datafile")
     DEFINE_string("train_datafile", '',"Training file")
     DEFINE_string("valid_datafile", '',"Validation file")
-    DEFINE_string("test_datafile", '',"Datafile used by classify_data.py")
     DEFINE_string("data_dir",'',"The data directory")
     DEFINE_string("model_dir", '',"Model directory")
     DEFINE_float("lr_decay",0.9, "Learning rate decay")

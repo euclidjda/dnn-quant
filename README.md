@@ -21,7 +21,6 @@ $ sudo pip3 install -r requirements.txt
 $ ./scripts/setup.py
 $ cd exprmnts/system-tests
 $ train_net.py --config=system-test.conf
-$ classify_data.py --config=system-test.conf > test.out 
 ```
 
 ### Tested platforms include:
@@ -37,7 +36,7 @@ $ classify_data.py --config=system-test.conf > test.out
 ```shell
 $ cd exprmnts/system-tests
 $ train_net.py --config=system-test.conf
-$ classify_data.py --config=system-test.conf > preds.dat
+$ classify_data.py --config=system-test.conf --test_datafile=mlp-xor-test.dat --output=preds.dat
 $ paste -d ' ' $DNN_QUANT_ROOT/datasets/mlp-xor-test.dat preds.dat  > results.dat
 $ head results.dat
 ```
@@ -82,13 +81,14 @@ To train the MLP model.
 ```shell
 $ cd exprmnts/holdout-exprmnts-1/
 $ train_ney.py --config=mlp-tanh.conf
-$ classify_data.py --config=mlp-tanh.conf > mlp-tanh-pred.dat
+$ classify_data.py --config=mlp-tanh.conf --test_datafile=test-1yr.dat --output=mlp-output.dat
 ```
 
-To train the RNN model.
+To train the RNN model. The --time_name parameter tells classify_data.py
+to organize the summary statistics by date
 
 ```shell
 $ train_ney.py --config=rnn-gru-small.conf
-$ classify_data.py --config=rnn-gru-small.conf > rnn-gru-small-pred.dat
+$ classify_data.py --config=rnn-gru-small.conf --test_datafile=all-1yr.dat --time_name=date
 ```
 

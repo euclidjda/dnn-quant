@@ -14,7 +14,7 @@
   user to make a command line arg mandatory
 
 - Make training global step number pick up the last number from last save
-instead of starting over at step #0
+instead of starting over at epoch #1
 
 - (DONE) Test different size batch configurations, how to handle large batch size x 
 unrollings that produce zero steps? User "raise RuntimeError(msg) to handle bad 
@@ -22,7 +22,7 @@ config"
 
 - (DONE) Test for bad configs such as training files doesn't exist
 
--(DONE) Report network geometry in verbose mode before training begins
+- (DONE) Report network geometry in verbose mode before training begins
 
 - (DONE) Force secret key to be input at stdin in download_data.py
 
