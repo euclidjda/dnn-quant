@@ -130,6 +130,7 @@ class DeepRnnModel(object):
       cost: cross entropy cost function for the next batch in batches
       error: binary classifcation error rate for the next batch in batches
       state: the final states of model after a step through the batch
+      evals: number of data points evaluated in the batch
       predictions: the model predictions for each data point in batch
     """
 
