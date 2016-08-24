@@ -55,9 +55,10 @@ def main(_):
   data_path = model_utils.get_data_path(config.data_dir,config.test_datafile)
   
   dataset = BatchGenerator(data_path,
-                            config.key_name, config.target_name,
-                            config.num_inputs,
-                            batch_size, num_unrollings )
+                           config.key_field, 
+                           config.target_field,
+                           config.num_inputs,
+                           batch_size, num_unrollings )
 
   num_data_points = dataset.num_data_points()
   

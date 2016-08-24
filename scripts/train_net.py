@@ -98,13 +98,13 @@ def main(_):
   valid_path = model_utils.get_data_path(config.data_dir,config.valid_datafile)
   
   train_data = BatchGenerator(train_path,
-                                   config.key_name, config.target_name,
+                                   config.key_field, config.target_field,
                                    config.num_inputs,
                                    config.batch_size,
                                    config.num_unrollings )
 
   valid_data = BatchGenerator(valid_path,
-                                   config.key_name, config.target_name,
+                                   config.key_field, config.target_field,
                                    config.num_inputs,
                                    config.batch_size,
                                    config.num_unrollings )

@@ -84,11 +84,11 @@ $ train_ney.py --config=mlp-tanh.conf
 $ classify_data.py --config=mlp-tanh.conf --test_datafile=test-1yr.dat --output=mlp-output.dat
 ```
 
-To train the RNN model. The --time_name parameter tells classify_data.py
+To train the RNN model. The --time_field parameter tells classify_data.py
 to organize the summary statistics by date
 
 ```shell
 $ train_ney.py --config=rnn-gru-small.conf
-$ classify_data.py --config=rnn-gru-small.conf --test_datafile=all-1yr.dat --time_name=date
+$ classify_data.py --config=rnn-gru-small.conf --test_datafile=all-1yr.dat --time_field=date
 ```
 

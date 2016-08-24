@@ -130,8 +130,8 @@ def get_configs():
     """
     DEFINE_string("default_gpu",'',"The default GPU to use e.g., /gpu:0")
     DEFINE_string("nn_type",'rnn',"Net Type: mlp or rnn")
-    DEFINE_string("key_name", '',"Key column name header in datafile")
-    DEFINE_string("target_name", '',"Target column name header in datafile")
+    DEFINE_string("key_field", '',"Key column name header in datafile")
+    DEFINE_string("target_field", '',"Target column name header in datafile")
     DEFINE_string("train_datafile", '',"Training file")
     DEFINE_string("valid_datafile", '',"Validation file")
     DEFINE_string("data_dir",'',"The data directory")
