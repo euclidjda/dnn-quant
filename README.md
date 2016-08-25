@@ -77,7 +77,7 @@ method. One is a Multilayer Perceptron Model (MLP) and the other is a
 Recurrent Neural Network Model (RNN).
 
 To train the RNN model. The --time_field parameter tells classify_data.py
-to organize the summary statistics by date
+to organize the summary statistics by date.
 
 ```shell
 $ train_ney.py --config=rnn-gru-small.conf
