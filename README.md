@@ -76,7 +76,7 @@ There are two experiement types that use the holdout training
 method. One is a Multilayer Perceptron Model (MLP) and the other is a
 Recurrent Neural Network Model (RNN).
 
-To train the MLP model.
+To train the MLP model (Note: at this point this does not work at all :-).
 
 ```shell
 $ cd exprmnts/holdout-exprmnts-1/
