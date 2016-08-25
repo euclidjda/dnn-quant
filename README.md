@@ -76,19 +76,19 @@ There are two experiement types that use the holdout training
 method. One is a Multilayer Perceptron Model (MLP) and the other is a
 Recurrent Neural Network Model (RNN).
 
-To train the MLP model (Note: at this point this does not work at all :-).
-
-```shell
-$ cd exprmnts/holdout-exprmnts-1/
-$ train_ney.py --config=mlp-tanh.conf
-$ classify_data.py --config=mlp-tanh.conf --test_datafile=test-1yr.dat --output=mlp-output.dat
-```
-
 To train the RNN model. The --time_field parameter tells classify_data.py
 to organize the summary statistics by date
 
 ```shell
 $ train_ney.py --config=rnn-gru-small.conf
 $ classify_data.py --config=rnn-gru-small.conf --test_datafile=all-1yr.dat --time_field=date
+```
+
+To train the MLP model (Note: at this point this does not work at all :-).
+
+```shell
+$ cd exprmnts/holdout-exprmnts-1/
+$ train_ney.py --config=mlp-tanh.conf
+$ classify_data.py --config=mlp-tanh.conf --test_datafile=test-1yr.dat --output=mlp-output.dat
 ```
 
