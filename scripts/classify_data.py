@@ -149,12 +149,12 @@ def print_summary_stats(stats):
 
     cost  /= n
     error /= n
-    tpos  /= n
-    tneg  /= n
-    fpos  /= n
-    fneg  /= n
 
-    print("%s loss=%.4f error=%.4f" % (key,cost,error))
+    precision = tpos / (tpos+fpos)
+    recall    = tpos / (tpos+fneg)
+
+    print("%s loss=%.4f error=%.4f prec=%.4f recall=%.4f" % 
+          (key,cost,error,precision,recall))
 
 if __name__ == "__main__":
   tf.app.run()
