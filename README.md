@@ -4,7 +4,7 @@ Tool for building deep / recurrent neural network models for systematic fundamen
 
 ## Installation and Setup
 
-You will need *python3* and the package manager *pip3* installed on
+You will need python3 and the package manager pip3 installed on
 your system.
 
 You will also need to have a working installation of tensorflow for your platform.
