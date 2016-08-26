@@ -4,7 +4,9 @@ Tool for building deep / recurrent neural network models for systematic fundamen
 
 ## Installation and Setup
 
-You will need to have a working installation of tensorflow for your platform.
+You will need python3 installed on your machine.
+
+You will also need to have a working installation of tensorflow for your platform.
 See https://www.tensorflow.org/versions/r0.10/get_started/os_setup.html
 
 Clone this repository with:
@@ -80,6 +82,7 @@ To train the RNN model. The --time_field parameter tells classify_data.py
 to organize the summary statistics by date.
 
 ```shell
+$ cd exprmnts/holdout-exprmnts-1/
 $ train_ney.py --config=rnn-gru-small.conf
 $ classify_data.py --config=rnn-gru-small.conf --test_datafile=all-1yr.dat --time_field=date
 ```
