@@ -1,4 +1,8 @@
 
+- Complete and fix some issues with current dataset
+  1. Needs to add dividends, lctq, loq, and capital expenditures
+  2. Momentum calcs are wrong size (i.e., 6mo is actually 5mo)
+
 - Support multi-class output
 
 - Allow for hidden layers to have different sizes in both MLP and RNN models.
