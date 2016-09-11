@@ -85,7 +85,7 @@ def run_epoch(session, model, dataset, passes=1, verbose=False):
             (passes, iters, (time.time() - start_time) ) )
   sys.stdout.flush()
 
-  return np.exp(costs / count), (errors / count)
+  return (costs / count), (errors / count)
 
 def main(_):
   """

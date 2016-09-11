@@ -54,7 +54,8 @@ class DeepMlpModel(object):
       self._inputs = tf.placeholder(tf.float32, shape=[batch_size,num_inputs])
       self._targets = tf.placeholder(tf.float32, shape=[batch_size,num_outputs])
 
-      outputs = self._inputs
+      # outputs = self._inputs
+      outputs = tf.nn.dropout(self._inputs,keep_prob)
       num_prev = num_inputs
 
       for i in range(num_layers):
