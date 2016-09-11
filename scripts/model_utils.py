@@ -30,7 +30,8 @@ def get_data_path(data_dir, filename):
         path = os.environ['DNN_QUANT_ROOT'] + '/' + path
     return path
 
-def adjust_learning_rate(session, model, learning_rate, lr_decay, batch_perfs):
+def adjust_learning_rate(session, model, learning_rate,
+                           lr_decay, batch_perfs, num=5):
   """
   Systematically decrease learning rate if current performance is not at
   least 1% better than the moving average performance 
@@ -44,8 +45,8 @@ def adjust_learning_rate(session, model, learning_rate, lr_decay, batch_perfs):
   Returns:
     the updated learning rate being used by the model for training
   """
-  if len(batch_perfs) > 5:
-    mean = sum(batch_perfs[-5:-1])/4.0
+  if len(batch_perfs) > num:
+    mean = sum(batch_perfs[-num:-1])/(num-1.0)
     curr = batch_perfs[-1]
     # If performance has dropped by less than 1%, decay learning_rate
     if ((learning_rate >= 0.0001) and (mean > 0.0)
@@ -54,17 +55,17 @@ def adjust_learning_rate(session, model, learning_rate, lr_decay, batch_perfs):
   model.assign_lr(session, learning_rate)
   return learning_rate
 
-def get_training_models(session, config, verbose=True):
-    mtrain, mvalid, mdeploy = get_all_models(session, config, verbose)
-    return mtrain, mvalid
+def get_training_model(session, config, verbose=True):
+    mtrain, mdeploy = get_all_models(session, config, verbose)
+    return mtrain
 
 def get_trained_model(session, config, verbose=False):
-    mtrain, mvalid, mdeploy = get_all_models(session, config, verbose)
+    mtrain, mdeploy = get_all_models(session, config, verbose)
     return mdeploy
 
 def get_all_models(session, config, verbose=False):
     """
-    Creates the three graphs for training, validation, and testing/deployment.
+    Creates the three graphs for training and testing/deployment.
     If a saved model exists in config.model_dir, read it from file.
     Args:
       session: the tf session
@@ -72,11 +73,10 @@ def get_all_models(session, config, verbose=False):
       verbose: print status output if true
     Returns:
       mtrain:  training model, initialized frm model_dir if exists
-      mvalid:  validation model, initialized frm model_dir if exists
       mdeploy: testing/deployment model, initialized frm model_dir if exists
     """
     
-    mtrain, mvalid, mdeploy = _create_all_models(session, config, verbose)
+    mtrain, mdeploy = _create_all_models(session, config, verbose)
     
     ckpt = tf.train.get_checkpoint_state(config.model_dir)
     if ckpt and gfile.Exists(ckpt.model_checkpoint_path):
@@ -89,7 +89,7 @@ def get_all_models(session, config, verbose=False):
         print("Created model with fresh parameters.")
       session.run(tf.initialize_all_variables())
 
-    return mtrain, mvalid, mdeploy
+    return mtrain, mdeploy
 
 def _create_all_models(session,config,verbose=False):
     """
@@ -138,15 +138,6 @@ def _create_all_models_rnn(session,config,verbose=False):
                               keep_prob      = config.keep_prob,
                               training       = True)
 
-    # Validation graph (keep prob = 1.0)
-    with tf.variable_scope("model", reuse=True, initializer=initer), \
-      tf.device(config.default_gpu):
-        mvalid = DeepRnnModel(num_layers     = config.num_layers,
-                              num_inputs     = config.num_inputs,
-                              num_hidden     = config.num_hidden,
-                              num_unrollings = config.num_unrollings,
-                              batch_size     = config.batch_size,
-                              training       = False)
 
     # Deployment / classification graph
     with tf.variable_scope("model", reuse=True, initializer=initer), \
@@ -158,7 +149,7 @@ def _create_all_models_rnn(session,config,verbose=False):
                               batch_size     = 1,
                               training       = False)
       
-    return mtrain, mvalid, mdeploy
+    return mtrain, mdeploy
 
 
 def _create_all_models_mlp(session,config,verbose=False):    
@@ -187,15 +178,6 @@ def _create_all_models_mlp(session,config,verbose=False):
                               keep_prob      = config.keep_prob,
                               training       = True)
 
-    # Validation graph (keep prob = 1.0)
-    with tf.variable_scope("model", reuse=True, initializer=initer), \
-      tf.device(config.default_gpu):
-        mvalid = DeepMlpModel(num_layers     = config.num_layers,
-                              num_inputs     = config.num_inputs,
-                              num_hidden     = config.num_hidden,
-                              batch_size     = config.batch_size,
-                              training       = False)
-    
     # Deployment / classification graph
     with tf.variable_scope("model", reuse=True, initializer=initer), \
       tf.device(config.default_gpu):
@@ -205,5 +187,5 @@ def _create_all_models_mlp(session,config,verbose=False):
                               batch_size     = 1,
                               training       = False)
       
-    return mtrain, mvalid, mdeploy
+    return mtrain, mdeploy
 
