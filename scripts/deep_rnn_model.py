@@ -111,9 +111,13 @@ class DeepRnnModel(object):
 
       self._loss = self._train_loss = train_loss
       self._valid_loss = valid_loss
-      
-      train_evals = tf.reduce_sum( train_mask ) / num_outputs
-      valid_evals = tf.reduce_sum( valid_mask ) / num_outputs
+
+      # train_evals = tf.reduce_sum( train_mask ) / num_outputs      
+      train_evals = self._evals = evals = tf.reduce_sum( tf.to_float( self._seq_lengths ) )
+
+      #valid_evals = tf.reduce_sum( valid_mask ) / num_outputs
+      valid_evals = 0
+
 
       self._train_cst = tf.reduce_sum( train_loss ) / train_evals
       self._valid_cst = tf.reduce_sum( valid_loss ) / valid_evals
