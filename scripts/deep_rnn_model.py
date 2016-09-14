@@ -24,7 +24,6 @@ import numpy as np
 import tensorflow as tf
 
 from tensorflow.python.ops import array_ops
-# from tensorflow.models.rnn import rnn
 
 _NUM_OUTPUTS = 2
 
@@ -61,15 +60,16 @@ class DeepRnnModel(object):
 
       self._inputs = list()
       self._targets = list()
-      self._sample_masks = list()
+      self._train_wghts = list() # Weights for loss functions per example
+      self._valid_wghts = list() # Weights for loss functions per example
 
       for _ in range(num_unrollings):
         self._inputs.append( tf.placeholder(tf.float32,
                                               shape=[batch_size,num_inputs]) )
         self._targets.append( tf.placeholder(tf.float32,
                                               shape=[batch_size,num_outputs]) )
-        self._sample_masks.append( tf.placeholder(tf.float32,
-                                              shape=[batch_size,num_outputs]) )
+        self._train_wghts.append(tf.placeholder(tf.float32, shape=[batch_size,num_outputs]))
+        self._valid_wghts.append(tf.placeholder(tf.float32, shape=[batch_size,num_outputs]))
         
       rnn_cell = tf.nn.rnn_cell.GRUCell(num_hidden)
       #rnn_cell = tf.nn.rnn_cell.BasicLSTMCell(num_hidden,
@@ -101,10 +101,12 @@ class DeepRnnModel(object):
         logits = tf.nn.xw_plus_b( tf.concat(0, outputs), softmax_w, softmax_b)
 
       targets = tf.concat(0, self._targets)
-      train_mask = tf.concat(0, self._sample_masks)
-      valid_mask = 1.0 - train_mask
-      train_targets = tf.mul(targets, train_mask)
-      valid_targets = tf.mul(targets, valid_mask)
+
+      train_wghts = tf.concat(0, self._train_wghts)
+      valid_wghts = tf.concat(0, self._valid_wghts)
+
+      train_targets = tf.mul(targets, train_wghts)
+      valid_targets = tf.mul(targets, valid_wghts)
 
       train_loss = tf.nn.softmax_cross_entropy_with_logits(logits,train_targets)
       valid_loss = tf.nn.softmax_cross_entropy_with_logits(logits,valid_targets)
@@ -112,12 +114,8 @@ class DeepRnnModel(object):
       self._loss = self._train_loss = train_loss
       self._valid_loss = valid_loss
 
-      # train_evals = tf.reduce_sum( train_mask ) / num_outputs      
-      train_evals = self._evals = evals = tf.reduce_sum( tf.to_float( self._seq_lengths ) )
-
-      #valid_evals = tf.reduce_sum( valid_mask ) / num_outputs
-      valid_evals = 0
-
+      train_evals = tf.reduce_sum( train_wghts ) / num_outputs      
+      valid_evals = tf.reduce_sum( valid_wghts ) / num_outputs
 
       self._train_cst = tf.reduce_sum( train_loss ) / train_evals
       self._valid_cst = tf.reduce_sum( valid_loss ) / valid_evals
@@ -179,8 +177,8 @@ class DeepRnnModel(object):
     for i in range(self._num_unrollings):
       feed_dict[self._inputs[i]]  = batch.inputs[i]
       feed_dict[self._targets[i]] = batch.targets[i]
-      feed_dict[self._sample_masks[i]] = \
-        np.ones(shape=(self._batch_size, 2), dtype=np.float)
+      feed_dict[self._train_wghts[i]] = batch.train_wghts[i]
+      feed_dict[self._valid_wghts[i]] = batch.valid_wghts[i]
 
     (train_cst,train_err,
      valid_cst, valid_err, _) = sess.run([self._train_cst,

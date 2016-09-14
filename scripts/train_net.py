@@ -104,7 +104,8 @@ def main(_):
   train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
   
   train_data = BatchGenerator(train_path,
-                                   config.key_field, config.target_field,
+                                   config.key_field,
+                                   config.target_field,
                                    config.num_inputs,
                                    config.batch_size,
                                    config.num_unrollings )

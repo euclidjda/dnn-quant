@@ -51,11 +51,14 @@ class Batch(object):
         (as a pandas dataframe) about a records that is not a input or output
     """
     
-    def __init__(self,inputs,targets,seq_lengths,reset_flags,attribs):
+    def __init__(self,inputs,targets,seq_lengths,reset_flags,
+                     train_wghts,valid_wghts,attribs):
         self._inputs = inputs
         self._targets = targets
         self._seq_lengths = seq_lengths
         self._reset_flags = reset_flags
+        self._train_wghts = train_wghts
+        self._valid_wghts = valid_wghts
         self._attribs = attribs
 
     @property
@@ -74,6 +77,14 @@ class Batch(object):
     def reset_flags(self):
         return self._reset_flags
 
+    @property
+    def train_wghts(self):
+        return self._train_wghts
+
+    @property
+    def valid_wghts(self):
+        return self._valid_wghts
+    
     @property
     def attribs(self):
         return self._attribs
@@ -183,6 +194,8 @@ class BatchGenerator(object):
         """
         x = np.zeros(shape=(self._batch_size, self._num_inputs), dtype=np.float)
         y = np.zeros(shape=(self._batch_size, self._num_classes), dtype=np.float)
+        train_wghts = np.zeros(shape=(self._batch_size, self._num_classes), dtype=np.float)
+        valid_wghts = np.zeros(shape=(self._batch_size, self._num_classes), dtype=np.float)
         attr = list()
         data = self._data
         start_idx = self._factor_start_idx
@@ -194,6 +207,8 @@ class BatchGenerator(object):
             if (step>0 and (data.loc[prev_idx,key_name] != data.loc[idx,key_name])):
                 x[b,:] = 0.0
                 y[b,:] = 0.0
+                train_wghts[b,:] = 0.0
+                valid_wghts[b,:] = 0.0
                 if (seq_lengths[b]==self._num_unrollings):
                     seq_lengths[b] = step
                 attr.append(None)
@@ -202,12 +217,14 @@ class BatchGenerator(object):
                 val = data.loc[idx,yval_name] # +1, -1
                 y[b,0] = abs(val - 1) / 2 # +1 -> 0 & -1 -> 1
                 y[b,1] = abs(val + 1) / 2 # -1 -> 0 & +1 -> 1
+                train_wghts[b,:] = 1.0
+                valid_wghts[b,:] = 1.0
                 if 'date' in list(data.columns.values):
                     attr.append(data.loc[idx,'date'])
                 else:
                     attr.append(None)
                 self._cursor[b] = (self._cursor[b] + 1) % self._data_size
-        return x, y, attr
+        return x, y, train_wghts, valid_wghts, attr
 
     def next_batch(self):
         """Generate the next batch of sequences from the data.
@@ -218,13 +235,18 @@ class BatchGenerator(object):
         reset_flags = self._get_reset_flags()
         x_batch = list()
         y_batch = list()
+        train_wghts = list()
+        valid_wghts = list()
         attribs = list()
         for i in range(self._num_unrollings):
-            x, y, attr = self._next_step(i, seq_lengths)
+            x, y, tw, vw, attr = self._next_step(i, seq_lengths)
             x_batch.append(x)
             y_batch.append(y)
+            train_wghts.append(tw)
+            valid_wghts.append(vw)
             attribs.append(attr)
-        return Batch(x_batch, y_batch, seq_lengths, reset_flags, attribs )
+        return Batch(x_batch, y_batch, seq_lengths, reset_flags,
+                         train_wghts, valid_wghts, attribs )
 
     def num_data_points(self):
         return self._data_size
