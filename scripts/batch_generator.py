@@ -194,8 +194,8 @@ class BatchGenerator(object):
         """
         x = np.zeros(shape=(self._batch_size, self._num_inputs), dtype=np.float)
         y = np.zeros(shape=(self._batch_size, self._num_classes), dtype=np.float)
-        train_wghts = np.zeros(shape=(self._batch_size, self._num_classes), dtype=np.float)
-        valid_wghts = np.zeros(shape=(self._batch_size, self._num_classes), dtype=np.float)
+        train_wghts = np.zeros(shape=(self._batch_size), dtype=np.float)
+        valid_wghts = np.zeros(shape=(self._batch_size), dtype=np.float)
         attr = list()
         data = self._data
         start_idx = self._factor_start_idx
@@ -207,8 +207,8 @@ class BatchGenerator(object):
             if (step>0 and (data.loc[prev_idx,key_name] != data.loc[idx,key_name])):
                 x[b,:] = 0.0
                 y[b,:] = 0.0
-                train_wghts[b,:] = 0.0
-                valid_wghts[b,:] = 0.0
+                train_wghts[b] = 0.0
+                valid_wghts[b] = 0.0
                 if (seq_lengths[b]==self._num_unrollings):
                     seq_lengths[b] = step
                 attr.append(None)
@@ -217,8 +217,8 @@ class BatchGenerator(object):
                 val = data.loc[idx,yval_name] # +1, -1
                 y[b,0] = abs(val - 1) / 2 # +1 -> 0 & -1 -> 1
                 y[b,1] = abs(val + 1) / 2 # -1 -> 0 & +1 -> 1
-                train_wghts[b,:] = 1.0
-                valid_wghts[b,:] = 1.0
+                train_wghts[b] = 1.0
+                valid_wghts[b] = 1.0
                 if 'date' in list(data.columns.values):
                     attr.append(data.loc[idx,'date'])
                 else:

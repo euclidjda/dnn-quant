@@ -75,7 +75,7 @@ def run_epoch(session, model, dataset,
       train_err += terr
       valid_cst += vcst
       valid_err += verr
-    
+
       if ( verbose and ((prog_int<=1) or (step % (int(prog_int)+1)) == 0) ):
         dot_count += 1
         print('.',end='')
@@ -87,12 +87,8 @@ def run_epoch(session, model, dataset,
                                                  (time.time() - start_time)) )
   sys.stdout.flush()
 
-  train_cst = np.exp( train_cst / count )
-  train_err = train_err / count
-  vaild_cst = np.exp( valid_cst / count )
-  valid_err = valid_err / count
-  
-  return train_cst, train_err, valid_cst, valid_err
+  return (np.exp(train_cst/count), train_err/count,
+            np.exp(valid_cst/count), valid_err/count)
   
 def main(_):
   """

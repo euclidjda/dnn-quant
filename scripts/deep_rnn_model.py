@@ -68,8 +68,8 @@ class DeepRnnModel(object):
                                               shape=[batch_size,num_inputs]) )
         self._targets.append( tf.placeholder(tf.float32,
                                               shape=[batch_size,num_outputs]) )
-        self._train_wghts.append(tf.placeholder(tf.float32, shape=[batch_size,num_outputs]))
-        self._valid_wghts.append(tf.placeholder(tf.float32, shape=[batch_size,num_outputs]))
+        self._train_wghts.append(tf.placeholder(tf.float32, shape=[batch_size]))
+        self._valid_wghts.append(tf.placeholder(tf.float32, shape=[batch_size]))
         
       rnn_cell = tf.nn.rnn_cell.GRUCell(num_hidden)
       #rnn_cell = tf.nn.rnn_cell.BasicLSTMCell(num_hidden,
@@ -102,29 +102,30 @@ class DeepRnnModel(object):
 
       targets = tf.concat(0, self._targets)
 
+      agg_loss = tf.nn.softmax_cross_entropy_with_logits(logits,targets)
+
       train_wghts = tf.concat(0, self._train_wghts)
       valid_wghts = tf.concat(0, self._valid_wghts)
 
-      train_targets = tf.mul(targets, train_wghts)
-      valid_targets = tf.mul(targets, valid_wghts)
-
-      train_loss = tf.nn.softmax_cross_entropy_with_logits(logits,train_targets)
-      valid_loss = tf.nn.softmax_cross_entropy_with_logits(logits,valid_targets)
-
+      train_loss = tf.mul(agg_loss,train_wghts)
+      valid_loss = tf.mul(agg_loss,valid_wghts)
+            
       self._loss = self._train_loss = train_loss
       self._valid_loss = valid_loss
 
-      train_evals = tf.reduce_sum( train_wghts ) / num_outputs      
-      valid_evals = tf.reduce_sum( valid_wghts ) / num_outputs
+      train_evals = tf.reduce_sum( train_wghts )
+      valid_evals = tf.reduce_sum( valid_wghts )
 
       self._train_cst = tf.reduce_sum( train_loss ) / train_evals
       self._valid_cst = tf.reduce_sum( valid_loss ) / valid_evals
 
       self._predictions = tf.nn.softmax(logits)
       class_predictions = tf.floor( self._predictions + 0.5 )
+
+      errors = tf.mul(class_predictions, targets)
       
-      train_errs = tf.mul(class_predictions, train_targets )
-      valid_errs = tf.mul(class_predictions, valid_targets )
+      train_errs = tf.mul(errors,tf.reshape(train_wghts,shape=[batch_size*num_unrollings,1]))
+      valid_errs = tf.mul(errors,tf.reshape(valid_wghts,shape=[batch_size*num_unrollings,1]))
 
       self._terrs = train_errs
       
@@ -187,7 +188,10 @@ class DeepRnnModel(object):
                                             self._valid_err,
                                             self._train_op],
                                            feed_dict)
-    
+
+    # print("%.2f %.2f"%(train_cst,valid_cst))
+    # print("%.2f %.2f"%(train_err,valid_err))
+      
     return train_cst, train_err, valid_cst, valid_err
       
   def step(self, sess, batch):
