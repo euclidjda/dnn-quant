@@ -45,7 +45,7 @@ def main(_):
 
   configs.DEFINE_string('test_datafile','test.dat','file with test data')
   configs.DEFINE_string('output','preds.dat','file for predictions')
-  configs.DEFINE_string('time_name','','fields used for dates/time')
+  configs.DEFINE_string('time_field','date','fields used for dates/time')
 
   config = configs.get_configs()
 
@@ -53,7 +53,7 @@ def main(_):
   num_unrollings = 1
 
   data_path = model_utils.get_data_path(config.data_dir,config.test_datafile)
-  
+
   dataset = BatchGenerator(data_path,
                            config.key_field, 
                            config.target_field,
@@ -81,7 +81,7 @@ def main(_):
       for i in range(num_data_points):
 
         batch = dataset.next_batch()
-        cost, error, evals, preds = model.step(session, batch)
+        cost, error, preds = model.step(session, batch)
         prob = get_pos_prob( preds )
 
         outfile.write("%.4f %.4f\n" % (1.0 - prob, prob) )
@@ -89,8 +89,8 @@ def main(_):
         pred   = +1.0 if prob >= 0.5 else 0.0
         target = get_target(batch)
 
-        if len(config.time_name):
-          key = get_time_label(batch, config.time_name)
+        if len(config.time_field):
+          key = get_time_label(batch, config.time_field)
 
         tp = 1.0 if (pred==1 and target==1) else 0
         tn = 1.0 if (pred==0 and target==0) else 0

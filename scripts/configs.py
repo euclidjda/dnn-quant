@@ -57,7 +57,7 @@ class _LoadFromFile (argparse.Action):
     """Helper that supports the reading of config from a file"""
     def __call__ (self, parser, namespace, values, option_string = None):
         with values as f:
-            parser.parse_args(f.read().split(), namespace)
+            parser.parse_known_args(f.read().split(), namespace)
 
     
 def _define_helper(config_name, default_value, docstring, configtype):
@@ -136,19 +136,15 @@ def get_configs():
     DEFINE_string("valid_datafile", '',"Validation file")
     DEFINE_string("data_dir",'',"The data directory")
     DEFINE_string("model_dir", '',"Model directory")
-    DEFINE_float("lr_decay",0.9, "Learning rate decay")
-    DEFINE_float("init_scale",0.1, "Initial scale for weights")
-    DEFINE_float("max_grad_norm",10.0,"Gradient clipping")
-    DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
-    DEFINE_float("keep_prob",1.0,"Keep probability for dropout")
-    DEFINE_integer("passes",1,"Passes through day per epoch")
-    DEFINE_integer("max_epoch",0,"Stop after max_epochs")
     DEFINE_integer("min_history",1,"Minimum history required")
     DEFINE_integer("num_unrollings",1,"Number of unrolling steps")
     DEFINE_integer("batch_size",10,"Size of each batch")
     DEFINE_integer("num_layers",1, "Numer of RNN layers")
     DEFINE_integer("num_inputs",10,"Number of inputs")
     DEFINE_integer("num_hidden",10,"Number of hidden layer units")
+    DEFINE_float("init_scale",0.1, "Initial scale for weights")
+    DEFINE_float("max_grad_norm",10.0,"Gradient clipping")
+    DEFINE_float("keep_prob",1.0,"Keep probability for dropout")
 
     _global_parser.add_argument('--config', type=open,
                                     action=_LoadFromFile,

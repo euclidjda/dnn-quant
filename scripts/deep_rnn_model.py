@@ -34,7 +34,7 @@ class DeepRnnModel(object):
   """
   def __init__(self, num_layers, num_inputs, num_hidden,
                    num_unrollings, batch_size,
-                   max_grad_norm=5.0, keep_prob=1.0, training=True):
+                   max_grad_norm=5.0):
       """
       Initialize the model
       Args:
@@ -46,11 +46,7 @@ class DeepRnnModel(object):
           each step (see step() function below)
         batch_size: the size of the data batch processed in each step
         max_grad_norm: max gardient norm size for gradient clipping
-        keep_prob: the keep probability for dropout training
-        training: booling indicating whether training should be enabled
-          for this model
       """
-      self._training = training
       self._batch_size = batch_size
       self._num_unrollings = num_unrollings
       num_outputs = _NUM_OUTPUTS
@@ -75,9 +71,8 @@ class DeepRnnModel(object):
       #rnn_cell = tf.nn.rnn_cell.BasicLSTMCell(num_hidden,
       #                                             forget_bias=0.0)
 
-      if training and keep_prob < 1:
-        rnn_cell = tf.nn.rnn_cell.DropoutWrapper(
-          rnn_cell, output_keep_prob=self._keep_prob)
+      rnn_cell = tf.nn.rnn_cell.DropoutWrapper(
+        rnn_cell, output_keep_prob=self._keep_prob)
       
       cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_layers)
 
@@ -107,8 +102,8 @@ class DeepRnnModel(object):
       train_wghts = tf.concat(0, self._train_wghts)
       valid_wghts = tf.concat(0, self._valid_wghts)
 
-      train_loss = tf.mul(agg_loss,train_wghts)
-      valid_loss = tf.mul(agg_loss,valid_wghts)
+      train_loss = tf.mul(agg_loss, train_wghts)
+      valid_loss = tf.mul(agg_loss, valid_wghts)
             
       self._loss = self._train_loss = train_loss
       self._valid_loss = valid_loss
@@ -165,13 +160,7 @@ class DeepRnnModel(object):
     
     feed_dict = dict()
 
-    # This if statement is temporary ...
-    # self._training is going to go away
-    if self._training:
-        feed_dict[self._keep_prob] = keep_prob
-    else:
-        feed_dict[self._keep_prob] = 1.0
-    
+    feed_dict[self._keep_prob] = keep_prob
     feed_dict[self._reset_state_flags] = reset_flags
     feed_dict[self._seq_lengths] = batch.seq_lengths
     
@@ -189,9 +178,6 @@ class DeepRnnModel(object):
                                             self._train_op],
                                            feed_dict)
 
-    # print("%.2f %.2f"%(train_cst,valid_cst))
-    # print("%.2f %.2f"%(train_err,valid_err))
-      
     return train_cst, train_err, valid_cst, valid_err
       
   def step(self, sess, batch):
@@ -215,21 +201,24 @@ class DeepRnnModel(object):
     reset_flags = np.repeat( batch.reset_flags.reshape( [self._batch_size, 1] ),
                                self._state_size, axis=1 )
 
+    feed_dict[self._keep_prob] = 1.0
     feed_dict[self._reset_state_flags] = reset_flags
     feed_dict[self._seq_lengths] = batch.seq_lengths
     
     for i in range(self._num_unrollings):
       feed_dict[self._inputs[i]]  = batch.inputs[i]
       feed_dict[self._targets[i]] = batch.targets[i]
+      feed_dict[self._train_wghts[i]] = np.ones(shape=(self._batch_size),
+                                                  dtype=np.float)
+      feed_dict[self._valid_wghts[i]] = np.ones(shape=(self._batch_size),
+                                                  dtype=np.float)
 
-    cost, error, evals, predictions, _ = sess.run([self._cost,
-                                                     self._error,
-                                                     self._evals,
-                                                     self._predictions,
-                                                     self._train_op],
-                                                    feed_dict)
+    cost, error, predictions, = sess.run([self._cost,
+                                            self._error,
+                                            self._predictions],
+                                           feed_dict)
     
-    return cost, error, evals, predictions
+    return cost, error, predictions
 
   def assign_lr(self, session, lr_value):
     session.run(tf.assign(self.lr, lr_value))

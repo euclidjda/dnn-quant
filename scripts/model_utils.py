@@ -126,7 +126,7 @@ def _create_all_models_rnn(session,config,verbose=False):
       print("  num_layers  = %d"% config.num_layers)
 
       
-    # Training graph  
+    # Training and validation graph  
     with tf.variable_scope("model", reuse=None, initializer=initer), \
       tf.device(config.default_gpu):
         mtrain = DeepRnnModel(num_layers     = config.num_layers,
@@ -134,20 +134,17 @@ def _create_all_models_rnn(session,config,verbose=False):
                               num_hidden     = config.num_hidden,
                               num_unrollings = config.num_unrollings,
                               batch_size     = config.batch_size,
-                              max_grad_norm  = config.max_grad_norm,
-                              keep_prob      = config.keep_prob,
-                              training       = True)
+                              max_grad_norm  = config.max_grad_norm)
 
 
-    # Deployment / classification graph
+    # Deployment / testing graph
     with tf.variable_scope("model", reuse=True, initializer=initer), \
       tf.device(config.default_gpu):
         mdeploy = DeepRnnModel(num_layers    = config.num_layers,
                               num_inputs     = config.num_inputs,
                               num_hidden     = config.num_hidden,
                               num_unrollings = 1,
-                              batch_size     = 1,
-                              training       = False)
+                              batch_size     = 1)
       
     return mtrain, mdeploy
 

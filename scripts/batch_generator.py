@@ -16,6 +16,7 @@
 import os
 import numpy as np
 import pandas as pd
+import random
 
 _NUM_CLASSES = 2
 
@@ -97,7 +98,8 @@ class BatchGenerator(object):
     and num_unrollings.
     """
     def __init__(self,filename,key_name,target_name,num_inputs,
-                     batch_size,num_unrollings):
+                     batch_size,num_unrollings,
+                     validation_size=None,end_date=None):
         """
         Init a BatchGenerator
         Args:
@@ -121,6 +123,8 @@ class BatchGenerator(object):
           batch_size: The size of a batch
           num_unrollings: The time window for each batch. The number of data
             points in a batch is batch_size * num_unrollings
+          validation_size: size of validation set 0.10 = 10%
+          end_date: end_date of training period (inclusive)
         Raises:
           The file specified by filename does not exist
         """
@@ -128,6 +132,8 @@ class BatchGenerator(object):
         if not os.path.isfile(filename):
             raise RuntimeError("The data file %s does not exists" % filename)
         data = pd.read_csv(filename,sep=' ')
+        if end_date is not None:
+            data = data.drop(data[data['date'] > end_date].index)
         self._num_inputs = num_inputs
         self._key_name = key_name = key_name
         self._yval_name = yval_name = target_name
@@ -141,6 +147,13 @@ class BatchGenerator(object):
         self._batch_size = batch_size
         self._data = data
         self._data_size = len(data)
+        self._validation_set = list()
+        if validation_size is not None:
+            # get number of keys
+            keys = set(data[key_name])
+            sample_size = int( validation_size * len(keys) )
+            self._validation_set = random.sample(keys, sample_size)
+        dates = list(set(data.date))
         # Create a cursor of equally spaced indicies into the dataset. Each index
         # in the cursor points to one sequence in a batch and is used to keep
         # track of where we are in the dataset.
@@ -150,8 +163,8 @@ class BatchGenerator(object):
         # at the beggining of an entity's time sequences.
         for b in range(batch_size):
             idx = self._init_cursor[b]
-            key = data.loc[idx,key_name]    
-            while data.loc[idx,key_name] == key:
+            key = data.iloc[idx][key_name]    
+            while data.iloc[idx][key_name] == key:
                 # TDO: THIS SHOULD BE FIXED AS IT CAN GO INTO AN INFINITE LOOP
                 # IF THERE IS ONLY ONE ENTITY IN DATASET
                 idx = (idx + 1) % self._data_size
@@ -184,7 +197,7 @@ class BatchGenerator(object):
         reset_flags = np.ones(self._batch_size)
         for b in range(self._batch_size):
             idx = self._cursor[b]
-            if (idx==0 or (data.loc[idx,key_name] != data.loc[idx-1,key_name])):
+            if (idx==0 or (data.iloc[idx][key_name] != data.iloc[idx-1][key_name])):
                 reset_flags[b] = 0.0
         return reset_flags
         
@@ -204,7 +217,7 @@ class BatchGenerator(object):
         for b in range(self._batch_size):
             idx = self._cursor[b]
             prev_idx = idx-1 if idx > 0 else self._data_size - 1
-            if (step>0 and (data.loc[prev_idx,key_name] != data.loc[idx,key_name])):
+            if (step>0 and (data.iloc[prev_idx][key_name] != data.iloc[idx][key_name])):
                 x[b,:] = 0.0
                 y[b,:] = 0.0
                 train_wghts[b] = 0.0
@@ -214,15 +227,20 @@ class BatchGenerator(object):
                 attr.append(None)
             else:
                 x[b,:] = data.iloc[idx,start_idx:].as_matrix()
-                val = data.loc[idx,yval_name] # +1, -1
+                val = data.iloc[idx][yval_name] # +1, -1
                 y[b,0] = abs(val - 1) / 2 # +1 -> 0 & -1 -> 1
                 y[b,1] = abs(val + 1) / 2 # -1 -> 0 & +1 -> 1
-                train_wghts[b] = 1.0
-                valid_wghts[b] = 1.0
+                date = '1900'
                 if 'date' in list(data.columns.values):
-                    attr.append(data.loc[idx,'date'])
+                    date = data.iloc[idx]['date']
+                attr.append(date)
+                key = data.iloc[idx][key_name]
+                if key not in self._validation_set:
+                    train_wghts[b] = 1.0
+                    valid_wghts[b] = 0.0
                 else:
-                    attr.append(None)
+                    train_wghts[b] = 0.0
+                    valid_wghts[b] = 1.0
                 self._cursor[b] = (self._cursor[b] + 1) % self._data_size
         return x, y, train_wghts, valid_wghts, attr
 

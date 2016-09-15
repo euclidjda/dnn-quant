@@ -95,16 +95,26 @@ def main(_):
   Entry point and main loop for train_net.py. Uses command line arguments to get
   model and training specification (see config.py).
   """
+  configs.DEFINE_float("lr_decay",0.9, "Learning rate decay")
+  configs.DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
+  configs.DEFINE_integer("passes",1,"Passes through day per epoch")
+  configs.DEFINE_integer("max_epoch",0,"Stop after max_epochs")
+  configs.DEFINE_float('validation_size',0.0,'Size of validation set as %')
+  configs.DEFINE_float('early_stop',0.0,'Early stop parameter')
+  configs.DEFINE_integer('end_date',210001,'Last date to train on')
+  
   config = configs.get_configs()
 
   train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
   
   train_data = BatchGenerator(train_path,
-                                   config.key_field,
-                                   config.target_field,
-                                   config.num_inputs,
-                                   config.batch_size,
-                                   config.num_unrollings )
+                                config.key_field,
+                                config.target_field,
+                                config.num_inputs,
+                                config.batch_size,
+                                config.num_unrollings,
+                                validation_size=config.validation_size,
+                                end_date=config.end_date)
   
   tf_config = tf.ConfigProto( allow_soft_placement=True, 
                               log_device_placement=False )
@@ -124,7 +134,7 @@ def main(_):
                                               perf_history )
 
       trc, tre, vdc, vde = run_epoch(session, model, train_data,
-                                       keep_prob=1.0,
+                                       keep_prob=config.keep_prob,
                                        passes=config.passes,
                                        verbose=True)
       print( ('Epoch: %d xentrpy: %.6f %.6f'
