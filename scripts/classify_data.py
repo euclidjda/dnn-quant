@@ -78,10 +78,11 @@ def main(_):
     # together to create a final, single result file
       outfile.write('p0 p1\n')
 
+      #for i in range(num_data_points):
       for i in range(num_data_points):
 
         batch = dataset.next_batch()
-        cost, error, preds = model.step(session, batch)
+        cost, accy, preds = model.step(session, batch)
         prob = get_pos_prob( preds )
 
         outfile.write("%.4f %.4f\n" % (1.0 - prob, prob) )
@@ -92,17 +93,19 @@ def main(_):
         if len(config.time_field):
           key = get_time_label(batch, config.time_field)
 
-        tp = 1.0 if (pred==1 and target==1) else 0
-        tn = 1.0 if (pred==0 and target==0) else 0
-        fp = 1.0 if (pred==1 and target==0) else 0
-        fn = 1.0 if (pred==0 and target==1) else 0
+        tp = 1.0 if (pred==1 and target==1) else 0.0
+        tn = 1.0 if (pred==0 and target==0) else 0.0
+        fp = 1.0 if (pred==1 and target==0) else 0.0
+        fn = 1.0 if (pred==0 and target==1) else 0.0
 
-        data = { 'cost'  : cost  , 
-                 'error' : error ,
-                 'tpos'  : tp    ,
-                 'tneg'  : tn    ,
-                 'fpos'  : fp    ,
-                 'fneg'  : fn    }
+        # print("pred=%.2f target=%.2f tp=%d tn=%d fp=%d fn=%d"%(pred,target,tp,tn,fp,fn))
+
+        data = { 'cost'  : cost     , 
+                 'error' : 1.0-accy ,
+                 'tpos'  : tp       ,
+                 'tneg'  : tn       ,
+                 'fpos'  : fp       ,
+                 'fneg'  : fn       }
 
         if key not in stats:
           stats[key] = list()
@@ -151,7 +154,7 @@ def print_summary_stats(stats):
     error /= n
 
     precision = tpos / (tpos+fpos)
-    recall    = tpos / (tpos+fneg)
+    recall    = tpos / (tpos+fneg) 
 
     print("%s loss=%.4f error=%.4f prec=%.4f recall=%.4f" % 
           (key,cost,error,precision,recall))

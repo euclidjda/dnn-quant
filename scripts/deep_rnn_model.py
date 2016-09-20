@@ -89,6 +89,8 @@ class DeepRnnModel(object):
                                      initial_state=state,
                                      sequence_length=self._seq_lengths)
 
+      self._state = state
+
       softmax_w = tf.get_variable("softmax_w", [num_hidden, num_outputs])
       softmax_b = tf.get_variable("softmax_b", [num_outputs])
 
@@ -108,33 +110,35 @@ class DeepRnnModel(object):
       self._loss = self._train_loss = train_loss
       self._valid_loss = valid_loss
 
-      train_evals = tf.reduce_sum( train_wghts )
-      valid_evals = tf.reduce_sum( valid_wghts )
+      self._train_evals = tf.reduce_sum( train_wghts )
+      self._valid_evals = tf.reduce_sum( valid_wghts )
 
-      self._train_cst = tf.reduce_sum( train_loss ) / train_evals
-      self._valid_cst = tf.reduce_sum( valid_loss ) / valid_evals
+      self._train_cst = tf.reduce_sum( train_loss )
+      self._valid_cst = tf.reduce_sum( valid_loss )
 
       self._predictions = tf.nn.softmax(logits)
       class_predictions = tf.floor( self._predictions + 0.5 )
 
-      errors = tf.mul(class_predictions, targets)
-      
-      train_errs = tf.mul(errors,tf.reshape(train_wghts,shape=[batch_size*num_unrollings,1]))
-      valid_errs = tf.mul(errors,tf.reshape(valid_wghts,shape=[batch_size*num_unrollings,1]))
+      accy = tf.mul(class_predictions, targets)
 
-      self._terrs = train_errs
-      
-      self._train_err = 1.0 - tf.reduce_sum( train_errs ) / train_evals
-      self._valid_err = 1.0 - tf.reduce_sum( valid_errs ) / valid_evals
+      train_accy = tf.mul(accy,tf.reshape(train_wghts,
+                                          shape=[batch_size*num_unrollings,1]))
+      valid_accy = tf.mul(accy,tf.reshape(valid_wghts,
+                                          shape=[batch_size*num_unrollings,1]))
 
-      self._cost = self._train_cst
-      self._error = self._train_err
-      
-      # here is the actual learning part of the graph
+      self._train_accy = tf.reduce_sum( train_accy )
+      self._valid_accy = tf.reduce_sum( valid_accy )
+
+      self._cost  = self._train_cst
+      self._accy  = self._train_accy
+      self._evals = self._train_evals
+      self._batch_cst = self._train_cst / self._train_evals
+
+      # here is the learning part of the graph
       
       self._lr = tf.Variable(0.0, trainable=False)
       tvars = tf.trainable_variables()
-      grads, _ = tf.clip_by_global_norm(tf.gradients(self._train_cst,
+      grads, _ = tf.clip_by_global_norm(tf.gradients(self._batch_cst,
                                                          tvars),max_grad_norm)
       optimizer = tf.train.GradientDescentOptimizer(self.lr)
       self._train_op = optimizer.apply_gradients(zip(grads, tvars))
@@ -149,15 +153,59 @@ class DeepRnnModel(object):
       batch: batch of data of type Batch (see batch_generator.py)
       keep_prob: keep_prob for dropout
     Returns:
-      train_cst: cross entropy cost function for the next batch in batches
-      train_err: binary classifcation error rate for the next batch in batches
-      valid_cst: 
-      valid_err: 
+      train_cost: cross entropy cost function for the next batch in batches
+      train_accy: binary classifcation accuracy for the next batch in batches
+      train_evals:
+      valid_cost: 
+      valid_accy:
+      valid_evals:
     """
+
+    feed_dict = self._get_feed_dict(batch,keep_prob)
+
+    (train_cst,train_accy, train_evals,
+     valid_cst, valid_accy, valid_evals,
+     _) = sess.run([self._train_cst,
+                    self._train_accy,
+                    self._train_evals,
+                    self._valid_cst,
+                    self._valid_accy,
+                    self._valid_evals,
+                    self._train_op],
+                    feed_dict)
+
+    return (train_cst, train_accy, train_evals, 
+            valid_cst, valid_accy, valid_evals)
+
+  def step(self, sess, batch):
+     """
+     Take one step through the data set. A step contains a sequences of batches
+     where the sequence is of size num_unrollings. The batches are size
+     batch_size. 
+     Args:
+       sess: current tf session the model is being run in
+       batch: batch of data of type Batch
+     Returns:
+       cost: cross entropy cost function for the next batch in batches
+       accy: binary classifcation accuracy for the next batch in batches
+       predictions: the model predictions for each data point in batch
+     """
+     feed_dict = self._get_feed_dict(batch)
+
+     cost, accy, evals, predictions, = sess.run([self._cost,
+                                                 self._accy,
+                                                 self._evals,
+                                                 self._predictions],
+                                                feed_dict)
+    
+     return cost, accy, predictions
+
+
+  def _get_feed_dict(self,batch,keep_prob=1.0):
 
     reset_flags = np.repeat( batch.reset_flags.reshape( [self._batch_size, 1] ),
                                self._state_size, axis=1 )
-    
+
     feed_dict = dict()
 
     feed_dict[self._keep_prob] = keep_prob
@@ -169,56 +217,8 @@ class DeepRnnModel(object):
       feed_dict[self._targets[i]] = batch.targets[i]
       feed_dict[self._train_wghts[i]] = batch.train_wghts[i]
       feed_dict[self._valid_wghts[i]] = batch.valid_wghts[i]
-
-    (train_cst,train_err,
-     valid_cst, valid_err, _) = sess.run([self._train_cst,
-                                            self._train_err,
-                                            self._valid_cst,
-                                            self._valid_err,
-                                            self._train_op],
-                                           feed_dict)
-
-    return train_cst, train_err, valid_cst, valid_err
-      
-  def step(self, sess, batch):
-    """
-    Take one step through the data set. A step contains a sequences of batches
-    where the sequence is of size num_unrollings. The batches are size
-    batch_size. 
-    Args:
-      sess: current tf session the model is being run in
-      batch: batch of data of type Batch
-    Returns:
-      cost: cross entropy cost function for the next batch in batches
-      error: binary classifcation error rate for the next batch in batches
-      state: the final states of model after a step through the batch
-      evals: number of data points evaluated in the batch
-      predictions: the model predictions for each data point in batch
-    """
-
-    feed_dict = dict()
-
-    reset_flags = np.repeat( batch.reset_flags.reshape( [self._batch_size, 1] ),
-                               self._state_size, axis=1 )
-
-    feed_dict[self._keep_prob] = 1.0
-    feed_dict[self._reset_state_flags] = reset_flags
-    feed_dict[self._seq_lengths] = batch.seq_lengths
     
-    for i in range(self._num_unrollings):
-      feed_dict[self._inputs[i]]  = batch.inputs[i]
-      feed_dict[self._targets[i]] = batch.targets[i]
-      feed_dict[self._train_wghts[i]] = np.ones(shape=(self._batch_size),
-                                                  dtype=np.float)
-      feed_dict[self._valid_wghts[i]] = np.ones(shape=(self._batch_size),
-                                                  dtype=np.float)
-
-    cost, error, predictions, = sess.run([self._cost,
-                                            self._error,
-                                            self._predictions],
-                                           feed_dict)
-    
-    return cost, error, predictions
+    return feed_dict
 
   def assign_lr(self, session, lr_value):
     session.run(tf.assign(self.lr, lr_value))

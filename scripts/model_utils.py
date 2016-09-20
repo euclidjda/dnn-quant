@@ -30,6 +30,25 @@ def get_data_path(data_dir, filename):
         path = os.environ['DNN_QUANT_ROOT'] + '/' + path
     return path
 
+def stop_training(perfs,num):
+    """
+    Early stop algorithm
+
+    Args:
+      perfs: History of validation performance on each iteration
+      num: Number of iterations of validation performance to
+        "lookback" to see if performance is improving anymore
+    """
+    far = num+1
+    near = min(int(num/2),5)
+    if len(perfs) >= far:
+        mean1 = np.mean(perfs[-far:-2])
+        mean2 = min(np.mean(perfs[-near:-1]),perfs[-1])
+        if mean1-mean2 < 0.0:
+            return True
+    return False
+        
+
 def adjust_learning_rate(session, model, learning_rate,
                            lr_decay, batch_perfs, num=5):
   """
@@ -45,8 +64,9 @@ def adjust_learning_rate(session, model, learning_rate,
   Returns:
     the updated learning rate being used by the model for training
   """
-  if len(batch_perfs) > num:
-    mean = sum(batch_perfs[-num:-1])/(num-1.0)
+  num += 1
+  if len(batch_perfs) >= num:
+    mean = np.mean(batch_perfs[-num:-2])
     curr = batch_perfs[-1]
     # If performance has dropped by less than 1%, decay learning_rate
     if ((learning_rate >= 0.0001) and (mean > 0.0)

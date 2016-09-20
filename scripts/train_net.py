@@ -1,5 +1,7 @@
-#! /usr/bin/env python3
+#!/bin/sh
+''''exec python3 -u -- "$0" ${1+"$@"} # '''
 
+# #! /usr/bin/env python3
 # Copyright 2016 Euclidean Technologies Management LLC All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,16 +47,17 @@ def run_epoch(session, model, dataset,
     verbose: Display iteration output to stdout
   Returns:
     train_cost: average cross-entropy loss value on data
-    train_error: average binary classification error rate on data
+    train_accy: average binary classification accuracy rate
     valid_cost: average cross-entropy loss value on data
-    valid_error: average binary classification error rate on data
+    valid_accy: average binary classification accuracy rate
   Raises:
     RuntimeError: the batch size cannot be larger than the training
       data set size
   """
   num_batches = dataset.num_batches
   start_time = time.time()
-  train_cst = train_err = valid_cst = valid_err = 0.0
+  train_cost = train_accy = valid_cost = valid_accy = 0.0
+  train_evals = valid_evals = 0.0
   dot_count = 0
   count = passes*num_batches
   prog_int = count/100 # progress interval for stdout
@@ -68,45 +71,58 @@ def run_epoch(session, model, dataset,
   for i in range(passes):
     for step in range(num_batches):
       batch = dataset.next_batch()
-      tcst, terr, vcst, verr = model.train_step(session, batch,
-                                                  keep_prob=keep_prob)
+      (tcost, taccy, tevals, 
+       vcost, vaccy, vevals) = model.train_step(session, batch,
+                                               keep_prob=keep_prob)
 
-      train_cst += tcst
-      train_err += terr
-      valid_cst += vcst
-      valid_err += verr
+      train_cost  += tcost
+      train_accy  += taccy
+      train_evals += tevals
+      valid_cost  += vcost
+      valid_accy  += vaccy
+      valid_evals += vevals
 
-      if ( verbose and ((prog_int<=1) or (step % (int(prog_int)+1)) == 0) ):
+      if ( verbose and ((prog_int<=1) or 
+                        (step % (int(prog_int)+1)) == 0) ):
         dot_count += 1
         print('.',end='')
         sys.stdout.flush()
 
   if verbose:
     print("."*(100-dot_count),end='')
-    print(" passes: %d speed: %.0f seconds" % (passes,
-                                                 (time.time() - start_time)) )
+    print(" passes: %d train iters: %d valid iters: %d "
+          "speed: %.0f seconds" % (passes,
+                                   train_evals,
+                                   valid_evals,
+                                   (time.time() - start_time)) )
   sys.stdout.flush()
 
-  return (np.exp(train_cst/count), train_err/count,
-            np.exp(valid_cst/count), valid_err/count)
+  return (np.exp(train_cost/train_evals), 
+          1.0 - train_accy/train_evals,
+          np.exp(valid_cost/valid_evals), 
+          1.0 - valid_accy/valid_evals)
   
 def main(_):
   """
   Entry point and main loop for train_net.py. Uses command line arguments to get
   model and training specification (see config.py).
   """
+  configs.DEFINE_string("train_datafile", '',"Training file")
   configs.DEFINE_float("lr_decay",0.9, "Learning rate decay")
   configs.DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
   configs.DEFINE_integer("passes",1,"Passes through day per epoch")
   configs.DEFINE_integer("max_epoch",0,"Stop after max_epochs")
   configs.DEFINE_float('validation_size',0.0,'Size of validation set as %')
-  configs.DEFINE_float('early_stop',0.0,'Early stop parameter')
-  configs.DEFINE_integer('end_date',210001,'Last date to train on')
+  configs.DEFINE_integer('early_stop',10,'Early stop parameter')
+  configs.DEFINE_integer('end_date',210001,'Last date to train on as YYYYMM')
   
   config = configs.get_configs()
 
   train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
   
+
+  print("Loading trainng data ...")
+
   train_data = BatchGenerator(train_path,
                                 config.key_field,
                                 config.target_field,
@@ -121,35 +137,47 @@ def main(_):
 
   with tf.Graph().as_default(), tf.Session(config=tf_config) as session:
 
+    print("Constructing model ...")
+
     model = model_utils.get_training_model(session, config, verbose=True)
     
     lr = config.initial_learning_rate
-    perf_history = list()
+    train_history = list()
+    valid_history = list()
     
     for i in range(config.max_epoch):
 
       lr = model_utils.adjust_learning_rate(session,
                                               model, lr,
                                               config.lr_decay,
-                                              perf_history )
+                                              train_history )
 
       trc, tre, vdc, vde = run_epoch(session, model, train_data,
                                        keep_prob=config.keep_prob,
                                        passes=config.passes,
                                        verbose=True)
+
+      trc = 999.0 if trc > 999.0 else trc
+      vdc = 999.0 if vdc > 999.0 else vdc
+
       print( ('Epoch: %d xentrpy: %.6f %.6f'
-              ' error: %.6f %.6f Learning rate: %.3f') % 
+              ' error: %.6f %.6f Learning rate: %.4f') % 
             (i + 1, trc, vdc, tre, vde, lr) )
       sys.stdout.flush()
 
-      perf_history.append( trc )
+      train_history.append( trc )
+      valid_history.append( vdc )
 
       if not os.path.exists(config.model_dir):
         print("Creating directory %s" % config.model_dir)
         os.mkdir(config.model_dir)
       
-      checkpoint_path = os.path.join(config.model_dir, "training.ckpt" )
-      tf.train.Saver().save(session, checkpoint_path, global_step=i)
+      if model_utils.stop_training(valid_history,config.early_stop):
+        print("Training stopped.")
+        quit()
+      else:
+        checkpoint_path = os.path.join(config.model_dir, "training.ckpt" )
+        tf.train.Saver().save(session, checkpoint_path, global_step=i)
       
 if __name__ == "__main__":
   tf.app.run()

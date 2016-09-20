@@ -99,7 +99,7 @@ class BatchGenerator(object):
     """
     def __init__(self,filename,key_name,target_name,num_inputs,
                      batch_size,num_unrollings,
-                     validation_size=None,end_date=None):
+                     validation_size=None,end_date=None,seed=None):
         """
         Init a BatchGenerator
         Args:
@@ -138,6 +138,9 @@ class BatchGenerator(object):
         self._key_name = key_name = key_name
         self._yval_name = yval_name = target_name
         self._factor_start_idx = list(data.columns.values).index(target_name)+1
+        self._key_idx = list(data.columns.values).index(key_name)
+        self._target_idx = list(data.columns.values).index(target_name)
+        self._date_idx = list(data.columns.values).index('date')
         assert(self._factor_start_idx>=0)
         # This assert ensures that no x factors are the yval
         assert(list(data.columns.values).index(yval_name)
@@ -149,11 +152,16 @@ class BatchGenerator(object):
         self._data_size = len(data)
         self._validation_set = list()
         if validation_size is not None:
+            if seed is not None:
+                random.seed( seed )
             # get number of keys
             keys = set(data[key_name])
             sample_size = int( validation_size * len(keys) )
-            self._validation_set = random.sample(keys, sample_size)
-        dates = list(set(data.date))
+            # self._validation_set = random.sample(keys, sample_size)
+            sample = random.sample(keys, sample_size)
+            self._validation_set = dict(zip(sample,[1]*sample_size))
+            print("Num training entities: %d"%(len(keys)-sample_size))
+            print("Num validation entities: %d"%sample_size)
         # Create a cursor of equally spaced indicies into the dataset. Each index
         # in the cursor points to one sequence in a batch and is used to keep
         # track of where we are in the dataset.
@@ -163,8 +171,8 @@ class BatchGenerator(object):
         # at the beggining of an entity's time sequences.
         for b in range(batch_size):
             idx = self._init_cursor[b]
-            key = data.iloc[idx][key_name]    
-            while data.iloc[idx][key_name] == key:
+            key = data.iat[idx,self._key_idx]    
+            while data.iat[idx,self._key_idx] == key:
                 # TDO: THIS SHOULD BE FIXED AS IT CAN GO INTO AN INFINITE LOOP
                 # IF THERE IS ONLY ONE ENTITY IN DATASET
                 idx = (idx + 1) % self._data_size
@@ -195,9 +203,10 @@ class BatchGenerator(object):
         data = self._data
         key_name = self._key_name
         reset_flags = np.ones(self._batch_size)
+        key_idx = self._key_idx
         for b in range(self._batch_size):
             idx = self._cursor[b]
-            if (idx==0 or (data.iloc[idx][key_name] != data.iloc[idx-1][key_name])):
+            if (idx==0 or (data.iat[idx,key_idx] != data.iat[idx-1,key_idx])):
                 reset_flags[b] = 0.0
         return reset_flags
         
@@ -212,12 +221,15 @@ class BatchGenerator(object):
         attr = list()
         data = self._data
         start_idx = self._factor_start_idx
+        key_idx = self._key_idx
+        target_idx = self._target_idx
+        date_idx = self._date_idx
         key_name = self._key_name
         yval_name = self._yval_name
         for b in range(self._batch_size):
             idx = self._cursor[b]
             prev_idx = idx-1 if idx > 0 else self._data_size - 1
-            if (step>0 and (data.iloc[prev_idx][key_name] != data.iloc[idx][key_name])):
+            if (step>0 and (data.iat[prev_idx,key_idx] != data.iat[idx,key_idx])):
                 x[b,:] = 0.0
                 y[b,:] = 0.0
                 train_wghts[b] = 0.0
@@ -227,14 +239,14 @@ class BatchGenerator(object):
                 attr.append(None)
             else:
                 x[b,:] = data.iloc[idx,start_idx:].as_matrix()
-                val = data.iloc[idx][yval_name] # +1, -1
-                y[b,0] = abs(val - 1) / 2 # +1 -> 0 & -1 -> 1
-                y[b,1] = abs(val + 1) / 2 # -1 -> 0 & +1 -> 1
-                date = '1900'
+                val = data.iat[idx,target_idx] # val = +1 or -1
+                y[b,0] = abs(val - 1) / 2 # +1 -> 0 and -1 -> 1
+                y[b,1] = abs(val + 1) / 2 # -1 -> 0 and +1 -> 1
+                date = 190001
                 if 'date' in list(data.columns.values):
-                    date = data.iloc[idx]['date']
+                    date = data.iat[idx,date_idx]
                 attr.append(date)
-                key = data.iloc[idx][key_name]
+                key = data.iat[idx,key_idx]
                 if key not in self._validation_set:
                     train_wghts[b] = 1.0
                     valid_wghts[b] = 0.0
