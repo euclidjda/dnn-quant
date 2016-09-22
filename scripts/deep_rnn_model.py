@@ -34,7 +34,7 @@ class DeepRnnModel(object):
   """
   def __init__(self, num_layers, num_inputs, num_hidden,
                    num_unrollings, batch_size,
-                   max_grad_norm=5.0):
+                   max_grad_norm=5.0, input_dropout=False):
       """
       Initialize the model
       Args:
@@ -71,8 +71,11 @@ class DeepRnnModel(object):
       #rnn_cell = tf.nn.rnn_cell.BasicLSTMCell(num_hidden,
       #                                             forget_bias=0.0)
 
-      rnn_cell = tf.nn.rnn_cell.DropoutWrapper(
-        rnn_cell, output_keep_prob=self._keep_prob)
+      input_keep_prob = self._keep_prob if input_dropout is True else 1.0
+
+      rnn_cell = tf.nn.rnn_cell.DropoutWrapper(rnn_cell, 
+                                               output_keep_prob=self._keep_prob, 
+                                               input_keep_prob=input_keep_prob)
       
       cell = tf.nn.rnn_cell.MultiRNNCell([rnn_cell] * num_layers)
 

@@ -39,13 +39,14 @@ def stop_training(perfs,num):
       num: Number of iterations of validation performance to
         "lookback" to see if performance is improving anymore
     """
-    far = num+1
-    near = min(int(num/2),5)
-    if len(perfs) >= far:
-        mean1 = np.mean(perfs[-far:-2])
-        mean2 = min(np.mean(perfs[-near:-1]),perfs[-1])
-        if mean1-mean2 < 0.0:
-            return True
+    if num is not None:
+        far = num+1
+        near = min(int(num/2),5)
+        if len(perfs) >= far:
+            mean1 = np.mean(perfs[-far:-2])
+            mean2 = min(np.mean(perfs[-near:-1]),perfs[-1])
+            if mean1-mean2 < 0.0:
+                return True
     return False
         
 

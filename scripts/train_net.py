@@ -112,10 +112,11 @@ def main(_):
   configs.DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
   configs.DEFINE_integer("passes",1,"Passes through day per epoch")
   configs.DEFINE_integer("max_epoch",0,"Stop after max_epochs")
-  configs.DEFINE_float('validation_size',0.0,'Size of validation set as %')
-  configs.DEFINE_integer('early_stop',10,'Early stop parameter')
-  configs.DEFINE_integer('end_date',210001,'Last date to train on as YYYYMM')
-  
+  configs.DEFINE_float("validation_size",0.0,"Size of validation set as %")
+  configs.DEFINE_integer("early_stop",None,"Early stop parameter")
+  configs.DEFINE_integer("end_date",210001,"Last date to train on as YYYYMM")
+  configs.DEFINE_integer("seed",None,"Seed for deterministic training")
+
   config = configs.get_configs()
 
   train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
@@ -130,13 +131,17 @@ def main(_):
                                 config.batch_size,
                                 config.num_unrollings,
                                 validation_size=config.validation_size,
-                                end_date=config.end_date)
-  
+                                end_date=config.end_date,seed=config.seed)
+
+
   tf_config = tf.ConfigProto( allow_soft_placement=True, 
                               log_device_placement=False )
 
   with tf.Graph().as_default(), tf.Session(config=tf_config) as session:
 
+    if config.seed is not None:
+      tf.set_random_seed(config.seed)
+  
     print("Constructing model ...")
 
     model = model_utils.get_training_model(session, config, verbose=True)

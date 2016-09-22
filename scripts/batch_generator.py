@@ -189,6 +189,8 @@ class BatchGenerator(object):
         to where the second index started. Kind of a kludge, I know, and will be improved
         at some point.
         """
+        if self._batch_size == 1 and self._num_unrollings == 1:
+            return self._data_size
         tmp_cursor = self._cursor[:] # copy cursor
         self.rewind()
         end_idx = self._init_cursor[1] if self._batch_size > 1 else self._data_size-1

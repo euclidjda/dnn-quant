@@ -54,6 +54,8 @@ def main(_):
 
   data_path = model_utils.get_data_path(config.data_dir,config.test_datafile)
 
+  print("Loading data.")
+
   dataset = BatchGenerator(data_path,
                            config.key_field, 
                            config.target_field,
@@ -67,6 +69,8 @@ def main(_):
 
   with tf.Graph().as_default(), tf.Session(config=tf_config) as session:
 
+    print("Loading model.")
+
     model = model_utils.get_trained_model(session, config)
 
     stats = dict()
@@ -78,7 +82,6 @@ def main(_):
     # together to create a final, single result file
       outfile.write('p0 p1\n')
 
-      #for i in range(num_data_points):
       for i in range(num_data_points):
 
         batch = dataset.next_batch()
