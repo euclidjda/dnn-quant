@@ -110,29 +110,27 @@ def main(_):
   configs.DEFINE_string("train_datafile", '',"Training file")
   configs.DEFINE_float("lr_decay",0.9, "Learning rate decay")
   configs.DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
+  configs.DEFINE_float("validation_size",0.0,"Size of validation set as %")
   configs.DEFINE_integer("passes",1,"Passes through day per epoch")
   configs.DEFINE_integer("max_epoch",0,"Stop after max_epochs")
-  configs.DEFINE_float("validation_size",0.0,"Size of validation set as %")
   configs.DEFINE_integer("early_stop",None,"Early stop parameter")
-  configs.DEFINE_integer("end_date",210001,"Last date to train on as YYYYMM")
   configs.DEFINE_integer("seed",None,"Seed for deterministic training")
-
+  
   config = configs.get_configs()
 
+  # print(config.use_fixed_k)
+  # exit()
+  
   train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
   
-
   print("Loading trainng data ...")
 
-  train_data = BatchGenerator(train_path,
-                                config.key_field,
-                                config.target_field,
-                                config.num_inputs,
-                                config.batch_size,
-                                config.num_unrollings,
-                                validation_size=config.validation_size,
-                                end_date=config.end_date,seed=config.seed)
-
+  rand_samp = True if config.use_fixed_k is True else False
+  
+  train_data = BatchGenerator(train_path, config,
+			      config.batch_size,config.num_unrollings,
+			      validation_size=config.validation_size,
+			      randomly_sample=rand_samp)
 
   tf_config = tf.ConfigProto( allow_soft_placement=True, 
                               log_device_placement=False )

@@ -141,7 +141,9 @@ def get_configs():
     DEFINE_integer("num_hidden",10,"Number of hidden layer units")
     DEFINE_float("init_scale",0.1, "Initial scale for weights")
     DEFINE_float("max_grad_norm",10.0,"Gradient clipping")
+    DEFINE_integer("end_date",210001,"Last date to train on as YYYYMM")
     DEFINE_float("keep_prob",1.0,"Keep probability for dropout")
+    DEFINE_boolean("use_fixed_k",False,"Sequences fixed at num_unrolling")
 
     _global_parser.add_argument('--config', type=open,
                                     action=_LoadFromFile,

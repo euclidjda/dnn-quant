@@ -189,10 +189,9 @@ class DeepRnnModel(object):
        sess: current tf session the model is being run in
        batch: batch of data of type Batch
      Returns:
-       cost: cross entropy cost function for the next batch in batches
-       accy: binary classifcation accuracy for the next batch in batches
        predictions: the model predictions for each data point in batch
      """
+
      feed_dict = self._get_feed_dict(batch)
 
      cost, accy, evals, predictions, = sess.run([self._cost,
@@ -201,9 +200,9 @@ class DeepRnnModel(object):
                                                  self._predictions],
                                                 feed_dict)
     
-     return cost, accy, predictions
+     return predictions
 
-
+   
   def _get_feed_dict(self,batch,keep_prob=1.0):
 
     reset_flags = np.repeat( batch.reset_flags.reshape( [self._batch_size, 1] ),

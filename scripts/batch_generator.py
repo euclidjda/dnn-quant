@@ -97,9 +97,10 @@ class BatchGenerator(object):
     sequences from the datafile whose shape is specified by batch_size 
     and num_unrollings.
     """
-    def __init__(self,filename,key_name,target_name,num_inputs,
+    def __init__(self,filename,config,
                      batch_size,num_unrollings,
-                     validation_size=None,end_date=None,seed=None):
+                     validation_size=None,
+                     randomly_sample=False):
         """
         Init a BatchGenerator
         Args:
@@ -128,36 +129,38 @@ class BatchGenerator(object):
         Raises:
           The file specified by filename does not exist
         """
+        			      
+        key_name = config.key_field
+        target_name = config.target_field
+        self._randomly_sample = randomly_sample
+        self._use_fixed_k = config.use_fixed_k
+        self._num_classes = _NUM_CLASSES
+        self._num_inputs = config.num_inputs
+        self._num_unrollings = num_unrollings
+        self._batch_size = batch_size
 
         if not os.path.isfile(filename):
             raise RuntimeError("The data file %s does not exists" % filename)
         data = pd.read_csv(filename,sep=' ')
-        if end_date is not None:
-            data = data.drop(data[data['date'] > end_date].index)
-        self._num_inputs = num_inputs
-        self._key_name = key_name = key_name
-        self._yval_name = yval_name = target_name
+        if config.end_date is not None:
+            data = data.drop(data[data['date'] > config.end_date].index)
         self._factor_start_idx = list(data.columns.values).index(target_name)+1
         self._key_idx = list(data.columns.values).index(key_name)
         self._target_idx = list(data.columns.values).index(target_name)
         self._date_idx = list(data.columns.values).index('date')
         assert(self._factor_start_idx>=0)
         # This assert ensures that no x factors are the yval
-        assert(list(data.columns.values).index(yval_name)
+        assert(list(data.columns.values).index(target_name)
                    < self._factor_start_idx)
-        self._num_classes = _NUM_CLASSES
-        self._num_unrollings = num_unrollings
-        self._batch_size = batch_size
         self._data = data
-        self._data_size = len(data)
+        self._data_len = len(data)
         self._validation_set = list()
         if validation_size is not None:
-            if seed is not None:
-                random.seed( seed )
+            if config.seed is not None:
+                random.seed( config.seed )
             # get number of keys
             keys = set(data[key_name])
-            sample_size = int( validation_size * len(keys) )
-            # self._validation_set = random.sample(keys, sample_size)
+            sample_size = int( config.validation_size * len(keys) )
             sample = random.sample(keys, sample_size)
             self._validation_set = dict(zip(sample,[1]*sample_size))
             print("Num training entities: %d"%(len(keys)-sample_size))
@@ -165,7 +168,8 @@ class BatchGenerator(object):
         # Create a cursor of equally spaced indicies into the dataset. Each index
         # in the cursor points to one sequence in a batch and is used to keep
         # track of where we are in the dataset.
-        segment = self._data_size // batch_size
+        batch_size = self._batch_size
+        segment = self._data_len // batch_size
         self._init_cursor = [ offset * segment for offset in range(batch_size) ]
         # The following loop ensures that every starting index in the cursor is
         # at the beggining of an entity's time sequences.
@@ -175,7 +179,7 @@ class BatchGenerator(object):
             while data.iat[idx,self._key_idx] == key:
                 # TDO: THIS SHOULD BE FIXED AS IT CAN GO INTO AN INFINITE LOOP
                 # IF THERE IS ONLY ONE ENTITY IN DATASET
-                idx = (idx + 1) % self._data_size
+                idx = (idx + 1) % self._data_len
             if b>0:
                 self._init_cursor[b] = idx
         self._cursor = self._init_cursor[:]
@@ -189,27 +193,35 @@ class BatchGenerator(object):
         to where the second index started. Kind of a kludge, I know, and will be improved
         at some point.
         """
+        if self._randomly_sample is True:
+            return self._data_len // self._batch_size
         if self._batch_size == 1 and self._num_unrollings == 1:
-            return self._data_size
+            return self._data_len
         tmp_cursor = self._cursor[:] # copy cursor
         self.rewind()
-        end_idx = self._init_cursor[1] if self._batch_size > 1 else self._data_size-1
+        end_idx = self._init_cursor[1] if self._batch_size > 1 else self._data_len-1
         num_batches = 0
         while (self._cursor[0] < end_idx - self._num_unrollings):
+        # while (self._cursor[0] < end_idx):
             self.next_batch()
             num_batches += 1
         self._cursor = tmp_cursor[:]
         return num_batches
         
     def _get_reset_flags(self):
-        data = self._data
-        key_name = self._key_name
-        reset_flags = np.ones(self._batch_size)
-        key_idx = self._key_idx
-        for b in range(self._batch_size):
-            idx = self._cursor[b]
-            if (idx==0 or (data.iat[idx,key_idx] != data.iat[idx-1,key_idx])):
-                reset_flags[b] = 0.0
+        # always reset state for fixed_k mode
+        reset_flags = None
+        if self._use_fixed_k is True:
+            reset_flags = np.zeros(self._batch_size)
+        # otherwise see if we've move onto new entity
+        else:
+            data = self._data
+            reset_flags = np.ones(self._batch_size)
+            kidx = self._key_idx
+            for b in range(self._batch_size):
+                i = self._cursor[b]
+                if (i==0 or (data.iat[i,kidx] != data.iat[i-1,kidx])):
+                    reset_flags[b] = 0.0
         return reset_flags
         
     def _next_step(self, step, seq_lengths):
@@ -226,11 +238,9 @@ class BatchGenerator(object):
         key_idx = self._key_idx
         target_idx = self._target_idx
         date_idx = self._date_idx
-        key_name = self._key_name
-        yval_name = self._yval_name
         for b in range(self._batch_size):
             idx = self._cursor[b]
-            prev_idx = idx-1 if idx > 0 else self._data_size - 1
+            prev_idx = idx-1 if idx > 0 else self._data_len - 1
             if (step>0 and (data.iat[prev_idx,key_idx] != data.iat[idx,key_idx])):
                 x[b,:] = 0.0
                 y[b,:] = 0.0
@@ -255,14 +265,26 @@ class BatchGenerator(object):
                 else:
                     train_wghts[b] = 0.0
                     valid_wghts[b] = 1.0
-                self._cursor[b] = (self._cursor[b] + 1) % self._data_size
+                self._cursor[b] = (self._cursor[b] + 1) % self._data_len
         return x, y, train_wghts, valid_wghts, attr
 
+    def _get_next_cursor(self,cur_cursor,saved_cursor):
+        assert(len(cur_cursor) == self._batch_size)        
+        assert(len(saved_cursor) == self._batch_size)
+        next_cursor = cur_cursor[:]
+        data = self._data
+        kidx = self._key_idx
+        for b in range(self._batch_size):
+            if (data.iat[cur_cursor[b],kidx] == data.iat[saved_cursor[b],kidx]):
+                next_cursor[b] = (saved_cursor[b]+1) % self._data_len
+        return next_cursor
+    
     def next_batch(self):
         """Generate the next batch of sequences from the data.
         Returns:
           A batch of type Batch (see class def below)
         """
+        saved_cursor = self._cursor[:]
         seq_lengths = np.full(self._batch_size, self._num_unrollings, dtype=int)
         reset_flags = self._get_reset_flags()
         x_batch = list()
@@ -277,11 +299,15 @@ class BatchGenerator(object):
             train_wghts.append(tw)
             valid_wghts.append(vw)
             attribs.append(attr)
+        if self._randomly_sample is True:
+            self._cursor = random.sample(range(self._data_len),self._batch_size)
+        elif self._use_fixed_k is True:
+            self._cursor = self._get_next_cursor(self._cursor,saved_cursor)
         return Batch(x_batch, y_batch, seq_lengths, reset_flags,
                          train_wghts, valid_wghts, attribs )
 
     def num_data_points(self):
-        return self._data_size
+        return self._data_len
 
     def rewind(self):
         self._cursor = self._init_cursor[:]

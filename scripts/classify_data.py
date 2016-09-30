@@ -50,19 +50,17 @@ def main(_):
   config = configs.get_configs()
 
   batch_size = 1
-  num_unrollings = 1
-
+  num_unrollings = config.num_unrollings if config.use_fixed_k is True else 1
+  
   data_path = model_utils.get_data_path(config.data_dir,config.test_datafile)
 
   print("Loading data.")
 
-  dataset = BatchGenerator(data_path,
-                           config.key_field, 
-                           config.target_field,
-                           config.num_inputs,
-                           batch_size, num_unrollings )
+  dataset = BatchGenerator(data_path, config,
+                             batch_size=batch_size,
+                             num_unrollings=num_unrollings)
 
-  num_data_points = dataset.num_data_points()
+  num_data_points = dataset.num_batches # dataset.num_data_points()
   
   tf_config = tf.ConfigProto( allow_soft_placement=True,
                                 log_device_placement=False )
@@ -74,7 +72,8 @@ def main(_):
     model = model_utils.get_trained_model(session, config)
 
     stats = dict()
-    key   = 'ALL'
+    key   = 0
+    stats[key] = list()
 
     with open(config.output, "w") as outfile:
 
@@ -85,9 +84,9 @@ def main(_):
       for i in range(num_data_points):
 
         batch = dataset.next_batch()
-        cost, accy, preds = model.step(session, batch)
-        prob = get_pos_prob( preds )
-
+        preds = model.step(session, batch)
+        prob = get_pos_prob( preds, batch )
+        
         outfile.write("%.4f %.4f\n" % (1.0 - prob, prob) )
 
         pred   = +1.0 if prob >= 0.5 else 0.0
@@ -96,37 +95,44 @@ def main(_):
         if len(config.time_field):
           key = get_time_label(batch, config.time_field)
 
+        error = 0.0 if (pred == target) else 1.0
         tp = 1.0 if (pred==1 and target==1) else 0.0
         tn = 1.0 if (pred==0 and target==0) else 0.0
         fp = 1.0 if (pred==1 and target==0) else 0.0
         fn = 1.0 if (pred==0 and target==1) else 0.0
-
+        
         # print("pred=%.2f target=%.2f tp=%d tn=%d fp=%d fn=%d"%(pred,target,tp,tn,fp,fn))
 
-        data = { 'cost'  : cost     , 
-                 'error' : 1.0-accy ,
-                 'tpos'  : tp       ,
-                 'tneg'  : tn       ,
-                 'fpos'  : fp       ,
-                 'fneg'  : fn       }
+        data = { 'error' : error ,
+                 'tpos'  : tp    ,
+                 'tneg'  : tn    ,
+                 'fpos'  : fp    ,
+                 'fneg'  : fn    }
 
         if key not in stats:
           stats[key] = list()
 
         stats[key].append(data)
+        stats[0].append(data)
 
     print_summary_stats(stats)
 
 
-def get_pos_prob(preds):
-  return preds[0][1]
+def get_pos_prob(preds,batch):
+  k = batch.seq_lengths[0]-1
+  assert(k < len(preds))
+  return preds[k][1]
 
 def get_target(batch):
-  return batch.targets[0][0][1]
+  k = batch.seq_lengths[0]-1
+  assert(k < len(batch.targets))
+  return batch.targets[k][0][1]
 
 def get_time_label(batch, time_label):
+  k = batch.seq_lengths[0]-1
   # TODO: Make the interface attribs more generic
-  return batch.attribs[0][0]
+  assert(k < len(batch.attribs))
+  return batch.attribs[k][0]
 
 def print_summary_stats(stats):
 
@@ -135,7 +141,6 @@ def print_summary_stats(stats):
 
   for key in keys:
 
-    cost  = 0
     error = 0
     tpos  = 0
     tneg  = 0
@@ -143,7 +148,6 @@ def print_summary_stats(stats):
     fneg  = 0
 
     for d in stats[key]:
-      cost  += d['cost']
       error += d['error']
       tpos  += d['tpos']
       tneg  += d['tneg']
@@ -153,14 +157,18 @@ def print_summary_stats(stats):
     n = len(stats[key])
     assert(n > 0)
 
-    cost  /= n
     error /= n
 
-    precision = tpos / (tpos+fpos)
-    recall    = tpos / (tpos+fneg) 
+    precision = "NA"
+    if tpos+fpos > 0:
+      precision = "%.4f"% (tpos/(tpos+fpos))
 
-    print("%s loss=%.4f error=%.4f prec=%.4f recall=%.4f" % 
-          (key,cost,error,precision,recall))
+    recall = "NA"
+    if tpos+fneg > 0:
+      recall = "%.4f"%(tpos/(tpos+fneg))
+
+    print("%s cnt=%d error=%.4f prec=%s recall=%s" % 
+          (key,n,error,precision,recall))
 
 if __name__ == "__main__":
   tf.app.run()
