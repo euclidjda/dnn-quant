@@ -202,7 +202,6 @@ class BatchGenerator(object):
         end_idx = self._init_cursor[1] if self._batch_size > 1 else self._data_len-1
         num_batches = 0
         while (self._cursor[0] < end_idx - self._num_unrollings):
-        # while (self._cursor[0] < end_idx):
             self.next_batch()
             num_batches += 1
         self._cursor = tmp_cursor[:]
