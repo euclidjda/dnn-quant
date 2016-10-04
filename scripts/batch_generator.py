@@ -194,7 +194,7 @@ class BatchGenerator(object):
         at some point.
         """
         if self._randomly_sample is True:
-            return self._data_len // self._batch_size
+            return self._data_len // (self._batch_size*self._num_unrollings)
         if self._batch_size == 1 and self._num_unrollings == 1:
             return self._data_len
         tmp_cursor = self._cursor[:] # copy cursor
