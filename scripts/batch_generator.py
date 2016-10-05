@@ -202,7 +202,6 @@ class BatchGenerator(object):
         end_idx = self._init_cursor[1] if self._batch_size > 1 else self._data_len-1
         num_batches = 0
         while (self._cursor[0] < end_idx - self._num_unrollings):
-        # while (self._cursor[0] < end_idx):
             self.next_batch()
             num_batches += 1
         self._cursor = tmp_cursor[:]
@@ -257,8 +256,8 @@ class BatchGenerator(object):
                 date = 190001
                 if 'date' in list(data.columns.values):
                     date = data.iat[idx,date_idx]
-                attr.append(date)
                 key = data.iat[idx,key_idx]
+                attr.append((key,date))
                 if key not in self._validation_set:
                     train_wghts[b] = 1.0
                     valid_wghts[b] = 0.0

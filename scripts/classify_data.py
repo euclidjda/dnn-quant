@@ -1,4 +1,6 @@
-#! /usr/bin/env python3
+#!/bin/sh
+''''exec python3 -u -- "$0" ${1+"$@"} # '''
+# The above forces flushed pipes
 
 # Copyright 2016 Euclidean Technologies Management LLC All Rights Reserved.
 #
@@ -46,6 +48,8 @@ def main(_):
   configs.DEFINE_string('test_datafile','test.dat','file with test data')
   configs.DEFINE_string('output','preds.dat','file for predictions')
   configs.DEFINE_string('time_field','date','fields used for dates/time')
+  configs.DEFINE_integer('print_start',190001,'only print data on or after')
+  configs.DEFINE_integer('print_end',210001,'only print data on or before')
 
   config = configs.get_configs()
 
@@ -77,23 +81,16 @@ def main(_):
 
     with open(config.output, "w") as outfile:
 
-    # print the headers so it is easy to "paste" data file and output file
-    # together to create a final, single result file
-      outfile.write('p0 p1\n')
-
       for i in range(num_data_points):
 
         batch = dataset.next_batch()
         preds = model.step(session, batch)
         prob = get_pos_prob( preds, batch )
-        
-        outfile.write("%.4f %.4f\n" % (1.0 - prob, prob) )
+        key, date = get_key_and_date( batch )
+        outfile.write("%s %s %.4f %.4f\n" % (key, date, 1.0 - prob, prob) )
 
         pred   = +1.0 if prob >= 0.5 else 0.0
         target = get_target(batch)
-
-        if len(config.time_field):
-          key = get_time_label(batch, config.time_field)
 
         error = 0.0 if (pred == target) else 1.0
         tp = 1.0 if (pred==1 and target==1) else 0.0
@@ -115,7 +112,7 @@ def main(_):
         stats[key].append(data)
         stats[0].append(data)
 
-    print_summary_stats(stats)
+    print_summary_stats(stats,config.print_start,config.print_end)
 
 
 def get_pos_prob(preds,batch):
@@ -128,18 +125,21 @@ def get_target(batch):
   assert(k < len(batch.targets))
   return batch.targets[k][0][1]
 
-def get_time_label(batch, time_label):
+def get_key_and_date(batch):
   k = batch.seq_lengths[0]-1
   # TODO: Make the interface attribs more generic
   assert(k < len(batch.attribs))
-  return batch.attribs[k][0]
+  return batch.attribs[k][0][0],batch.attribs[k][0][1]
 
-def print_summary_stats(stats):
+def print_summary_stats(stats,print_start,print_end):
 
-  keys = [key for key in stats]
-  keys.sort()
+  dates = [date for date in stats]
+  dates.sort()
 
-  for key in keys:
+  for date in dates:
+    
+    if date < print_start or date > print_end:
+      continue
 
     error = 0
     tpos  = 0
@@ -147,14 +147,14 @@ def print_summary_stats(stats):
     fpos  = 0
     fneg  = 0
 
-    for d in stats[key]:
+    for d in stats[date]:
       error += d['error']
       tpos  += d['tpos']
       tneg  += d['tneg']
       fpos  += d['fpos']
       fneg  += d['fneg']
 
-    n = len(stats[key])
+    n = len(stats[date])
     assert(n > 0)
 
     error /= n
@@ -168,7 +168,7 @@ def print_summary_stats(stats):
       recall = "%.4f"%(tpos/(tpos+fneg))
 
     print("%s cnt=%d error=%.4f prec=%s recall=%s" % 
-          (key,n,error,precision,recall))
+          (date,n,error,precision,recall))
 
 if __name__ == "__main__":
   tf.app.run()
