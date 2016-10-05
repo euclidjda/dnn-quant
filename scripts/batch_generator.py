@@ -47,6 +47,10 @@ class Batch(object):
         position n indicates that the data in sequence n of the batch is a
         new entity since the last batch and that the RNN's state should be
         reset.
+      train_wghts: Weights that specify an example is in the training data
+        and how much they should contribute to the training loss function
+      valid_wghts: Weights that specify an example is in the validation data
+        set and how much they should contribute to the validation loss
       attribs: Currently this holds the date values for the time sequences.
         TOD: We would like this to be more generic to hold any attributes
         (as a pandas dataframe) about a records that is not a input or output

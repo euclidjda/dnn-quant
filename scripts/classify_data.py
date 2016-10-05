@@ -63,8 +63,8 @@ def main(_):
                              batch_size=batch_size,
                              num_unrollings=num_unrollings)
 
-  num_data_points = dataset.num_batches # dataset.num_data_points()
-  print("num_data_points = ", num_data_points)
+  num_data_points = dataset.num_batches
+  print("num_batches = ", num_data_points)
 
   tf_config = tf.ConfigProto( allow_soft_placement=True,
                                 log_device_placement=False )
@@ -85,10 +85,10 @@ def main(_):
 
         cur_time = time.time()
         batch = dataset.next_batch()
-        # print("batch-time: %.4f"%(time.time()-cur_time))
+        #print("batch-time: %.8f"%(time.time()-cur_time))
         cur_time = time.time()
         preds = model.step(session, batch)
-        # print("step-time: %.4f"%(time.time()-cur_time))
+        #print("step-time: %.8f"%(time.time()-cur_time))
 
         prob = get_pos_prob( preds, batch )
         key, date = get_key_and_date( batch )
