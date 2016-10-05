@@ -44,7 +44,6 @@ def main(_):
   $ classifiy_data.py --config=train.conf --test_datafile=test.dat -output=output.dat
   $ paste -d ' ' test.dat output.dat > input_and_output.dat
   """
-
   configs.DEFINE_string('test_datafile','test.dat','file with test data')
   configs.DEFINE_string('output','preds.dat','file for predictions')
   configs.DEFINE_string('time_field','date','fields used for dates/time')
@@ -65,7 +64,8 @@ def main(_):
                              num_unrollings=num_unrollings)
 
   num_data_points = dataset.num_batches # dataset.num_data_points()
-  
+  print("num_data_points = ", num_data_points)
+
   tf_config = tf.ConfigProto( allow_soft_placement=True,
                                 log_device_placement=False )
 
@@ -83,8 +83,13 @@ def main(_):
 
       for i in range(num_data_points):
 
+        cur_time = time.time()
         batch = dataset.next_batch()
+        # print("batch-time: %.4f"%(time.time()-cur_time))
+        cur_time = time.time()
         preds = model.step(session, batch)
+        # print("step-time: %.4f"%(time.time()-cur_time))
+
         prob = get_pos_prob( preds, batch )
         key, date = get_key_and_date( batch )
         outfile.write("%s %s %.4f %.4f\n" % (key, date, 1.0 - prob, prob) )
@@ -106,10 +111,10 @@ def main(_):
                  'fpos'  : fp    ,
                  'fneg'  : fn    }
 
-        if key not in stats:
-          stats[key] = list()
+        if date not in stats:
+          stats[date] = list()
 
-        stats[key].append(data)
+        stats[date].append(data)
         stats[0].append(data)
 
     print_summary_stats(stats,config.print_start,config.print_end)
@@ -137,9 +142,8 @@ def print_summary_stats(stats,print_start,print_end):
   dates.sort()
 
   for date in dates:
-    
     if date < print_start or date > print_end:
-      continue
+       continue
 
     error = 0
     tpos  = 0

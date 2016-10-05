@@ -132,6 +132,8 @@ class BatchGenerator(object):
         			      
         key_name = config.key_field
         target_name = config.target_field
+        self._key_name = key_name
+        self._target_name = target_name
         self._randomly_sample = randomly_sample
         self._use_fixed_k = config.use_fixed_k
         self._num_classes = _NUM_CLASSES
@@ -186,27 +188,29 @@ class BatchGenerator(object):
         self._num_batches = self._calc_num_batches()
 
     def _calc_num_batches(self):
-        """
-        This calculates the approximate number of batches that need to be stepped
-        through inorder to visit the entire dataset. To find this number, we repeatably
-        call the next_batch() method until the first index in the cursor "catches up"
-        to where the second index started. Kind of a kludge, I know, and will be improved
-        at some point.
-        """
-        if self._randomly_sample is True:
-            return self._data_len // (self._batch_size*self._num_unrollings)
-        if self._batch_size == 1 and self._num_unrollings == 1:
-            return self._data_len
-        tmp_cursor = self._cursor[:] # copy cursor
-        self.rewind()
-        end_idx = self._init_cursor[1] if self._batch_size > 1 else self._data_len-1
         num_batches = 0
-        while (self._cursor[0] < end_idx - self._num_unrollings):
-            self.next_batch()
-            num_batches += 1
-        self._cursor = tmp_cursor[:]
+        data = self._data
+        counts = data.groupby(self._key_name).size()
+        unrls = self._num_unrollings
+        if self._batch_size == 1 and self._num_unrollings == 1:
+            num_batches = self._data_len
+        elif self._randomly_sample is True:
+            num_batches = self._data_len // (self._batch_size*self._num_unrollings)
+        elif self._use_fixed_k:
+            for i in range(len(counts)):
+                count = counts.iloc[i]
+                incr = (count - unrls + 1) if count >= unrls else 1
+                num_batches += incr
+            num_batches = num_batches // self._batch_size
+        else:
+            for i in range(len(counts)):
+                count = counts.iloc[i]
+                num_batches += count // unrls
+                if count % unrls > 0:
+                    num_batches += 1
+            num_batches = num_batches // self._batch_size
         return num_batches
-        
+
     def _get_reset_flags(self):
         # always reset state for fixed_k mode
         reset_flags = None
@@ -223,6 +227,17 @@ class BatchGenerator(object):
                     reset_flags[b] = 0.0
         return reset_flags
         
+    def _get_next_cursor(self,cur_cursor,saved_cursor):
+        assert(len(cur_cursor) == self._batch_size)        
+        assert(len(saved_cursor) == self._batch_size)
+        next_cursor = cur_cursor[:]
+        data = self._data
+        kidx = self._key_idx
+        for b in range(self._batch_size):
+            if (data.iat[cur_cursor[b],kidx] == data.iat[saved_cursor[b],kidx]):
+                next_cursor[b] = (saved_cursor[b]+1) % self._data_len
+        return next_cursor
+    
     def _next_step(self, step, seq_lengths):
         """
         Get next step in current batch.
@@ -253,9 +268,7 @@ class BatchGenerator(object):
                 val = data.iat[idx,target_idx] # val = +1 or -1
                 y[b,0] = abs(val - 1) / 2 # +1 -> 0 and -1 -> 1
                 y[b,1] = abs(val + 1) / 2 # -1 -> 0 and +1 -> 1
-                date = 190001
-                if 'date' in list(data.columns.values):
-                    date = data.iat[idx,date_idx]
+                date = data.iat[idx,date_idx]
                 key = data.iat[idx,key_idx]
                 attr.append((key,date))
                 if key not in self._validation_set:
@@ -267,17 +280,6 @@ class BatchGenerator(object):
                 self._cursor[b] = (self._cursor[b] + 1) % self._data_len
         return x, y, train_wghts, valid_wghts, attr
 
-    def _get_next_cursor(self,cur_cursor,saved_cursor):
-        assert(len(cur_cursor) == self._batch_size)        
-        assert(len(saved_cursor) == self._batch_size)
-        next_cursor = cur_cursor[:]
-        data = self._data
-        kidx = self._key_idx
-        for b in range(self._batch_size):
-            if (data.iat[cur_cursor[b],kidx] == data.iat[saved_cursor[b],kidx]):
-                next_cursor[b] = (saved_cursor[b]+1) % self._data_len
-        return next_cursor
-    
     def next_batch(self):
         """Generate the next batch of sequences from the data.
         Returns:

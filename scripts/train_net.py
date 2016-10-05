@@ -68,6 +68,8 @@ def run_epoch(session, model, dataset,
 
   dataset.rewind() # make sure we start a beggining
 
+  print("batches: %d "%num_batches,end=' ')
+
   for i in range(passes):
     for step in range(num_batches):
       batch = dataset.next_batch()

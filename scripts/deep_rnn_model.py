@@ -194,13 +194,13 @@ class DeepRnnModel(object):
 
      feed_dict = self._get_feed_dict(batch)
 
-     #cost, accy, evals, predictions, = sess.run([self._cost,
-     #                                            self._accy,
-     #                                            self._evals,
-     #                                            self._predictions],
-     #                                           feed_dict)
+     cost, accy, evals, predictions, = sess.run([self._cost,
+                                                 self._accy,
+                                                 self._evals,
+                                                 self._predictions],
+                                                feed_dict)
 
-     predictions = sess.run([self._predictions],feed_dict)
+     # predictions = sess.run([self._predictions],feed_dict)
     
      return predictions
 

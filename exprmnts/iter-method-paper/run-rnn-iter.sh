@@ -30,7 +30,7 @@ do
     echo "Date range for testing ${TEST_PRE} to ${TEST_END}"
     echo "Date range for saved estimates ${TEST_START} to ${TEST_END}"
 
-    #$BIN/slice_data.pl $TEST_PRE $TEST_END < ${DATA_DIR}/${TRAIN_FILE} > ${TRAIN_DIR}/test-data-${TEST_START}.dat
+    $BIN/slice_data.pl $TEST_PRE $TEST_END < ${DATA_DIR}/${TRAIN_FILE} > ${TRAIN_DIR}/test-data-${TEST_START}.dat
 
     $BIN/classify_data.py --config=${CONFIG_FILE} --model_dir=rnn-chkpts-${TEST_START}  --print_start=${TEST_START} --print_end=${TEST_END} \
         --data_dir=. --test_datafile=${TRAIN_DIR}/test-data-${TEST_START}.dat --output=${TRAIN_DIR}/preds-${TEST_START}.dat > ${TRAIN_DIR}/results-${TEST_START}.txt
