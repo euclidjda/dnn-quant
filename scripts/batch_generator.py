@@ -133,7 +133,6 @@ class BatchGenerator(object):
         Raises:
           The file specified by filename does not exist
         """
-        			      
         key_name = config.key_field
         target_name = config.target_field
         self._key_name = key_name
@@ -147,7 +146,7 @@ class BatchGenerator(object):
 
         if not os.path.isfile(filename):
             raise RuntimeError("The data file %s does not exists" % filename)
-        data = pd.read_csv(filename,sep=' ')
+        data = pd.read_csv(filename,sep=' ', dtype={ self._key_name : str } )
         if config.end_date is not None:
             data = data.drop(data[data['date'] > config.end_date].index)
         self._factor_start_idx = list(data.columns.values).index(target_name)+1
