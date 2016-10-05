@@ -118,9 +118,6 @@ def main(_):
   
   config = configs.get_configs()
 
-  # print(config.use_fixed_k)
-  # exit()
-  
   train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
   
   print("Loading trainng data ...")
