@@ -121,7 +121,7 @@ class BatchGenerator(object):
             bb +1 .6 .5 .0
             bb -1 .5 .4 .1
             bb -1 .5 .5 .0
-          batch_size: The size of a batch
+          batch_size: The size of a batch (if not defined in config)
           num_unrollings: The time window for each batch. The number of data
             points in a batch is batch_size * num_unrollings
           validation_size: size of validation set 0.10 = 10%
