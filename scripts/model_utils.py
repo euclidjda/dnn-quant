@@ -26,7 +26,7 @@ def get_data_path(data_dir, filename):
       Otherwise a path relative to the working directory is returned
     """
     path = data_dir + '/' + filename
-    if 'DNN_QUANT_ROOT' in os.environ:
+    if data_dir != '.' and 'DNN_QUANT_ROOT' in os.environ:
         path = os.environ['DNN_QUANT_ROOT'] + '/' + path
     return path
 

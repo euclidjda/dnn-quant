@@ -256,8 +256,8 @@ class BatchGenerator(object):
                 date = 190001
                 if 'date' in list(data.columns.values):
                     date = data.iat[idx,date_idx]
-                attr.append(date)
                 key = data.iat[idx,key_idx]
+                attr.append((key,date))
                 if key not in self._validation_set:
                     train_wghts[b] = 1.0
                     valid_wghts[b] = 0.0
