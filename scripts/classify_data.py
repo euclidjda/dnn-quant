@@ -57,7 +57,7 @@ def main(_):
   
   data_path = model_utils.get_data_path(config.data_dir,config.test_datafile)
 
-  print("Loading data.")
+  print("Loading data %s"%data_path)
 
   dataset = BatchGenerator(data_path, config,
                              batch_size=batch_size,
