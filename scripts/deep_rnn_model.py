@@ -87,15 +87,16 @@ class DeepRnnModel(object):
       self._reset_state_flags = tf.placeholder(tf.float32, shape=state_shape)
       self._saved_state = tf.Variable(tf.zeros(state_shape), dtype=tf.float32,
                                           trainable=False)
-    
-      if use_fixed_k is True:
-        state = self._saved_state
-      else:
+
+      init_state = None
+
+      if use_fixed_k is False:
         state = tf.mul( self._saved_state, self._reset_state_flags )
     
       outputs, state = tf.nn.rnn(cell, self._inputs,
-                                     initial_state=state,
-                                     sequence_length=self._seq_lengths)
+                                 initial_state=init_state,
+                                 dtype=tf.float32,
+                                 sequence_length=self._seq_lengths)
 
       self._state = state
 

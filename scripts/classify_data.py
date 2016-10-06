@@ -91,31 +91,32 @@ def main(_):
         preds = model.step(session, batch)
         #print("step-time: %.8f"%(time.time()-cur_time))
         seq_len = get_seq_length( batch )
-        if seq_len >= config.min_test_k:
-          start = 0 if use_entire_seq(batch) is True else seq_len-1
-          for i in range(start,seq_len):
-            prob = get_pos_prob( preds, batch, i )
-            key, date = get_key_and_date( batch, i )
-            target = get_target(batch, i)
-            outfile.write("%s %s "
-              "%.4f %.4f %d %d\n" % (key, date, 1.0 - prob, prob, target, i+1) )
-            pred   = +1.0 if prob >= 0.5 else 0.0
-            error = 0.0 if (pred == target) else 1.0
-            tp = 1.0 if (pred==1 and target==1) else 0.0
-            tn = 1.0 if (pred==0 and target==0) else 0.0
-            fp = 1.0 if (pred==1 and target==0) else 0.0
-            fn = 1.0 if (pred==0 and target==1) else 0.0
-            # print("pred=%.2f target=%.2f tp=%d tn=%d fp=%d fn=%d"%(pred,target,tp,tn,fp,fn))
-            data = { 
-		'error' : error ,
-		'tpos'  : tp    ,
-		'tneg'  : tn    ,
-		'fpos'  : fp    ,
-		'fneg'  : fn    }
-            if date not in stats:
-              stats[date] = list()
-            stats[date].append(data)
-            stats[0].append(data)
+        start = 0 if use_entire_seq(batch) is True else seq_len-1
+        for i in range(start,seq_len):
+          if i+1 < config.min_test_k:
+            continue
+          prob = get_pos_prob( preds, batch, i )
+          key, date = get_key_and_date( batch, i )
+          target = get_target(batch, i)
+          outfile.write("%s %s "
+            "%.4f %.4f %d %d\n" % (key, date, 1.0 - prob, prob, target, i+1) )
+          pred   = +1.0 if prob >= 0.5 else 0.0
+          error = 0.0 if (pred == target) else 1.0
+          tp = 1.0 if (pred==1 and target==1) else 0.0
+          tn = 1.0 if (pred==0 and target==0) else 0.0
+          fp = 1.0 if (pred==1 and target==0) else 0.0
+          fn = 1.0 if (pred==0 and target==1) else 0.0
+          # print("pred=%.2f target=%.2f tp=%d tn=%d fp=%d fn=%d"%(pred,target,tp,tn,fp,fn))
+          data = { 
+	      'error' : error ,
+	      'tpos'  : tp    ,
+	      'tneg'  : tn    ,
+	      'fpos'  : fp    ,
+	      'fneg'  : fn    }
+          if date not in stats:
+            stats[date] = list()
+          stats[date].append(data)
+          stats[0].append(data)
 
     print_summary_stats(stats,config.print_start,config.print_end)
 

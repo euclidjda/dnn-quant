@@ -14,9 +14,9 @@ mkdir -p ${TRAIN_DIR}
 # Sets that can be done on seperate GPU's
 # 2000-2002, 2003-2006, 2007-2010, 2011-2014 
 
-GPU=0
-START_YEAR=2000
-END_YEAR=2002
+GPU=2
+START_YEAR=2007
+END_YEAR=2010
 YEAR=$START_YEAR
 
 while [ $YEAR -le $END_YEAR ]
@@ -45,10 +45,10 @@ do
 done
 
 # Now gen preds for training data
-TRAIN_END=`expr ${START_YEAR} - 1`12 
-TRAIN_TAG=${START_YEAR}01
+#TRAIN_END=`expr ${START_YEAR} - 1`12 
+#TRAIN_TAG=${START_YEAR}01
 
-$BIN/slice_data.pl 197001 ${TRAIN_END} < $DATA_DIR/${TRAIN_FILE} > ${TRAIN_DIR}/train-data.dat
+#$BIN/slice_data.pl 197001 ${TRAIN_END} < $DATA_DIR/${TRAIN_FILE} > ${TRAIN_DIR}/train-data.dat
 
-$BIN/classify_data.py --config=${CONFIG_FILE} --default_gpu=/gpu:${GPU} --model_dir=${CHKPTS_NAME}-${TRAIN_TAG} --print_start=197001 --print_end=${TRAIN_END} \
-    --data_dir="." --test_datafile=${TRAIN_DIR}/train-data.dat --output=${TRAIN_DIR}/train-preds.dat > ${TRAIN_DIR}/results-train.txt
+#$BIN/classify_data.py --config=${CONFIG_FILE} --default_gpu=/gpu:${GPU} --model_dir=${CHKPTS_NAME}-${TRAIN_TAG} --print_start=197001 --print_end=${TRAIN_END} \
+#    --data_dir="." --test_datafile=${TRAIN_DIR}/train-data.dat --output=${TRAIN_DIR}/train-preds.dat > ${TRAIN_DIR}/results-train.txt

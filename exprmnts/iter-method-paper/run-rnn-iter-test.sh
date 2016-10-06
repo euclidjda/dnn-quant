@@ -3,20 +3,17 @@
 ROOT=$DNN_QUANT_ROOT
 BIN=$ROOT/scripts
 DATA_DIR=$ROOT/datasets
-TRAIN_DIR=train-rnn
-TRAIN_FILE=row-norm-all-100M.dat
+TRAIN_DIR=test-rnn
+TRAIN_FILE=dev-50k-1yr.dat
 CONFIG_FILE=rnn-gru-iter.conf
 CHKPTS_NAME=chkpts-${TRAIN_DIR}
 
 # make training directory if it does not exist
-mkdir -p ${TRAIN_DIR}
-
-# Sets that can be done on seperate GPU's
 # 2000-2002, 2003-2006, 2007-2010, 2011-2014 
 
 GPU=0
-START_YEAR=2000
-END_YEAR=2002
+START_YEAR=1990
+END_YEAR=1990
 YEAR=$START_YEAR
 
 while [ $YEAR -le $END_YEAR ]
