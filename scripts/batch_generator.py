@@ -215,19 +215,18 @@ class BatchGenerator(object):
         return num_batches
 
     def _get_reset_flags(self):
-        # always reset state for fixed_k mode
         reset_flags = None
-        if self._use_fixed_k is True:
-            reset_flags = np.zeros(self._batch_size)
+        #if self._use_fixed_k is True:
+        #    reset_flags = np.zeros(self._batch_size)
         # otherwise see if we've move onto new entity
-        else:
-            data = self._data
-            reset_flags = np.ones(self._batch_size)
-            kidx = self._key_idx
-            for b in range(self._batch_size):
-                i = self._cursor[b]
-                if (i==0 or (data.iat[i,kidx] != data.iat[i-1,kidx])):
-                    reset_flags[b] = 0.0
+        #else:
+        data = self._data
+        reset_flags = np.ones(self._batch_size)
+        kidx = self._key_idx
+        for b in range(self._batch_size):
+            i = self._cursor[b]
+            if (i==0 or (data.iat[i,kidx] != data.iat[i-1,kidx])):
+                reset_flags[b] = 0.0
         return reset_flags
         
     def _get_next_cursor(self,cur_cursor,saved_cursor):

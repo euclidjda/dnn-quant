@@ -49,6 +49,7 @@ def main(_):
   configs.DEFINE_string('time_field','date','fields used for dates/time')
   configs.DEFINE_integer('print_start',190001,'only print data on or after')
   configs.DEFINE_integer('print_end',210001,'only print data on or before')
+  configs.DEFINE_integer('min_test_k',1,'minimum seq length classified')
 
   config = configs.get_configs()
 
@@ -89,52 +90,57 @@ def main(_):
         cur_time = time.time()
         preds = model.step(session, batch)
         #print("step-time: %.8f"%(time.time()-cur_time))
-
-        prob = get_pos_prob( preds, batch )
-        key, date = get_key_and_date( batch )
-        outfile.write("%s %s %.4f %.4f\n" % (key, date, 1.0 - prob, prob) )
-
-        pred   = +1.0 if prob >= 0.5 else 0.0
-        target = get_target(batch)
-
-        error = 0.0 if (pred == target) else 1.0
-        tp = 1.0 if (pred==1 and target==1) else 0.0
-        tn = 1.0 if (pred==0 and target==0) else 0.0
-        fp = 1.0 if (pred==1 and target==0) else 0.0
-        fn = 1.0 if (pred==0 and target==1) else 0.0
-        
-        # print("pred=%.2f target=%.2f tp=%d tn=%d fp=%d fn=%d"%(pred,target,tp,tn,fp,fn))
-
-        data = { 'error' : error ,
-                 'tpos'  : tp    ,
-                 'tneg'  : tn    ,
-                 'fpos'  : fp    ,
-                 'fneg'  : fn    }
-
-        if date not in stats:
-          stats[date] = list()
-
-        stats[date].append(data)
-        stats[0].append(data)
+        seq_len = get_seq_length( batch )
+        if seq_len >= config.min_test_k:
+          start = 0 if use_entire_seq(batch) is True else seq_len-1
+          for i in range(start,seq_len):
+            prob = get_pos_prob( preds, batch, i )
+            key, date = get_key_and_date( batch, i )
+            target = get_target(batch, i)
+            outfile.write("%s %s "
+              "%.4f %.4f %d %d\n" % (key, date, 1.0 - prob, prob, target, i+1) )
+            pred   = +1.0 if prob >= 0.5 else 0.0
+            error = 0.0 if (pred == target) else 1.0
+            tp = 1.0 if (pred==1 and target==1) else 0.0
+            tn = 1.0 if (pred==0 and target==0) else 0.0
+            fp = 1.0 if (pred==1 and target==0) else 0.0
+            fn = 1.0 if (pred==0 and target==1) else 0.0
+            # print("pred=%.2f target=%.2f tp=%d tn=%d fp=%d fn=%d"%(pred,target,tp,tn,fp,fn))
+            data = { 
+		'error' : error ,
+		'tpos'  : tp    ,
+		'tneg'  : tn    ,
+		'fpos'  : fp    ,
+		'fneg'  : fn    }
+            if date not in stats:
+              stats[date] = list()
+            stats[date].append(data)
+            stats[0].append(data)
 
     print_summary_stats(stats,config.print_start,config.print_end)
 
 
-def get_pos_prob(preds,batch):
-  k = batch.seq_lengths[0]-1
-  assert(k < len(preds))
-  return preds[k][1]
+def get_seq_length(batch):
+  return batch.seq_lengths[0]
 
-def get_target(batch):
-  k = batch.seq_lengths[0]-1
-  assert(k < len(batch.targets))
-  return batch.targets[k][0][1]
+def use_entire_seq(batch):
+  rf = batch.reset_flags[0]
+  return True if rf == 0.0 else False
 
-def get_key_and_date(batch):
-  k = batch.seq_lengths[0]-1
-  # TODO: Make the interface attribs more generic
-  assert(k < len(batch.attribs))
-  return batch.attribs[k][0][0],batch.attribs[k][0][1]
+def get_pos_prob(preds,batch,idx):
+  # k = batch.seq_lengths[0]-1
+  assert(idx < len(preds))
+  return preds[idx][1]
+
+def get_target(batch,idx):
+  # k = batch.seq_lengths[0]-1
+  assert(idx < len(batch.targets))
+  return batch.targets[idx][0][1]
+
+def get_key_and_date(batch,idx):
+  # k = batch.seq_lengths[0]-1
+  assert(idx < len(batch.attribs))
+  return batch.attribs[idx][0][0],batch.attribs[idx][0][1]
 
 def print_summary_stats(stats,print_start,print_end):
 

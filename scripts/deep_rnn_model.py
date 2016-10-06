@@ -33,8 +33,10 @@ class DeepRnnModel(object):
   arbitrary number of fixed width hidden layers.
   """
   def __init__(self, num_layers, num_inputs, num_hidden,
-                   num_unrollings, batch_size,
-                   max_grad_norm=5.0, input_dropout=False):
+               num_unrollings, batch_size,
+               max_grad_norm=5.0, 
+               use_fixed_k=False,
+               input_dropout=False):
       """
       Initialize the model
       Args:
@@ -86,7 +88,10 @@ class DeepRnnModel(object):
       self._saved_state = tf.Variable(tf.zeros(state_shape), dtype=tf.float32,
                                           trainable=False)
     
-      state = tf.mul( self._saved_state, self._reset_state_flags )
+      if use_fixed_k is True:
+        state = self._saved_state
+      else:
+        state = tf.mul( self._saved_state, self._reset_state_flags )
     
       outputs, state = tf.nn.rnn(cell, self._inputs,
                                      initial_state=state,
