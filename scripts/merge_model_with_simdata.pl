@@ -2,14 +2,25 @@
 
 use strict;
 
+my $PRED_FILE_GVKEY_IDX    = 0;
+my $PRED_FILE_DATE_IDX     = 1;
+my $PRED_FILE_NEG_PROB_IDX = 2;
+my $PRED_FILE_POS_PROB_IDX = 3;
+my $PRED_FILE_TARGET_IDX   = 4;
+my $PRED_FILE_STEPS_IDX    = 5;
+
+my $SIMDAT_FILE_DATE_IDX   = 0;
+my $SIMDAT_FILE_GVKEY_IDX  = 1;
+my $SIMDAT_FILE_TERM_IDX   = 11;
+
 main();
 
 sub main {
 
     $| = 1;
 
-    my $datafile = $ARGV[0] || die;
-    my $probfile = $ARGV[1] || die;
+    my $datafile = $ARGV[0] || die "First cmd arg must be predictions file.";
+    my $probfile = $ARGV[1] || die "Second cmd arg must be source data file.";
 
     my %probs = ();
 
@@ -22,9 +33,9 @@ sub main {
 
 	next if $fields[0] eq 'gvkey'; # skip header
 
-	my $gvkey = $fields[0];
-	my $date  = $fields[1];
-	my $prob  = $fields[4];
+	my $gvkey = $fields[$PRED_FILE_GVKEY_IDX];
+	my $date  = $fields[$PRED_FILE_DATE_IDX];
+	my $prob  = $fields[$PRED_FILE_POS_PROB_IDX];
 	$probs{"$gvkey$date"} = $prob;
 
     }
@@ -38,15 +49,15 @@ sub main {
 	chomp;
 	my @fields = split(' ',$_);
 
-	my $gvkey = $fields[1];
-	my $date  = $fields[0];
+	my $gvkey = $fields[$SIMDAT_FILE_GVKEY_IDX];
+	my $date  = $fields[$SIMDAT_FILE_DATE_IDX];
 	my $prob = 'NULL';
 
 	if (exists($probs{"$gvkey$date"})) {
 	    $prob = $probs{"$gvkey$date"};
 	}
 
-	print join(' ',@fields[0..11]);
+	print join(' ',@fields[0..$SIMDAT_FILE_TERM_IDX]);
 
 	print " $prob\n";
 

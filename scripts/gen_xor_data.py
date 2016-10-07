@@ -30,15 +30,17 @@ if (len(sys.argv)>2):
 
 print("id target x1 x2") # print header
 id = 0
+step = 0
 
 for i in range(num_points):
-    #if random.random() < 0.1:
-    #    id += 10
-    id += 1
+    if random.random() < 0.1:
+        id += 10
+        step = 0
+    step += 1
     x1 = random.uniform(-1.0,+1.0)
     x2 = random.uniform(-1.0,+1.0)
     y  = +1.0 if x1*x2 >= 0 else -1.0
-    print("%d %+.2f %.6f %.6f"%(id,y,x1,x2))
+    print("%d %d %+.2f %.6f %.6f"%(id,step,y,x1,x2))
     
     
     

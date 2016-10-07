@@ -168,45 +168,43 @@ def _create_all_models_rnn(session,config,verbose=False):
                                num_hidden     = config.num_hidden,
                                use_fixed_k    = config.use_fixed_k,
                                num_unrollings = num_unrollings,
-                               batch_size     = 1,)
+                               batch_size     = 1)
       
     return mtrain, mdeploy
 
 
 def _create_all_models_mlp(session,config,verbose=False):    
 
+
     initer = tf.random_uniform_initializer(-config.init_scale,config.init_scale)
     
     if verbose is True:
       print("Model has the following geometry:")
+      print("  num_unroll  = %d"% config.num_unrollings)
       print("  batch_size  = %d"% config.batch_size)
+      print("  evals/batch = %d"% (config.batch_size*config.num_unrollings))
       print("  num_inputs  = %d"% config.num_inputs)
       print("  num_hidden  = %d"% config.num_hidden)
       print("  num_layers  = %d"% config.num_layers)
 
-    if config.num_unrollings != 1:
-        raise RuntimeError("num_unrollings cannot be greater than 1 "+
-                               "when training an MLP.")
-      
-    # Training graph  
+    # Training and validation graph  
     with tf.variable_scope("model", reuse=None, initializer=initer), \
       tf.device(config.default_gpu):
         mtrain = DeepMlpModel(num_layers     = config.num_layers,
                               num_inputs     = config.num_inputs,
                               num_hidden     = config.num_hidden,
+                              num_unrollings = config.num_unrollings,
                               batch_size     = config.batch_size,
-                              max_grad_norm  = config.max_grad_norm,
-                              keep_prob      = config.keep_prob,
-                              training       = True)
+                              max_grad_norm  = config.max_grad_norm)
 
-    # Deployment / classification graph
+    # Deployment / testing graph
     with tf.variable_scope("model", reuse=True, initializer=initer), \
       tf.device(config.default_gpu):
-        mdeploy = DeepMlpModel(num_layers    = config.num_layers,
-                              num_inputs     = config.num_inputs,
-                              num_hidden     = config.num_hidden,
-                              batch_size     = 1,
-                              training       = False)
+        mdeploy = DeepMlpModel(num_layers     = config.num_layers,
+                               num_inputs     = config.num_inputs,
+                               num_hidden     = config.num_hidden,
+                               num_unrollings = config.num_unrollings,
+                               batch_size     = 1)
       
     return mtrain, mdeploy
 

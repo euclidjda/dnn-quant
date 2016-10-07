@@ -23,7 +23,7 @@ import sys
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.python.ops import array_ops
+# from tensorflow.python.ops import array_ops
 
 _NUM_OUTPUTS = 2
 

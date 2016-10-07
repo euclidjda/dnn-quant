@@ -54,7 +54,9 @@ def main(_):
   config = configs.get_configs()
 
   batch_size = 1
-  num_unrollings = config.num_unrollings if config.use_fixed_k is True else 1
+  num_unrollings = config.num_unrollings
+  if (config.use_fixed_k is True) and (config.nn_type == 'rnn'):
+    num_unrollings = 1
   
   data_path = model_utils.get_data_path(config.data_dir,config.test_datafile)
 
