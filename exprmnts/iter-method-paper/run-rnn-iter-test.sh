@@ -3,7 +3,7 @@
 ROOT=$DNN_QUANT_ROOT
 BIN=$ROOT/scripts
 DATA_DIR=$ROOT/datasets
-TRAIN_DIR=test-rnn
+TRAIN_DIR=dev-rnn
 TRAIN_FILE=dev-50k-1yr.dat
 CONFIG_FILE=rnn-gru-iter.conf
 CHKPTS_NAME=chkpts-${TRAIN_DIR}
