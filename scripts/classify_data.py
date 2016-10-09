@@ -47,8 +47,8 @@ def main(_):
   configs.DEFINE_string('test_datafile','test.dat','file with test data')
   configs.DEFINE_string('output','preds.dat','file for predictions')
   configs.DEFINE_string('time_field','date','fields used for dates/time')
-  configs.DEFINE_integer('print_start',190001,'only print data on or after')
-  configs.DEFINE_integer('print_end',210001,'only print data on or before')
+  configs.DEFINE_string('print_start','190001','only print data on or after')
+  configs.DEFINE_string('print_end','210012','only print data on or before')
   configs.DEFINE_integer('min_test_k',1,'minimum seq length classified')
 
   config = configs.get_configs()
@@ -79,7 +79,7 @@ def main(_):
     model = model_utils.get_trained_model(session, config)
 
     stats = dict()
-    key   = 0
+    key   = 'ALL'
     stats[key] = list()
 
     with open(config.output, "w") as outfile:
@@ -104,21 +104,22 @@ def main(_):
             "%.4f %.4f %d %d\n" % (key, date, 1.0 - prob, prob, target, i+1) )
           pred   = +1.0 if prob >= 0.5 else 0.0
           error = 0.0 if (pred == target) else 1.0
-          tp = 1.0 if (pred==1 and target==1) else 0.0
-          tn = 1.0 if (pred==0 and target==0) else 0.0
-          fp = 1.0 if (pred==1 and target==0) else 0.0
-          fn = 1.0 if (pred==0 and target==1) else 0.0
+          tpos = 1.0 if (pred==1 and target==1) else 0.0
+          tneg = 1.0 if (pred==0 and target==0) else 0.0
+          fpos = 1.0 if (pred==1 and target==0) else 0.0
+          fneg = 1.0 if (pred==0 and target==1) else 0.0
           # print("pred=%.2f target=%.2f tp=%d tn=%d fp=%d fn=%d"%(pred,target,tp,tn,fp,fn))
           data = { 
 	      'error' : error ,
-	      'tpos'  : tp    ,
-	      'tneg'  : tn    ,
-	      'fpos'  : fp    ,
-	      'fneg'  : fn    }
-          if date not in stats:
-            stats[date] = list()
-          stats[date].append(data)
-          stats[0].append(data)
+	      'tpos'  : tpos  ,
+	      'tneg'  : tneg  ,
+	      'fpos'  : fpos  ,
+	      'fneg'  : fneg  }
+          date_str = str(date)
+          if date_str not in stats:
+            stats[date_str] = list()
+          stats[date_str].append(data)
+          stats['ALL'].append(data)
 
     print_summary_stats(stats,config.print_start,config.print_end)
 
@@ -151,9 +152,14 @@ def print_summary_stats(stats,print_start,print_end):
   dates.sort()
 
   for date in dates:
-    if date < print_start or date > print_end:
-       continue
+    if (date != 'ALL') and (date < print_start or date > print_end):
+      continue
 
+    #print(date)
+    #print(type(date))
+    #print(len(stats[date]))
+    #exit()
+      
     error = 0
     tpos  = 0
     tneg  = 0
