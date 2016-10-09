@@ -106,7 +106,7 @@ class DeepMlpModel(object):
 
       train_loss = tf.mul(agg_loss, train_wghts)
       valid_loss = tf.mul(agg_loss, valid_wghts)
-            
+
       self._loss = self._train_loss = train_loss
       self._valid_loss = valid_loss
 
