@@ -73,14 +73,14 @@ class DeepMlpModel(object):
 
       outputs = tf.concat( 1, self._inputs )
       if input_dropout is True:
-        outputs = tf.nn.dropout(outputs,self._keep_prob)
+        outputs = tf.nn.dropout(outputs, self._keep_prob)
       num_prev = total_input_size
 
       for i in range(num_layers):
         weights = tf.get_variable("hidden_w_%d"%i,[num_prev, num_hidden])
         biases = tf.get_variable("hidden_b_%d"%i,[num_hidden])
         outputs = tf.nn.relu(tf.nn.xw_plus_b(outputs, weights, biases))
-        outputs = tf.nn.dropout(outputs,self._keep_prob)
+        outputs = tf.nn.dropout(outputs, self._keep_prob)
         num_prev = num_hidden
 
       softmax_w = tf.get_variable("softmax_w", [num_prev, num_outputs])
@@ -139,7 +139,8 @@ class DeepMlpModel(object):
       tvars = tf.trainable_variables()
       grads, _ = tf.clip_by_global_norm(tf.gradients(self._batch_cst,
                                                          tvars),max_grad_norm)
-      optimizer = tf.train.GradientDescentOptimizer(self.lr)
+      # optimizer = tf.train.GradientDescentOptimizer(self.lr)
+      optimizer = tf.train.AdagradOptimizer(self.lr)
       self._train_op = optimizer.apply_gradients(zip(grads, tvars))
 
   def train_step(self, sess, batch, keep_prob=1.0):
