@@ -71,17 +71,16 @@ class DeepMlpModel(object):
         self._train_wghts.append(tf.placeholder(tf.float32, shape=[batch_size]))
         self._valid_wghts.append(tf.placeholder(tf.float32, shape=[batch_size]))
 
-      input_keep_prob = self._keep_prob if input_dropout is True else 1.0
-
       outputs = tf.concat( 1, self._inputs )
-      # outputs = tf.nn.dropout(outputs,input_keep_prob)
+      if input_dropout is True:
+        outputs = tf.nn.dropout(outputs,self._keep_prob)
       num_prev = total_input_size
 
       for i in range(num_layers):
         weights = tf.get_variable("hidden_w_%d"%i,[num_prev, num_hidden])
         biases = tf.get_variable("hidden_b_%d"%i,[num_hidden])
         outputs = tf.nn.relu(tf.nn.xw_plus_b(outputs, weights, biases))
-        # outputs = tf.nn.dropout(outputs,self._keep_prob)
+        outputs = tf.nn.dropout(outputs,self._keep_prob)
         num_prev = num_hidden
 
       softmax_w = tf.get_variable("softmax_w", [num_prev, num_outputs])
@@ -93,11 +92,9 @@ class DeepMlpModel(object):
         tf.concat(1, self._targets ),[batch_size,num_unrollings,num_outputs] ),
         self._seq_lengths,1,0),axis=1)[0]
 
-      self._t = targets
-      
       agg_loss = tf.nn.softmax_cross_entropy_with_logits(logits,targets)
 
-      self._w = train_wghts = tf.unpack(tf.reverse_sequence(tf.transpose(
+      train_wghts = tf.unpack(tf.reverse_sequence(tf.transpose(
         tf.reshape( tf.concat(0, self._train_wghts ),
         [num_unrollings, batch_size] ) ),
         self._seq_lengths,1,0),axis=1)[0] 
@@ -165,10 +162,9 @@ class DeepMlpModel(object):
 
     feed_dict = self._get_feed_dict(batch,keep_prob)
 
-    (w,targs,preds,train_cst,train_accy, train_evals,
+    (train_cst,train_accy, train_evals,
      valid_cst, valid_accy, valid_evals,
-     _) = sess.run([self._t,self._predictions,self._w,
-                    self._train_cst,
+     _) = sess.run([self._train_cst,
                     self._train_accy,
                     self._train_evals,
                     self._valid_cst,
@@ -178,10 +174,6 @@ class DeepMlpModel(object):
                     feed_dict)
 
     assert( train_evals > 0 )
-
-    #print(targs)
-    #print(preds)
-    #print(w)
     
     return (train_cst, train_accy, train_evals, 
             valid_cst, valid_accy, valid_evals)
