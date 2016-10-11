@@ -101,7 +101,7 @@ def main(_):
         for i in range(start,seq_len):
           if i+1 < config.min_test_k:
             continue
-          prob = get_pos_prob( preds, batch, i )
+          prob = get_pos_prob( preds, config, i )
           key, date = get_key_and_date( batch, i )
           target = get_target(batch, i)
           outfile.write("%s %s "
@@ -135,8 +135,9 @@ def use_entire_seq(batch):
   rf = batch.reset_flags[0]
   return True if rf == 0.0 else False
 
-def get_pos_prob(preds,batch,idx):
-  # k = batch.seq_lengths[0]-1
+def get_pos_prob(preds,config,idx):
+  if config.nn_type != 'rnn':
+    idx = 0
   assert(idx < len(preds))
   return preds[idx][1]
 

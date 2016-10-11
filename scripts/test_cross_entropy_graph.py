@@ -37,6 +37,7 @@ def create_graph(g):
         g['x'] = list()
         g['y'] = list()
         g['s'] = list()
+        g['seq_lengths'] = tf.placeholder(tf.int64,shape=[BATCH_SIZE]);
     
         for _ in range(UNROLLS):
             g['x'].append( tf.placeholder(tf.float32,shape=[BATCH_SIZE,INPUT_SIZE]) )
@@ -44,38 +45,33 @@ def create_graph(g):
             g['s'].append( tf.placeholder(tf.float32,shape=[BATCH_SIZE]) )
 
         num_inputs  = INPUT_SIZE * UNROLLS
-        num_outputs = OUTPUT_SIZE * UNROLLS
+        # num_outputs = OUTPUT_SIZE * UNROLLS
             
-        g['w'] = tf.get_variable("softmax_w", [num_inputs,num_outputs])
-        g['b'] = tf.get_variable("softmax_b", [num_outputs])
+        g['w'] = tf.get_variable("softmax_w", [num_inputs,OUTPUT_SIZE])
+        g['b'] = tf.get_variable("softmax_b", [OUTPUT_SIZE])
 
         g['cat_x'] = tf.concat(1, g['x'] )
 
         g['logits'] = tf.nn.xw_plus_b(g['cat_x'], g['w'], g['b'] )
-
-        g['r_logits'] = tf.reshape( g['logits'], [BATCH_SIZE*UNROLLS,OUTPUT_SIZE] )
         
-        g['cat_y'] = tf.reshape( tf.concat(1, g['y'] ), [BATCH_SIZE*UNROLLS,OUTPUT_SIZE] )
+        g['cat_y'] = tf.unpack(tf.reverse_sequence(tf.reshape( tf.concat(1, g['y'] ),
+            [BATCH_SIZE,UNROLLS,OUTPUT_SIZE] ),g['seq_lengths'],1,0),axis=1)[0]
 
-        g['loss'] = tf.nn.softmax_cross_entropy_with_logits(g['r_logits'], g['cat_y'])
+        g['loss'] = tf.nn.softmax_cross_entropy_with_logits(g['logits'], g['cat_y'])
 
-        g['q1'] = tf.concat(0, g['s'])
-        g['q2'] = tf.reshape( tf.concat(0, g['s']), [UNROLLS,BATCH_SIZE]  )
-        g['q3'] = tf.transpose( tf.reshape( tf.concat(0, g['s']), [UNROLLS,BATCH_SIZE]  ) )
-        g['q4'] = tf.reshape(tf.transpose( tf.reshape( tf.concat(0, g['s']),
-                                                            [UNROLLS,BATCH_SIZE]  ) ), [-1] )
-        g['r_s'] = tf.reshape(tf.transpose( tf.reshape( tf.concat(0, g['s']),
-                                                            [UNROLLS,BATCH_SIZE]  ) ), [-1] )
+        g['r_s'] = tf.unpack(tf.reverse_sequence(tf.transpose(
+            tf.reshape( tf.concat(0, g['s'] ), [UNROLLS, BATCH_SIZE] ) ),
+            g['seq_lengths'],1,0),axis=1)[0]
+
+        g['train_loss'] = tf.mul( g['loss'], g['r_s'] )
         
-        g['preds'] = tf.nn.softmax(g['r_logits'])
+        g['preds'] = tf.nn.softmax(g['logits'])
         
         g['class_preds'] =  tf.floor( g['preds'] + 0.5 )
 
         g['accy'] = tf.mul( g['class_preds'],  g['cat_y'] )
 
-        g['w_accy'] = tf.mul(g['accy'], tf.reshape(
-            g['r_s'],
-            shape=[BATCH_SIZE*UNROLLS,1]) )
+        g['w_accy'] = tf.mul(g['accy'], tf.reshape(g['r_s'],shape=[BATCH_SIZE,1]))
         
 def main(_):
   
@@ -96,18 +92,20 @@ def main(_):
 
     feed_dict = dict()
     feed_dict[ G['x'][0] ] = np.array( [ [0.2,0.3], [2,2.5],[0.2,0.3], [2,2.5] ] )
-    feed_dict[ G['x'][1] ] = np.array( [ [0.2,0.3], [2,2.5],[0.2,0.3], [2,2.5] ] )
-    feed_dict[ G['x'][2] ] = np.array( [ [0.1,0.4], [3.3,3],[0.2,0.3], [2,2.5] ] )
+    feed_dict[ G['x'][1] ] = np.array( [ [0.2,0.3], [2,2.5],[0.2,0.3], [0,0.0] ] )
+    feed_dict[ G['x'][2] ] = np.array( [ [0.1,0.4], [3.3,3],[0.0,0.0], [0,0.0] ] )
 
-    feed_dict[ G['y'][0] ] = np.array( [ [1,0], [0,1],[1,0], [0,1] ] )
-    feed_dict[ G['y'][1] ] = np.array( [ [0,1], [1,0],[1,0], [0,1] ] )
-    feed_dict[ G['y'][2] ] = np.array( [ [1,0], [0,1],[1,0], [0,1] ] )
+    feed_dict[ G['y'][0] ] = np.array( [ [1,0], [1,0],[1,0], [0,1] ] )
+    feed_dict[ G['y'][1] ] = np.array( [ [0,1], [1,0],[0,1], [0,0] ] )
+    feed_dict[ G['y'][2] ] = np.array( [ [0,1], [0,1],[0,0], [0,0] ] )
 
+    feed_dict[ G['seq_lengths'] ] = np.array( [ 3, 3, 2, 1 ] )
+    
     feed_dict[ G['s'][0] ] = np.array( [ 1, 1, 0, 0 ] )
     feed_dict[ G['s'][1] ] = np.array( [ 1, 1, 0, 0 ] )
     feed_dict[ G['s'][2] ] = np.array( [ 1, 1, 0, 0 ] )
     
-    q4, q3, q2, q1 = session.run( [ G['q4'], G['q3'], G['q2'], G['q1'] ], feed_dict )
+    w_accy, r_s, accy, cat_y, class_preds = session.run( [ G['w_accy'], G['r_s'], G['accy'], G['cat_y'],G['class_preds'] ], feed_dict )
     #w_accy,accy,class_preds,preds,cat_y, r_logits,cat_x,r_s = session.run( [ G['w_accy'],
     #                                                    G['accy'],
     #                                                    G['class_preds'],G['preds'],
@@ -116,13 +114,16 @@ def main(_):
     #                                                    ],
     #                                              feed_dict )
     print('-'*80)
-    print(q1)
+    print(cat_y)
     print('-'*80)
-    print(q2)
+    print(class_preds)
     print('-'*80)
-    print(q3)
+    print(accy)
     print('-'*80)
-    print(q4)
+    print(r_s)
+    print('-'*80)
+    print(w_accy)
+
 
     #print('-'*80)
     #print(cat_x)

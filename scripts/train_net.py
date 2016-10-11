@@ -84,13 +84,13 @@ def run_epoch(session, model, dataset,
       valid_accy  += vaccy
       valid_evals += vevals
 
-      
+      #print("-"*80)
       #print("train_evals %d"%train_evals)
       #print("valid_evals %d"%valid_evals)
       #print("train_cost %.2f"%train_cost)
       #print("train_accy %.2f"%train_accy)
       #print("-"*80)
-      #exit()
+      # exit()
       if ( verbose and ((prog_int<=1) or 
                         (step % (int(prog_int)+1)) == 0) ):
         dot_count += 1
