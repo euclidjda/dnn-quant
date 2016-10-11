@@ -20,80 +20,6 @@ import random
 
 _NUM_CLASSES = 2
 
-class Batch(object):
-    """
-    A batch object is a container for a subset of data to be processed
-    by a model. It has two dimensions: batch_size and num_unrollings.
-    batch_size is the number of simulaneous time sequences to process by 
-    the model in a batch. num_unrollings is the maximum length
-    of each time sequence to process in a batch.
-    Since num_unrollings is only relevant to RNN's, num_unrollings should
-    be =1 for the MLP models.
-
-    Attributes:
-
-      inputs: The batch's sequences of input values. The number of 
-        sequences is equal to batch_size and the physical size of each
-        sequence is equal to num_unrollings. The seq_lengths return
-        value (see below) might be less than num_unrollings if a sequence 
-        ends in less steps than num_unrollings.
-      targets: The batch's sequences of target values. The number of 
-        sequences is equal to batch_size and the physical size of each
-        sequence is equal to num_unrollings.
-      seq_lengths: An integer vectors of size batch_size that contains the
-        length of each sequence in the batch. The maximum length is
-        num_unrollings.
-      reset_flags: A binary vector of size batch_size. A value of 0 in
-        position n indicates that the data in sequence n of the batch is a
-        new entity since the last batch and that the RNN's state should be
-        reset.
-      train_wghts: Weights that specify an example is in the training data
-        and how much they should contribute to the training loss function
-      valid_wghts: Weights that specify an example is in the validation data
-        set and how much they should contribute to the validation loss
-      attribs: Currently this holds the date values for the time sequences.
-        TOD: We would like this to be more generic to hold any attributes
-        (as a pandas dataframe) about a records that is not a input or output
-    """
-    
-    def __init__(self,inputs,targets,seq_lengths,reset_flags,
-                     train_wghts,valid_wghts,attribs):
-        self._inputs = inputs
-        self._targets = targets
-        self._seq_lengths = seq_lengths
-        self._reset_flags = reset_flags
-        self._train_wghts = train_wghts
-        self._valid_wghts = valid_wghts
-        self._attribs = attribs
-
-    @property
-    def inputs(self):
-        return self._inputs
-
-    @property
-    def targets(self):
-        return self._targets
-
-    @property
-    def seq_lengths(self):
-        return self._seq_lengths
-
-    @property
-    def reset_flags(self):
-        return self._reset_flags
-
-    @property
-    def train_wghts(self):
-        return self._train_wghts
-
-    @property
-    def valid_wghts(self):
-        return self._valid_wghts
-    
-    @property
-    def attribs(self):
-        return self._attribs
-
 class BatchGenerator(object):
     """
     BatchGenerator object takes a data file are returns an object with
@@ -162,14 +88,17 @@ class BatchGenerator(object):
         self._validation_set = list()
         if validation_size is not None:
             if config.seed is not None:
+                print("setting random seed to "+str(config.seed))
                 random.seed( config.seed )
             # get number of keys
-            keys = set(data[key_name])
+            keys = list(set(data[key_name]))
             sample_size = int( config.validation_size * len(keys) )
             sample = random.sample(keys, sample_size)
+            sample.sort()
             self._validation_set = dict(zip(sample,[1]*sample_size))
             print("Num training entities: %d"%(len(keys)-sample_size))
             print("Num validation entities: %d"%sample_size)
+            # print(self._validation_set)
         # Create a cursor of equally spaced indicies into the dataset. Each index
         # in the cursor points to one sequence in a batch and is used to keep
         # track of where we are in the dataset.
@@ -273,6 +202,10 @@ class BatchGenerator(object):
                 date = data.iat[idx,date_idx]
                 key = data.iat[idx,key_idx]
                 attr.append((key,date))
+                next_idx = (idx+1) % self._data_len
+                #if (step+1 != self._num_unrollings) or (data.iat[next_idx,key_idx] != data.iat[idx,key_idx]):
+                #    train_wghts[b] = 0.0
+                #    valid_wghts[b] = 0.0                    
                 if key not in self._validation_set:
                     train_wghts[b] = 1.0
                     valid_wghts[b] = 0.0
@@ -319,3 +252,77 @@ class BatchGenerator(object):
     def num_batches(self):
         return self._num_batches
         
+class Batch(object):
+    """
+    A batch object is a container for a subset of data to be processed
+    by a model. It has two dimensions: batch_size and num_unrollings.
+    batch_size is the number of simulaneous time sequences to process by 
+    the model in a batch. num_unrollings is the maximum length
+    of each time sequence to process in a batch.
+    Since num_unrollings is only relevant to RNN's, num_unrollings should
+    be =1 for the MLP models.
+
+    Attributes:
+
+      inputs: The batch's sequences of input values. The number of 
+        sequences is equal to batch_size and the physical size of each
+        sequence is equal to num_unrollings. The seq_lengths return
+        value (see below) might be less than num_unrollings if a sequence 
+        ends in less steps than num_unrollings.
+      targets: The batch's sequences of target values. The number of 
+        sequences is equal to batch_size and the physical size of each
+        sequence is equal to num_unrollings.
+      seq_lengths: An integer vectors of size batch_size that contains the
+        length of each sequence in the batch. The maximum length is
+        num_unrollings.
+      reset_flags: A binary vector of size batch_size. A value of 0 in
+        position n indicates that the data in sequence n of the batch is a
+        new entity since the last batch and that the RNN's state should be
+        reset.
+      train_wghts: Weights that specify an example is in the training data
+        and how much they should contribute to the training loss function
+      valid_wghts: Weights that specify an example is in the validation data
+        set and how much they should contribute to the validation loss
+      attribs: Currently this holds the date values for the time sequences.
+        TOD: We would like this to be more generic to hold any attributes
+        (as a pandas dataframe) about a records that is not a input or output
+    """
+    
+    def __init__(self,inputs,targets,seq_lengths,reset_flags,
+                     train_wghts,valid_wghts,attribs):
+        self._inputs = inputs
+        self._targets = targets
+        self._seq_lengths = seq_lengths
+        self._reset_flags = reset_flags
+        self._train_wghts = train_wghts
+        self._valid_wghts = valid_wghts
+        self._attribs = attribs
+
+    @property
+    def inputs(self):
+        return self._inputs
+
+    @property
+    def targets(self):
+        return self._targets
+
+    @property
+    def seq_lengths(self):
+        return self._seq_lengths
+
+    @property
+    def reset_flags(self):
+        return self._reset_flags
+
+    @property
+    def train_wghts(self):
+        return self._train_wghts
+
+    @property
+    def valid_wghts(self):
+        return self._valid_wghts
+    
+    @property
+    def attribs(self):
+        return self._attribs
+

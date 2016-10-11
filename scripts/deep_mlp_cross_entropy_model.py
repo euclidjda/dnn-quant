@@ -88,45 +88,43 @@ class DeepMlpModel(object):
       softmax_w = tf.get_variable("softmax_w", [num_prev, output_size])
       softmax_b = tf.get_variable("softmax_b", [output_size])
 
-      logits = tf.sigmoid( tf.nn.xw_plus_b( outputs, softmax_w, softmax_b) )
+      logits = tf.reshape( tf.nn.xw_plus_b( outputs, softmax_w, softmax_b),
+                             [batch_size*num_unrollings,num_outputs] )
 
-      targets = tf.concat(1, self._targets)
+      targets = tf.reshape( tf.concat(1, self._targets),
+                              [batch_size*num_unrollings,num_outputs] )
 
-      diff = targets - logits
-      
-      self._tw = train_wghts = tf.reshape( tf.tile( tf.reshape( tf.transpose( tf.reshape(
-          tf.concat(0, self._train_wghts), [num_unrollings, batch_size] ) ),
-          [num_unrollings*batch_size,1] ), [1,2] ),
-          [ batch_size, output_size ] ) 
+      agg_loss = tf.nn.softmax_cross_entropy_with_logits(logits,targets)
 
-      valid_wghts = tf.reshape( tf.tile( tf.reshape( tf.transpose( tf.reshape(
-          tf.concat(0, self._valid_wghts), [num_unrollings, batch_size] ) ),
-          [num_unrollings*batch_size,1] ), [1,2] ),
-          [ batch_size, output_size ] ) 
+      train_wghts =  tf.reshape( tf.transpose(
+        tf.reshape( tf.concat(0, self._train_wghts),
+                        [num_unrollings, batch_size] ) ), [-1] )
 
-      self._train_evals = tf.reduce_sum( train_wghts )
-      self._valid_evals = tf.reduce_sum( valid_wghts )
-      
-      train_loss = tf.nn.l2_loss( tf.mul(diff, train_wghts) )
-      valid_loss = tf.nn.l2_loss( tf.mul(diff, valid_wghts) )
+      valid_wghts = tf.reshape( tf.transpose(
+        tf.reshape( tf.concat(0, self._valid_wghts),
+                        [num_unrollings, batch_size] ) ), [-1] )
+
+      train_loss = tf.mul(agg_loss, train_wghts)
+      valid_loss = tf.mul(agg_loss, valid_wghts)
 
       self._loss = self._train_loss = train_loss
       self._valid_loss = valid_loss
 
-      self._train_cst = train_loss # tf.reduce_sum( train_loss )
-      self._valid_cst = valid_loss # tf.reduce_sum( valid_loss )
+      self._train_evals = tf.reduce_sum( train_wghts )
+      self._valid_evals = tf.reduce_sum( valid_wghts )
 
-      self._predictions = tf.reshape( logits, [num_unrollings*batch_size,num_outputs] )
+      self._train_cst = tf.reduce_sum( train_loss )
+      self._valid_cst = tf.reduce_sum( valid_loss )
 
-      self._preds = logits
-      class_predictions = tf.floor( logits + 0.5 )
-      self._class_preds = tf.floor( logits + 0.5 )
-      self._targs = targets
-      
-      accy = (tf.mul(2.0*(class_predictions-0.5),2.0*(targets-0.5))+1.0)/2.0
+      self._predictions = tf.nn.softmax(logits)
+      class_predictions = tf.floor( self._predictions + 0.5 )
 
-      train_accy = tf.mul(accy,train_wghts)
-      valid_accy = tf.mul(accy,valid_wghts)
+      accy = tf.mul(class_predictions, targets)
+
+      train_accy = tf.mul(accy,tf.reshape(train_wghts,
+                                          shape=[batch_size*num_unrollings,1]))
+      valid_accy = tf.mul(accy,tf.reshape(valid_wghts,
+                                          shape=[batch_size*num_unrollings,1]))
 
       self._train_accy = tf.reduce_sum( train_accy )
       self._valid_accy = tf.reduce_sum( valid_accy )
@@ -164,9 +162,9 @@ class DeepMlpModel(object):
 
     feed_dict = self._get_feed_dict(batch,keep_prob)
 
-    (tw,preds,targs,train_cst,train_accy, train_evals,
+    (train_loss,train_cst,train_accy, train_evals,
      valid_cst, valid_accy, valid_evals,
-     _) = sess.run([self._tw,self._class_preds,self._targs,self._train_cst,
+     _) = sess.run([self._train_loss,self._train_cst,
                     self._train_accy,
                     self._train_evals,
                     self._valid_cst,
@@ -176,8 +174,8 @@ class DeepMlpModel(object):
                     feed_dict)
 
     assert( train_evals > 0 )
-    # print(preds)
-    # print(targs)
+    print(train_loss)
+    
     return (train_cst, train_accy, train_evals, 
             valid_cst, valid_accy, valid_evals)
 

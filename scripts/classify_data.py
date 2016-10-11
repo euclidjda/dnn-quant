@@ -50,6 +50,7 @@ def main(_):
   configs.DEFINE_string('print_start','190001','only print data on or after')
   configs.DEFINE_string('print_end','210012','only print data on or before')
   configs.DEFINE_integer('min_test_k',1,'minimum seq length classified')
+  configs.DEFINE_integer('num_batches',None,'num_batches overrride')
 
   config = configs.get_configs()
 
@@ -66,7 +67,10 @@ def main(_):
                              batch_size=batch_size,
                              num_unrollings=num_unrollings)
 
-  num_data_points = dataset.num_batches
+  num_data_points = dataset.num_batches  
+  if config.num_batches is not None:
+     num_data_points = config.num_batches
+     
   print("num_batches = ", num_data_points)
 
   tf_config = tf.ConfigProto( allow_soft_placement=True,

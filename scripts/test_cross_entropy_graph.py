@@ -23,15 +23,15 @@ import sys
 import numpy as np
 import tensorflow as tf
 
-SEED = 100
+SEED = 10000
 INIT_SCALE = 0.1
-UNROLLS    = 4
-BATCH_SIZE = 3
+UNROLLS    = 3
+BATCH_SIZE = 4
 INPUT_SIZE = 2
 OUTPUT_SIZE= 2 
 
 def create_graph(g):
-    initer = tf.random_uniform_initializer(-INIT_SCALE,INIT_SCALE)
+    initer = tf.random_uniform_initializer(0.0,INIT_SCALE)
 
     with tf.variable_scope("graph", reuse=None, initializer=initer):
         g['x'] = list()
@@ -52,17 +52,23 @@ def create_graph(g):
         g['cat_x'] = tf.concat(1, g['x'] )
 
         g['logits'] = tf.nn.xw_plus_b(g['cat_x'], g['w'], g['b'] )
+
         g['r_logits'] = tf.reshape( g['logits'], [BATCH_SIZE*UNROLLS,OUTPUT_SIZE] )
         
         g['cat_y'] = tf.reshape( tf.concat(1, g['y'] ), [BATCH_SIZE*UNROLLS,OUTPUT_SIZE] )
 
         g['loss'] = tf.nn.softmax_cross_entropy_with_logits(g['r_logits'], g['cat_y'])
 
+        g['q1'] = tf.concat(0, g['s'])
+        g['q2'] = tf.reshape( tf.concat(0, g['s']), [UNROLLS,BATCH_SIZE]  )
+        g['q3'] = tf.transpose( tf.reshape( tf.concat(0, g['s']), [UNROLLS,BATCH_SIZE]  ) )
+        g['q4'] = tf.reshape(tf.transpose( tf.reshape( tf.concat(0, g['s']),
+                                                            [UNROLLS,BATCH_SIZE]  ) ), [-1] )
         g['r_s'] = tf.reshape(tf.transpose( tf.reshape( tf.concat(0, g['s']),
                                                             [UNROLLS,BATCH_SIZE]  ) ), [-1] )
         
         g['preds'] = tf.nn.softmax(g['r_logits'])
-
+        
         g['class_preds'] =  tf.floor( g['preds'] + 0.5 )
 
         g['accy'] = tf.mul( g['class_preds'],  g['cat_y'] )
@@ -89,36 +95,41 @@ def main(_):
     session.run( tf.initialize_all_variables() )
 
     feed_dict = dict()
-    feed_dict[ G['x'][0] ] = np.array( [ [1,0], [3,0], [5,0] ] )
-    feed_dict[ G['x'][1] ] = np.array( [ [1,1], [3,1], [5,1] ] )
-    feed_dict[ G['x'][2] ] = np.array( [ [1,2], [3,2], [5,2] ] )
-    feed_dict[ G['x'][3] ] = np.array( [ [1,3], [3,3], [5,3] ] )
+    feed_dict[ G['x'][0] ] = np.array( [ [0.2,0.3], [2,2.5],[0.2,0.3], [2,2.5] ] )
+    feed_dict[ G['x'][1] ] = np.array( [ [0.2,0.3], [2,2.5],[0.2,0.3], [2,2.5] ] )
+    feed_dict[ G['x'][2] ] = np.array( [ [0.1,0.4], [3.3,3],[0.2,0.3], [2,2.5] ] )
 
-    feed_dict[ G['y'][0] ] = np.array( [ [1,0], [0,1], [0,1] ] )
-    feed_dict[ G['y'][1] ] = np.array( [ [0,1], [1,0], [1,0] ] )
-    feed_dict[ G['y'][2] ] = np.array( [ [1,0], [0,1], [1,0] ] )
-    feed_dict[ G['y'][3] ] = np.array( [ [1,0], [0,1], [0,1] ] )
+    feed_dict[ G['y'][0] ] = np.array( [ [1,0], [0,1],[1,0], [0,1] ] )
+    feed_dict[ G['y'][1] ] = np.array( [ [0,1], [1,0],[1,0], [0,1] ] )
+    feed_dict[ G['y'][2] ] = np.array( [ [1,0], [0,1],[1,0], [0,1] ] )
 
-    feed_dict[ G['s'][0] ] = np.array( [ 1, 2, 3 ] )
-    feed_dict[ G['s'][1] ] = np.array( [ 1, 2, 3 ] )
-    feed_dict[ G['s'][2] ] = np.array( [ 1, 2, 3 ] )
-    feed_dict[ G['s'][3] ] = np.array( [ 1, 2, 3 ] )
+    feed_dict[ G['s'][0] ] = np.array( [ 1, 1, 0, 0 ] )
+    feed_dict[ G['s'][1] ] = np.array( [ 1, 1, 0, 0 ] )
+    feed_dict[ G['s'][2] ] = np.array( [ 1, 1, 0, 0 ] )
     
-    # loss, logits, Y = session.run( [ G['loss'], G['logits'], G['cat_y'] ], feed_dict )
-    w_accy,accy, loss, cat_y, r_s = session.run( [ G['w_accy'], G['accy'],
-                                                     G['loss'], G['cat_y'], G['r_s'] ] ,
-                                                feed_dict )
+    q4, q3, q2, q1 = session.run( [ G['q4'], G['q3'], G['q2'], G['q1'] ], feed_dict )
+    #w_accy,accy,class_preds,preds,cat_y, r_logits,cat_x,r_s = session.run( [ G['w_accy'],
+    #                                                    G['accy'],
+    #                                                    G['class_preds'],G['preds'],
+    #                                                    G['cat_y'],
+    #                                                    G['r_logits'],G['cat_x'],G['r_s']
+    #                                                    ],
+    #                                              feed_dict )
     print('-'*80)
-    print(loss)
+    print(q1)
     print('-'*80)
-    print(cat_y)
+    print(q2)
     print('-'*80)
-    print(r_s)
+    print(q3)
     print('-'*80)
-    print(accy)
-    print('-'*80)
-    print(w_accy)
- 
+    print(q4)
+
+    #print('-'*80)
+    #print(cat_x)
+    #print('-'*80)
+    #print(r_logits)
+    #print('-'*80)
+    #print(preds)
     # print(Y)
     #print('-'*80)
     # print(logits)

@@ -84,12 +84,20 @@ def run_epoch(session, model, dataset,
       valid_accy  += vaccy
       valid_evals += vevals
 
+      
+      #print("train_evals %d"%train_evals)
+      #print("valid_evals %d"%valid_evals)
+      #print("train_cost %.2f"%train_cost)
+      #print("train_accy %.2f"%train_accy)
+      #print("-"*80)
+      #exit()
       if ( verbose and ((prog_int<=1) or 
                         (step % (int(prog_int)+1)) == 0) ):
         dot_count += 1
         print('.',end='')
         sys.stdout.flush()
-
+      #exit()
+  #exit()
   if verbose:
     print("."*(100-dot_count),end='')
     print(" passes: %d train iters: %d valid iters: %d "
@@ -162,7 +170,7 @@ def main(_):
       trc = 999.0 if trc > 999.0 else trc
       vdc = 999.0 if vdc > 999.0 else vdc
 
-      print( ('Epoch: %d xentrpy: %.6f %.6f'
+      print( ('Epoch: %d loss: %.6f %.6f'
               ' error: %.6f %.6f Learning rate: %.4f') % 
             (i + 1, trc, vdc, tre, vde, lr) )
       sys.stdout.flush()
