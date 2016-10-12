@@ -91,7 +91,7 @@ class DeepRnnModel(object):
       init_state = None
 
       if use_fixed_k is False:
-        state = tf.mul( self._saved_state, self._reset_state_flags )
+        init_state = tf.mul( self._saved_state, self._reset_state_flags )
     
       outputs, state = tf.nn.rnn(cell, self._inputs,
                                  initial_state=init_state,

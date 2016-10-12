@@ -89,20 +89,17 @@ def main(_):
     with open(config.output, "w") as outfile:
 
       for i in range(num_data_points):
-
-        cur_time = time.time()
         batch = dataset.next_batch()
-        #print("batch-time: %.8f"%(time.time()-cur_time))
-        cur_time = time.time()
         preds = model.step(session, batch)
-        #print("step-time: %.8f"%(time.time()-cur_time))
         seq_len = get_seq_length( batch )
         start = 0 if use_entire_seq(batch) is True else seq_len-1
         for i in range(start,seq_len):
+          key, date = get_key_and_date( batch, i )
+          if (date < print_start or date > print_end):
+            continue
           if i+1 < config.min_test_k:
             continue
           prob = get_pos_prob( preds, config, i )
-          key, date = get_key_and_date( batch, i )
           target = get_target(batch, i)
           outfile.write("%s %s "
             "%.4f %.4f %d %d\n" % (key, date, 1.0 - prob, prob, target, i+1) )
@@ -119,13 +116,12 @@ def main(_):
 	      'tneg'  : tneg  ,
 	      'fpos'  : fpos  ,
 	      'fneg'  : fneg  }
-          date_str = str(date)
-          if date_str not in stats:
-            stats[date_str] = list()
-          stats[date_str].append(data)
+          if date not in stats:
+            stats[date] = list()
+          stats[date].append(data)
           stats['ALL'].append(data)
 
-    print_summary_stats(stats,config.print_start,config.print_end)
+    print_summary_stats(stats)
 
 
 def get_seq_length(batch):
@@ -149,17 +145,16 @@ def get_target(batch,idx):
 def get_key_and_date(batch,idx):
   # k = batch.seq_lengths[0]-1
   assert(idx < len(batch.attribs))
-  return batch.attribs[idx][0][0],batch.attribs[idx][0][1]
+  key = batch.attribs[idx][0][0]
+  date = str(batch.attribs[idx][0][1])
+  return key, date
 
-def print_summary_stats(stats,print_start,print_end):
+def print_summary_stats(stats):
 
   dates = [date for date in stats]
   dates.sort()
 
   for date in dates:
-    if (date != 'ALL') and (date < print_start or date > print_end):
-      continue
-
     #print(date)
     #print(type(date))
     #print(len(stats[date]))
