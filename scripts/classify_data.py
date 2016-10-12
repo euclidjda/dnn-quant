@@ -95,7 +95,7 @@ def main(_):
         start = 0 if use_entire_seq(batch) is True else seq_len-1
         for i in range(start,seq_len):
           key, date = get_key_and_date( batch, i )
-          if (date < print_start or date > print_end):
+          if (date < config.print_start or date > config.print_end):
             continue
           if i+1 < config.min_test_k:
             continue
