@@ -117,7 +117,7 @@ def main(_):
   Entry point and main loop for train_net.py. Uses command line arguments to get
   model and training specification (see config.py).
   """
-  configs.DEFINE_string("train_datafile", '',"Training file")
+  configs.DEFINE_string("train_datafile", None,"Training file")
   configs.DEFINE_float("lr_decay",0.9, "Learning rate decay")
   configs.DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
   configs.DEFINE_float("validation_size",0.0,"Size of validation set as %")
@@ -128,12 +128,15 @@ def main(_):
   
   config = configs.get_configs()
 
+  if config.train_datafile is None:
+     config.train_datafile = config.datafile
+  
   train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
   
   print("Loading trainng data ...")
 
   rand_samp = True if config.use_fixed_k is True else False
-  
+
   train_data = BatchGenerator(train_path, config,
 			      config.batch_size,config.num_unrollings,
 			      validation_size=config.validation_size,
