@@ -33,6 +33,7 @@ import tensorflow as tf
 from sklearn.linear_model import LogisticRegression
 
 import model_utils
+from model_utils import get_tabular_data
 import configs
 
 from tensorflow.python.platform import gfile
@@ -60,35 +61,31 @@ print("Loading training data ...")
 
 rand_samp = True if config.use_fixed_k is True else False
 
-train_data = BatchGenerator(train_path, config,
+data_bg = BatchGenerator(train_path, config,
       config.batch_size, config.num_unrollings,
       validation_size=config.validation_size,
       randomly_sample=False)
 
-############################################################################
-#   Formatting data for logistic regression
-############################################################################
-X_train = []
-Y_train = []
+train_bg = data_bg.train_batches()
+valid_bg = data_bg.valid_batches()
 
-for i in range(train_data.num_batches):
-    x = train_data.next_batch()
-    inputs = x._inputs
-    flat_list = [input[0] for input in inputs]
-    X_train.append(np.concatenate(flat_list))
-    Y_train.append(x.targets[-1][0,0])
+print("Grabbing tabular data from batch generator")
+X_train, Y_train = get_tabular_data(train_bg)
+X_valid, Y_valid = get_tabular_data(valid_bg)
 
-
+print("Data processing complete")
 ############################################################################
 #   Perform logistic regression
 ############################################################################
-
-clf = LogisticRegression()
+clf = LogisticRegression(C=1)
+print("Training logistic regression classifer")
 clf.fit(X_train, Y_train)
 
 training_accuracy = np.mean(clf.predict(X_train) == Y_train)
 print("training accuracy: ", training_accuracy)
 
+validation_accuracy = np.mean(clf.predict(X_valid) == Y_valid)
+print("validation accuracy: ", validation_accuracy)
 
 
 

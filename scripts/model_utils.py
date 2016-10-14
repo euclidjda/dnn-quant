@@ -15,7 +15,7 @@ from deep_mlp_model import DeepMlpModel
 
 def get_data_path(data_dir, filename):
     """
-    Construct the data path for the experiement. If DNN_QUANT_ROOT is 
+    Construct the data path for the experiement. If DNN_QUANT_ROOT is
     defined in the environment, then the data path is relative to it.
 
     Args:
@@ -48,13 +48,13 @@ def stop_training(perfs,num):
             if mean1-mean2 < 0.0:
                 return True
     return False
-        
+
 
 def adjust_learning_rate(session, model, learning_rate,
                            lr_decay, batch_perfs, num=5):
   """
   Systematically decrease learning rate if current performance is not at
-  least 1% better than the moving average performance 
+  least 1% better than the moving average performance
 
   Args:
     session: the current tf session for training
@@ -96,9 +96,9 @@ def get_all_models(session, config, verbose=False):
       mtrain:  training model, initialized frm model_dir if exists
       mdeploy: testing/deployment model, initialized frm model_dir if exists
     """
-    
+
     mtrain, mdeploy = _create_all_models(session, config, verbose)
-    
+
     ckpt = tf.train.get_checkpoint_state(config.model_dir)
     if ckpt and gfile.Exists(ckpt.model_checkpoint_path):
       if verbose:
@@ -131,12 +131,12 @@ def _create_all_models(session,config,verbose=False):
       return _create_all_models_mlp(session,config,verbose)
     else:
       raise RuntimeError("Unknown net_type = %s"%config.nn_type)
-  
 
-def _create_all_models_rnn(session,config,verbose=False):    
+
+def _create_all_models_rnn(session,config,verbose=False):
 
     initer = tf.random_uniform_initializer(-config.init_scale,config.init_scale)
-    
+
     if verbose is True:
       print("Model has the following geometry:")
       print("  num_unroll  = %d"% config.num_unrollings)
@@ -146,7 +146,7 @@ def _create_all_models_rnn(session,config,verbose=False):
       print("  num_hidden  = %d"% config.num_hidden)
       print("  num_layers  = %d"% config.num_layers)
 
-    # Training and validation graph  
+    # Training and validation graph
     with tf.variable_scope("model", reuse=None, initializer=initer), \
       tf.device(config.default_gpu):
         mtrain = DeepRnnModel(num_layers     = config.num_layers,
@@ -159,7 +159,7 @@ def _create_all_models_rnn(session,config,verbose=False):
 
 
     num_unrollings = config.num_unrollings if config.use_fixed_k is True else 1
-        
+
     # Deployment / testing graph
     with tf.variable_scope("model", reuse=True, initializer=initer), \
       tf.device(config.default_gpu):
@@ -169,15 +169,15 @@ def _create_all_models_rnn(session,config,verbose=False):
                                use_fixed_k    = config.use_fixed_k,
                                num_unrollings = num_unrollings,
                                batch_size     = 1)
-      
+
     return mtrain, mdeploy
 
 
-def _create_all_models_mlp(session,config,verbose=False):    
+def _create_all_models_mlp(session,config,verbose=False):
 
 
     initer = tf.random_uniform_initializer(-config.init_scale,config.init_scale)
-    
+
     if verbose is True:
       print("Model has the following geometry:")
       print("  num_unroll  = %d"% config.num_unrollings)
@@ -187,7 +187,7 @@ def _create_all_models_mlp(session,config,verbose=False):
       print("  num_hidden  = %d"% config.num_hidden)
       print("  num_layers  = %d"% config.num_layers)
 
-    # Training and validation graph  
+    # Training and validation graph
     with tf.variable_scope("model", reuse=None, initializer=initer), \
       tf.device(config.default_gpu):
         mtrain = DeepMlpModel(num_layers     = config.num_layers,
@@ -205,6 +205,21 @@ def _create_all_models_mlp(session,config,verbose=False):
                                num_hidden     = config.num_hidden,
                                num_unrollings = config.num_unrollings,
                                batch_size     = 1)
-      
+
     return mtrain, mdeploy
+
+
+def get_tabular_data(batch_gen):
+    X = []
+    Y = []
+    print("Number of batches: ", batch_gen.num_batches)
+    for i in range(batch_gen.num_batches):
+        if i % 1000 == 0:
+          print("processed batch: ", i)
+        x = batch_gen.next_batch()
+        inputs = x._inputs
+        flat_list = [input[0] for input in inputs]
+        X.append(np.concatenate(flat_list))
+        Y.append(x.targets[-1][0,0])
+    return (X, Y)
 
