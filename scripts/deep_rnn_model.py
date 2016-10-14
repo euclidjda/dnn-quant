@@ -197,7 +197,8 @@ class DeepRnnModel(object):
      Returns:
        predictions: the model predictions for each data point in batch
      """
-
+     assert( len(batch.inputs) ==self._num_unrollings )
+      
      feed_dict = self._get_feed_dict(batch)
 
      predictions = sess.run(self._predictions,feed_dict)

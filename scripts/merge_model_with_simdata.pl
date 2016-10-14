@@ -19,8 +19,8 @@ sub main {
 
     $| = 1;
 
-    my $datafile = $ARGV[0] || die "First cmd arg must be predictions file.";
-    my $probfile = $ARGV[1] || die "Second cmd arg must be source data file.";
+    my $datafile = $ARGV[0] || die "First cmd arg must be sim data file.";
+    my $probfile = $ARGV[1] || die "Second cmd arg must be predictions file.";
 
     my %probs = ();
 

@@ -30,32 +30,34 @@ class BatchGenerator(object):
     def __init__(self,filename,config,
                      batch_size,num_unrollings,
                      validation_size=None,
-                     randomly_sample=False):
+                     randomly_sample=False,
+                     data=None):
         """
         Init a BatchGenerator
         Args:
           filename: Name of file containing data. Each row of the file is a 
             record in a data sequence and each column (space seperated) is a 
             field. The columns have headers that are used to identify the field.
-          key_name (entity id): The column with the header key_name is the column
-            that contains the unique id (entity id) for the sequences. In the 
-            context of an RNN, the state should be reset when an entity ID changes
-          target_name: The column with the header target_name is the name of
-            the column containing the target values (-1 or +1) for the record
-          num_inputs: The input fields are the first num_inputs columns
-            following the target_name column. For example the data might look
-            like this if key_name=ID, tareget_name=YY, num_inputs =3:
-            ID YY X1 X2 X3
-            aa +1 .3 .1 .9
-            aa -1 .2 .2 .8
-            bb +1 .6 .5 .0
-            bb -1 .5 .4 .1
-            bb -1 .5 .5 .0
+          config: The configuration which should include the following
+             config.key_name (entity id): The column with the header key_name is the column
+               that contains the unique id (entity id) for the sequences. In the 
+               context of an RNN, the state should be reset when an entity ID changes
+             config.target_name: The column with the header target_name is the name of
+               the column containing the target values (-1 or +1) for the record
+             config.num_inputs: The input fields are the first num_inputs columns
+               following the target_name column. For example the data might look
+               like this if key_name=ID, tareget_name=YY, num_inputs =3:
+               ID YY X1 X2 X3
+               aa +1 .3 .1 .9
+               aa -1 .2 .2 .8
+               bb +1 .6 .5 .0
+               bb -1 .5 .4 .1
+               bb -1 .5 .5 .0
+            config.end_date: end_date of training period (inclusive)
           batch_size: The size of a batch (if not defined in config)
           num_unrollings: The time window for each batch. The number of data
             points in a batch is batch_size * num_unrollings
           validation_size: size of validation set 0.10 = 10%
-          end_date: end_date of training period (inclusive)
         Raises:
           The file specified by filename does not exist
         """
@@ -69,12 +71,15 @@ class BatchGenerator(object):
         self._num_inputs = config.num_inputs
         self._num_unrollings = num_unrollings
         self._batch_size = batch_size
+        self._config = config # save this around for train_batches() method
+        
+        if data is None:
+            if not os.path.isfile(filename):
+                raise RuntimeError("The data file %s does not exists" % filename)
+            data = pd.read_csv(filename,sep=' ', dtype={ self._key_name : str } )
+            if config.end_date is not None:
+                data = data.drop(data[data['date'] > config.end_date].index)
 
-        if not os.path.isfile(filename):
-            raise RuntimeError("The data file %s does not exists" % filename)
-        data = pd.read_csv(filename,sep=' ', dtype={ self._key_name : str } )
-        if config.end_date is not None:
-            data = data.drop(data[data['date'] > config.end_date].index)
         self._factor_start_idx = list(data.columns.values).index(target_name)+1
         self._key_idx = list(data.columns.values).index(key_name)
         self._target_idx = list(data.columns.values).index(target_name)
@@ -85,7 +90,7 @@ class BatchGenerator(object):
                    < self._factor_start_idx)
         self._data = data
         self._data_len = len(data)
-        self._validation_set = list()
+        self._validation_set = dict()
         if validation_size is not None:
             if config.seed is not None:
                 print("setting random seed to "+str(config.seed))
@@ -203,9 +208,6 @@ class BatchGenerator(object):
                 key = data.iat[idx,key_idx]
                 attr.append((key,date))
                 next_idx = (idx+1) % self._data_len
-                #if (step+1 != self._num_unrollings) or (data.iat[next_idx,key_idx] != data.iat[idx,key_idx]):
-                #    train_wghts[b] = 0.0
-                #    valid_wghts[b] = 0.0                    
                 if key not in self._validation_set:
                     train_wghts[b] = 1.0
                     valid_wghts[b] = 0.0
@@ -242,6 +244,26 @@ class BatchGenerator(object):
         return Batch(x_batch, y_batch, seq_lengths, reset_flags,
                          train_wghts, valid_wghts, attribs )
 
+    def train_batches(self):
+        valid_keys = list(self._validation_set.keys())
+        indexes = self._data[self._key_name].isin(valid_keys)
+        train_data = self._data[~indexes]
+        return BatchGenerator("",self._config,self._batch_size,
+                                  self._num_unrollings,
+                                  validation_size=None,
+                                  randomly_sample=self._randomly_sample,
+                                  data=train_data)
+
+    def valid_batches(self):
+        valid_keys = list(self._validation_set.keys())
+        indexes = self._data[self._key_name].isin(valid_keys)
+        valid_data = self._data[indexes]
+        return BatchGenerator("",self._config,self._batch_size,
+                                  self._num_unrollings,
+                                  validation_size=None,
+                                  randomly_sample=self._randomly_sample,
+                                  data=valid_data)
+        
     def num_data_points(self):
         return self._data_len
 
@@ -283,9 +305,8 @@ class Batch(object):
         and how much they should contribute to the training loss function
       valid_wghts: Weights that specify an example is in the validation data
         set and how much they should contribute to the validation loss
-      attribs: Currently this holds the date values for the time sequences.
-        TOD: We would like this to be more generic to hold any attributes
-        (as a pandas dataframe) about a records that is not a input or output
+      attribs: Currently this holds a key,date tuple for each data point in
+        in the batch
     """
     
     def __init__(self,inputs,targets,seq_lengths,reset_flags,

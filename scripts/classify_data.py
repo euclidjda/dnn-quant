@@ -44,7 +44,7 @@ def main(_):
   $ classifiy_data.py --config=train.conf --test_datafile=test.dat -output=output.dat
   $ paste -d ' ' test.dat output.dat > input_and_output.dat
   """
-  configs.DEFINE_string('test_datafile','test.dat','file with test data')
+  configs.DEFINE_string('test_datafile',None,'file with test data')
   configs.DEFINE_string('output','preds.dat','file for predictions')
   configs.DEFINE_string('time_field','date','fields used for dates/time')
   configs.DEFINE_string('print_start','190001','only print data on or after')
@@ -54,11 +54,11 @@ def main(_):
 
   config = configs.get_configs()
 
+  if config.test_datafile is None:
+     config.test_datafile = config.datafile
+  
   batch_size = 1
   num_unrollings = config.num_unrollings
-  if (config.use_fixed_k is True) and (config.nn_type == 'rnn'):
-    num_unrollings = 1
-  
   data_path = model_utils.get_data_path(config.data_dir,config.test_datafile)
 
   print("Loading data %s"%data_path)
@@ -66,7 +66,7 @@ def main(_):
   dataset = BatchGenerator(data_path, config,
                              batch_size=batch_size,
                              num_unrollings=num_unrollings)
-
+  
   num_data_points = dataset.num_batches  
   if config.num_batches is not None:
      num_data_points = config.num_batches

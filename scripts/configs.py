@@ -34,13 +34,17 @@ class _ConfigValues(object):
 
   def _parse_configs(self):
     result, _ = _global_parser.parse_known_args()
+    if '__configs' not in self.__dict__:
+      self.__dict__['__configs'] = {}
+    if '__parsed' not in self.__dict__:
+      self.__dict__['__parsed'] = False      
     for config_name, val in vars(result).items():
       self.__dict__['__configs'][config_name] = val
     self.__dict__['__parsed'] = True
 
   def __getattr__(self, name):
     """Retrieves the 'value' attribute of the config --name."""
-    if not self.__dict__['__parsed']:
+    if ('__parsed' not in self.__dict__) or (not self.__dict__['__parsed']):
       self._parse_configs()
     if name not in self.__dict__['__configs']:
       raise AttributeError(name)
@@ -48,7 +52,7 @@ class _ConfigValues(object):
 
   def __setattr__(self, name, value):
     """Sets the 'value' attribute of the config --name."""
-    if not self.__dict__['__parsed']:
+    if ('__parsed' not in self.__dict__) or (not self.__dict__['__parsed']):
       self._parse_configs()
     self.__dict__['__configs'][name] = value
 
@@ -127,6 +131,7 @@ def DEFINE_float(config_name, default_value, docstring):
 def get_configs():
     """Defines all configuration params passable to command line.
     """
+    DEFINE_string("datafile",'data.dat',"a datafile name.")
     DEFINE_string("default_gpu",'',"The default GPU to use e.g., /gpu:0")
     DEFINE_string("nn_type",'rnn',"Net Type: mlp or rnn")
     DEFINE_string("key_field", '',"Key column name header in datafile")
