@@ -184,12 +184,14 @@ def main(_):
       if not os.path.exists(config.model_dir):
         print("Creating directory %s" % config.model_dir)
         os.mkdir(config.model_dir)
-      
-      if model_utils.stop_training(valid_history,config.early_stop):
+
+      chkpt_file_prefix = "training.ckpt"
+	
+      if model_utils.stop_training(config,valid_history,chkpt_file_prefix):
         print("Training stopped.")
         quit()
       else:
-        checkpoint_path = os.path.join(config.model_dir, "training.ckpt" )
+        checkpoint_path = os.path.join(config.model_dir, chkpt_file_prefix)
         tf.train.Saver().save(session, checkpoint_path, global_step=i)
       
 if __name__ == "__main__":

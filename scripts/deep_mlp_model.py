@@ -132,7 +132,7 @@ class DeepMlpModel(object):
       self._cost  = self._train_cst
       self._accy  = self._train_accy
       self._evals = self._train_evals
-      self._batch_cst = self._train_cst / self._train_evals
+      self._batch_cst = self._train_cst / (self._train_evals + 1.0)
 
       # here is the learning part of the graph
       self._lr = tf.Variable(0.0, trainable=False)

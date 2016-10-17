@@ -131,8 +131,8 @@ class BatchGenerator(object):
         unrls = self._num_unrollings
         if self._batch_size == 1 and self._num_unrollings == 1:
             num_batches = self._data_len
-        elif self._randomly_sample is True:
-            num_batches = self._data_len // (self._batch_size*self._num_unrollings)
+        #elif self._randomly_sample is True:
+        #    num_batches = self._data_len // (self._batch_size*self._num_unrollings)
         elif self._use_fixed_k:
             for i in range(len(counts)):
                 count = counts.iloc[i]
