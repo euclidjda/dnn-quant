@@ -131,15 +131,15 @@ class BatchGenerator(object):
         unrls = self._num_unrollings
         if self._batch_size == 1 and self._num_unrollings == 1:
             num_batches = self._data_len
-        elif self._randomly_sample is True:
-            num_batches = self._data_len // (self._batch_size*self._num_unrollings)
+        #elif self._randomly_sample is True:
+        #    num_batches = self._data_len // (self._batch_size*self._num_unrollings)
         elif self._use_fixed_k:
             for i in range(len(counts)):
                 count = counts.iloc[i]
                 incr = (count - unrls + 1) if count >= unrls else 1
                 num_batches += incr
             num_batches = num_batches // self._batch_size
-        else:
+        else: # self._use_fixed_k is False:
             for i in range(len(counts)):
                 count = counts.iloc[i]
                 num_batches += count // unrls
@@ -150,10 +150,6 @@ class BatchGenerator(object):
 
     def _get_reset_flags(self):
         reset_flags = None
-        #if self._use_fixed_k is True:
-        #    reset_flags = np.zeros(self._batch_size)
-        # otherwise see if we've move onto new entity
-        #else:
         data = self._data
         reset_flags = np.ones(self._batch_size)
         kidx = self._key_idx
