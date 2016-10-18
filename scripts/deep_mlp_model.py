@@ -174,7 +174,7 @@ class DeepMlpModel(object):
                     self._train_op],
                     feed_dict)
 
-    assert( train_evals > 0 )
+    # assert( train_evals > 0 )
     
     return (train_cst, train_accy, train_evals, 
             valid_cst, valid_accy, valid_evals)

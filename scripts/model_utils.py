@@ -46,8 +46,7 @@ def stop_training(config, perfs, file_prefix):
             window_min = min(perfs[-window_size:])
             if total_min < window_min:
                 # early stop here
-                assert(0)
-                best_idx = 2 # index of total min
+                best_idx = perfs.index(total_min) # index of total min
                 chkpt_name = "%s-%d"%(file_prefix,best_idx)
                 rewrite_chkpt(config.model_dir, chkpt_name)
                 return True
