@@ -149,7 +149,8 @@ class DeepRnnModel(object):
       tvars = tf.trainable_variables()
       grads, _ = tf.clip_by_global_norm(tf.gradients(self._batch_cst,
                                                          tvars),max_grad_norm)
-      optimizer = tf.train.GradientDescentOptimizer(self.lr)
+      # optimizer = tf.train.GradientDescentOptimizer(self.lr)
+      optimizer = tf.train.AdagradOptimizer(self.lr)
       self._train_op = optimizer.apply_gradients(zip(grads, tvars))
 
   def train_step(self, sess, batch, keep_prob=1.0):

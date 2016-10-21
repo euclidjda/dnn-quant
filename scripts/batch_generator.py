@@ -181,6 +181,7 @@ class BatchGenerator(object):
         attr = list()
         data = self._data
         start_idx = self._factor_start_idx
+        num_inputs = self._num_inputs
         key_idx = self._key_idx
         target_idx = self._target_idx
         date_idx = self._date_idx
@@ -196,7 +197,7 @@ class BatchGenerator(object):
                     seq_lengths[b] = step
                 attr.append(None)
             else:
-                x[b,:] = data.iloc[idx,start_idx:].as_matrix()
+                x[b,:] = data.iloc[idx,start_idx:start_idx+num_inputs].as_matrix()
                 val = data.iat[idx,target_idx] # val = +1 or -1
                 y[b,0] = abs(val - 1) / 2 # +1 -> 0 and -1 -> 1
                 y[b,1] = abs(val + 1) / 2 # -1 -> 0 and +1 -> 1
