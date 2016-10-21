@@ -130,7 +130,7 @@ def main(_):
 
   if config.train_datafile is None:
      config.train_datafile = config.datafile
-  
+
   train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
 
   print("Loading training data ...")
@@ -185,11 +185,13 @@ def main(_):
         print("Creating directory %s" % config.model_dir)
         os.mkdir(config.model_dir)
 
-      if model_utils.stop_training(valid_history,config.early_stop):
+      chkpt_file_prefix = "training.ckpt"
+
+      if model_utils.stop_training(config,valid_history,chkpt_file_prefix):
         print("Training stopped.")
         quit()
       else:
-        checkpoint_path = os.path.join(config.model_dir, "training.ckpt" )
+        checkpoint_path = os.path.join(config.model_dir, chkpt_file_prefix)
         tf.train.Saver().save(session, checkpoint_path, global_step=i)
 
 if __name__ == "__main__":

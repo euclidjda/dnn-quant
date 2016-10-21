@@ -31,25 +31,35 @@ def get_data_path(data_dir, filename):
         path = os.environ['DNN_QUANT_ROOT'] + '/' + path
     return path
 
-def stop_training(perfs,num):
+def stop_training(config, perfs, file_prefix):
     """
     Early stop algorithm
 
     Args:
+      config:
       perfs: History of validation performance on each iteration
-      num: Number of iterations of validation performance to
-        "lookback" to see if performance is improving anymore
+      file_prefix: how to name the chkpnt file
     """
-    if num is not None:
-        far = num+1
-        near = min(int(num/2),5)
-        if len(perfs) >= far:
-            mean1 = np.mean(perfs[-far:-2])
-            mean2 = min(np.mean(perfs[-near:-1]),perfs[-1])
-            if mean1-mean2 < 0.0:
+    window_size = config.early_stop
+    if window_size is not None:
+        if len(perfs) > window_size:
+            total_min = min(perfs)
+            window_min = min(perfs[-window_size:])
+            if total_min < window_min:
+                # early stop here
+                best_idx = perfs.index(total_min) # index of total min
+                chkpt_name = "%s-%d"%(file_prefix,best_idx)
+                rewrite_chkpt(config.model_dir, chkpt_name)
                 return True
     return False
 
+def rewrite_chkpt(model_dir,chkpt_name):
+  # open file model_dir/checkpoint
+  path = model_dir+"/checkpoint"
+  # write file as tensorflow expects
+  with open(path, "w") as outfile:
+    outfile.write("model_checkpoint_path: \"%s\"\n"%chkpt_name)
+    outfile.write("all_model_checkpoint_paths: \"%s\"\n"%chkpt_name)
 
 def adjust_learning_rate(session, model, learning_rate,
                            lr_decay, batch_perfs, num=5):
