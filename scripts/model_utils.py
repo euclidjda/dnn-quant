@@ -12,6 +12,7 @@ import tensorflow as tf
 from tensorflow.python.platform import gfile
 from deep_rnn_model import DeepRnnModel
 from deep_mlp_model import DeepMlpModel
+from log_reg_model import LogRegModel
 
 def get_data_path(data_dir, filename):
     """
@@ -82,6 +83,7 @@ def get_training_model(session, config, verbose=True):
 
 def get_trained_model(session, config, verbose=False):
     mtrain, mdeploy = get_all_models(session, config, verbose)
+
     return mdeploy
 
 def get_all_models(session, config, verbose=False):
@@ -96,19 +98,24 @@ def get_all_models(session, config, verbose=False):
       mtrain:  training model, initialized frm model_dir if exists
       mdeploy: testing/deployment model, initialized frm model_dir if exists
     """
+    if config.nn_type == 'logreg':
+      model_file = os.path.join(config.model_dir, "logreg.pkl" )
+      clf = LogRegModel(load_from=model_file)
+      mtrain, mdeploy = clf, clf
 
-    mtrain, mdeploy = _create_all_models(session, config, verbose)
-
-    ckpt = tf.train.get_checkpoint_state(config.model_dir)
-    if ckpt and gfile.Exists(ckpt.model_checkpoint_path):
-      if verbose:
-        print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
-      tf.train.Saver(max_to_keep=200).restore(session,
-                                                ckpt.model_checkpoint_path)
     else:
-      if verbose:
-        print("Created model with fresh parameters.")
-      session.run(tf.initialize_all_variables())
+      mtrain, mdeploy = _create_all_models(session, config, verbose)
+
+      ckpt = tf.train.get_checkpoint_state(config.model_dir)
+      if ckpt and gfile.Exists(ckpt.model_checkpoint_path):
+        if verbose:
+          print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
+        tf.train.Saver(max_to_keep=200).restore(session,
+                                                  ckpt.model_checkpoint_path)
+      else:
+        if verbose:
+          print("Created model with fresh parameters.")
+        session.run(tf.initialize_all_variables())
 
     return mtrain, mdeploy
 
@@ -209,17 +216,36 @@ def _create_all_models_mlp(session,config,verbose=False):
     return mtrain, mdeploy
 
 
+def _create_all_models_logreg(session, config, verbose=False):
+    pass
+
 def get_tabular_data(batch_gen):
     X = []
     Y = []
-    print("Number of batches: ", batch_gen.num_batches)
+    dates = []
+    # print("Number of batches: ", batch_gen.num_batches)
     for i in range(batch_gen.num_batches):
-        if i % 1000 == 0:
-          print("processed batch: ", i)
+        # if i % 1000 == 0:
+        #   print("processed batch: ", i)
         x = batch_gen.next_batch()
-        inputs = x._inputs
-        flat_list = [input[0] for input in inputs]
-        X.append(np.concatenate(flat_list))
-        Y.append(x.targets[-1][0,0])
-    return (X, Y)
+        if x:
+          inputs = x._inputs
+          flat_list = [input[0] for input in inputs]
+          X.append(np.concatenate(flat_list))
+          Y.append(x.targets[-1][0,0])
+          dates.append(x.attribs[-1][0][1])
+    return (X, Y, dates)
 
+
+def batch_to_tabular(batch):
+    X = []
+    Y = []
+    dates = []
+    batch_size = len(batch.inputs[0])
+    for i in range(batch_size):
+        # print("processing batch: ", i)
+        flat_list = [input[i] for input in batch.inputs]
+        X.append(np.concatenate(flat_list))
+        Y.append(batch.targets[-1][i,0])
+        # dates.append(batch.attribs[-1][i][1])
+    return (X, Y, dates)

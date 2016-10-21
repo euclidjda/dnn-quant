@@ -59,7 +59,7 @@ def progress(count, blockSize, totalSize):
           percent = 100
       sys.stdout.write("\r...%3d%% " % percent)
       sys.stdout.flush()
-      
+
 def maybe_download(directory, filename, url):
   """Download filename from url unless it's already in directory."""
   if not os.path.exists(directory):
@@ -90,7 +90,7 @@ def download_data():
 
     local_files  = [ os.path.splitext(remote_files[i])[0]
                          for i in range(len(remote_files)) ]
-    
+
     if len(access_key) and len(secret_key):
         print("Downloading data ...")
         for i in range(len(remote_files)):
@@ -107,7 +107,7 @@ def download_data():
     else:
         print('Skipping data download.')
 
-        
+
 def setup_environment():
     shfile = os.environ['HOME']+'/.bash_profile'
     pwd    = os.getcwd()
@@ -121,11 +121,10 @@ export PATH
         file.write(lines)
     print('To complete setup, run the following from the terminal prompt:')
     print('source ~/.bash_profile')
-    
-        
+
+
 def main():
     a = input("Download stock fundamental data [y/n]? ")
-    
     if len(a) and (a[0].lower() == 'y'):
         download_data()
     else:
