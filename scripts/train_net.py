@@ -61,7 +61,7 @@ def run_epoch(session, model, dataset,
   dot_count = 0
   count = passes*num_batches
   prog_int = count/100 # progress interval for stdout
-  
+
   if not num_batches > 0:
     raise RuntimeError("batch_size*num_unrollings is larger "
                          "than the training set size.")
@@ -73,7 +73,7 @@ def run_epoch(session, model, dataset,
   for i in range(passes):
     for step in range(num_batches):
       batch = dataset.next_batch()
-      (tcost, taccy, tevals, 
+      (tcost, taccy, tevals,
        vcost, vaccy, vevals) = model.train_step(session, batch,
                                                keep_prob=keep_prob)
 
@@ -91,7 +91,7 @@ def run_epoch(session, model, dataset,
       #print("train_accy %.2f"%train_accy)
       #print("-"*80)
       # exit()
-      if ( verbose and ((prog_int<=1) or 
+      if ( verbose and ((prog_int<=1) or
                         (step % (int(prog_int)+1)) == 0) ):
         dot_count += 1
         print('.',end='')
@@ -107,11 +107,11 @@ def run_epoch(session, model, dataset,
                                    (time.time() - start_time)) )
   sys.stdout.flush()
 
-  return (np.exp(train_cost/train_evals), 
+  return (np.exp(train_cost/train_evals),
           1.0 - train_accy/train_evals,
-          np.exp(valid_cost/valid_evals), 
+          np.exp(valid_cost/valid_evals),
           1.0 - valid_accy/valid_evals)
-  
+
 def main(_):
   """
   Entry point and main loop for train_net.py. Uses command line arguments to get
@@ -125,15 +125,15 @@ def main(_):
   configs.DEFINE_integer("max_epoch",0,"Stop after max_epochs")
   configs.DEFINE_integer("early_stop",None,"Early stop parameter")
   configs.DEFINE_integer("seed",None,"Seed for deterministic training")
-  
+
   config = configs.get_configs()
 
   if config.train_datafile is None:
      config.train_datafile = config.datafile
-  
+
   train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
-  
-  print("Loading trainng data ...")
+
+  print("Loading training data ...")
 
   rand_samp = True if config.use_fixed_k is True else False
 
@@ -142,22 +142,22 @@ def main(_):
 			      validation_size=config.validation_size,
 			      randomly_sample=rand_samp)
 
-  tf_config = tf.ConfigProto( allow_soft_placement=True, 
+  tf_config = tf.ConfigProto( allow_soft_placement=True,
                               log_device_placement=False )
 
   with tf.Graph().as_default(), tf.Session(config=tf_config) as session:
 
     if config.seed is not None:
       tf.set_random_seed(config.seed)
-  
+
     print("Constructing model ...")
 
     model = model_utils.get_training_model(session, config, verbose=True)
-    
+
     lr = config.initial_learning_rate
     train_history = list()
     valid_history = list()
-    
+
     for i in range(config.max_epoch):
 
       lr = model_utils.adjust_learning_rate(session,
@@ -174,7 +174,7 @@ def main(_):
       vdc = 999.0 if vdc > 999.0 else vdc
 
       print( ('Epoch: %d loss: %.6f %.6f'
-              ' error: %.6f %.6f Learning rate: %.4f') % 
+              ' error: %.6f %.6f Learning rate: %.4f') %
             (i + 1, trc, vdc, tre, vde, lr) )
       sys.stdout.flush()
 
@@ -186,13 +186,13 @@ def main(_):
         os.mkdir(config.model_dir)
 
       chkpt_file_prefix = "training.ckpt"
-	
+
       if model_utils.stop_training(config,valid_history,chkpt_file_prefix):
         print("Training stopped.")
         quit()
       else:
         checkpoint_path = os.path.join(config.model_dir, chkpt_file_prefix)
         tf.train.Saver().save(session, checkpoint_path, global_step=i)
-      
+
 if __name__ == "__main__":
   tf.app.run()

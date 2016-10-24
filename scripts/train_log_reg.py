@@ -1,5 +1,3 @@
-
-
 #!/bin/sh
 ''''exec python3 -u -- "$0" ${1+"$@"} # '''
 
@@ -27,6 +25,7 @@ import time
 import os
 import sys
 import copy
+import pickle
 
 import numpy as np
 import tensorflow as tf
@@ -61,21 +60,54 @@ print("Loading training data ...")
 
 rand_samp = True if config.use_fixed_k is True else False
 
-data_bg = BatchGenerator(train_path, config,
-      config.batch_size, config.num_unrollings,
-      validation_size=config.validation_size,
-      randomly_sample=False)
+VALID_MODE = True
 
-train_bg = data_bg.train_batches()
-valid_bg = data_bg.valid_batches()
+############################################################################
+#   If cached data doesn't exist, build it
+############################################################################
+if not config.use_cache:
+    print("Generating Data from Scratch")
 
-print("Grabbing tabular data from batch generator")
-X_train, Y_train = get_tabular_data(train_bg)
-X_valid, Y_valid = get_tabular_data(valid_bg)
+    data_bg = BatchGenerator(train_path, config,
+          config.batch_size, config.num_unrollings,
+          validation_size=config.validation_size,
+          randomly_sample=False, valid_mode=VALID_MODE)
+
+    train_bg = data_bg.train_batches()
+    valid_bg = data_bg.valid_batches()
+
+    print("Grabbing tabular data from batch generator")
+    X_train_full, Y_train_full, dates_train = get_tabular_data(train_bg)
+    X_valid_full, Y_valid_full, dates_valid = get_tabular_data(valid_bg)
+
+
+############################################################################
+#   Else load from cache
+############################################################################
+else:
+    print("Loading data from cache (expecting to find ./datasets/rectangular/*.npy)")
+    X_train_full = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/X_train_full.npy")
+    Y_train_full = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/Y_train_full.npy")
+    X_valid_full = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/X_valid_full.npy")
+    Y_valid_full = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/Y_valid_full.npy")
+    dates_train = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/dates_train.npy")
+    dates_valid = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/dates_valid.npy")
+
+#############################################################################
+#   Take only those rows that finish before the end date
+#############################################################################
+train_indices = [i for i in range(len(dates_train)) if dates_train[i] <= config.end_date]
+valid_indices = [i for i in range(len(dates_valid)) if dates_valid[i] <= config.end_date]
+
+X_train = X_train_full[train_indices]
+Y_train = Y_train_full[train_indices]
+X_valid = X_valid_full[valid_indices]
+Y_valid = Y_valid_full[valid_indices]
 
 print("Data processing complete")
+
 ############################################################################
-#   Perform logistic regression
+#   Instantiate logistic regression classifier (sk-learn) and train
 ############################################################################
 clf = LogisticRegression(C=1)
 print("Training logistic regression classifer")
@@ -87,5 +119,16 @@ print("training accuracy: ", training_accuracy)
 validation_accuracy = np.mean(clf.predict(X_valid) == Y_valid)
 print("validation accuracy: ", validation_accuracy)
 
+############################################################################
+#   Save the model
+############################################################################
+if not os.path.exists(config.model_dir):
+    print("Creating directory %s" % config.model_dir)
+    os.mkdir(config.model_dir)
+
+checkpoint_path = os.path.join(config.model_dir, "logreg.pkl" )
+
+with open(checkpoint_path, "wb") as f:
+    pickle.dump(clf, f)
 
 

@@ -23,24 +23,25 @@ _NUM_CLASSES = 2
 class BatchGenerator(object):
     """
     BatchGenerator object takes a data file are returns an object with
-    a next_batch() function. The next_batch() function yields a batch of data 
-    sequences from the datafile whose shape is specified by batch_size 
+    a next_batch() function. The next_batch() function yields a batch of data
+    sequences from the datafile whose shape is specified by batch_size
     and num_unrollings.
     """
     def __init__(self,filename,config,
                      batch_size,num_unrollings,
                      validation_size=None,
                      randomly_sample=False,
-                     data=None):
+                     data=None, valid_mode=False):
+
         """
         Init a BatchGenerator
         Args:
-          filename: Name of file containing data. Each row of the file is a 
-            record in a data sequence and each column (space seperated) is a 
+          filename: Name of file containing data. Each row of the file is a
+            record in a data sequence and each column (space seperated) is a
             field. The columns have headers that are used to identify the field.
           config: The configuration which should include the following
              config.key_name (entity id): The column with the header key_name is the column
-               that contains the unique id (entity id) for the sequences. In the 
+               that contains the unique id (entity id) for the sequences. In the
                context of an RNN, the state should be reset when an entity ID changes
              config.target_name: The column with the header target_name is the name of
                the column containing the target values (-1 or +1) for the record
@@ -72,7 +73,8 @@ class BatchGenerator(object):
         self._num_unrollings = num_unrollings
         self._batch_size = batch_size
         self._config = config # save this around for train_batches() method
-        
+        self.valid_mode = valid_mode
+
         if data is None:
             if not os.path.isfile(filename):
                 raise RuntimeError("The data file %s does not exists" % filename)
@@ -115,7 +117,7 @@ class BatchGenerator(object):
         # at the beggining of an entity's time sequences.
         for b in range(batch_size):
             idx = self._init_cursor[b]
-            key = data.iat[idx,self._key_idx]    
+            key = data.iat[idx,self._key_idx]
             while data.iat[idx,self._key_idx] == key:
                 # TDO: THIS SHOULD BE FIXED AS IT CAN GO INTO AN INFINITE LOOP
                 # IF THERE IS ONLY ONE ENTITY IN DATASET
@@ -140,7 +142,7 @@ class BatchGenerator(object):
                 incr = (count - unrls + 1) if count >= unrls else 1
                 num_batches += incr
             num_batches = num_batches // self._batch_size
-        else:
+        else: # self._use_fixed_k is False:
             for i in range(len(counts)):
                 count = counts.iloc[i]
                 num_batches += count // unrls
@@ -151,10 +153,6 @@ class BatchGenerator(object):
 
     def _get_reset_flags(self):
         reset_flags = None
-        #if self._use_fixed_k is True:
-        #    reset_flags = np.zeros(self._batch_size)
-        # otherwise see if we've move onto new entity
-        #else:
         data = self._data
         reset_flags = np.ones(self._batch_size)
         kidx = self._key_idx
@@ -163,9 +161,9 @@ class BatchGenerator(object):
             if (i==0 or (data.iat[i,kidx] != data.iat[i-1,kidx])):
                 reset_flags[b] = 0.0
         return reset_flags
-        
+
     def _get_next_cursor(self,cur_cursor,saved_cursor):
-        assert(len(cur_cursor) == self._batch_size)        
+        assert(len(cur_cursor) == self._batch_size)
         assert(len(saved_cursor) == self._batch_size)
         next_cursor = cur_cursor[:]
         data = self._data
@@ -174,7 +172,7 @@ class BatchGenerator(object):
             if (data.iat[cur_cursor[b],kidx] == data.iat[saved_cursor[b],kidx]):
                 next_cursor[b] = (saved_cursor[b]+1) % self._data_len
         return next_cursor
-    
+
     def _next_step(self, step, seq_lengths):
         """
         Get next step in current batch.
@@ -186,13 +184,19 @@ class BatchGenerator(object):
         attr = list()
         data = self._data
         start_idx = self._feature_start_idx
+        num_inputs = self._num_inputs
         key_idx = self._key_idx
         target_idx = self._target_idx
         date_idx = self._date_idx
+        valid = None
         for b in range(self._batch_size):
             idx = self._cursor[b]
             prev_idx = idx-1 if idx > 0 else self._data_len - 1
+            ########################################################################
+            #   Checks to see if hit end of sequence for this stock before num_rollings
+            ########################################################################
             if (step>0 and (data.iat[prev_idx,key_idx] != data.iat[idx,key_idx])):
+                valid = False
                 x[b,:] = 0.0
                 y[b,:] = 0.0
                 train_wghts[b] = 0.0
@@ -201,7 +205,8 @@ class BatchGenerator(object):
                     seq_lengths[b] = step
                 attr.append(None)
             else:
-                x[b,:] = data.iloc[idx,start_idx:].as_matrix()
+                valid = True
+                x[b,:] = data.iloc[idx,start_idx:start_idx+num_inputs].as_matrix()
                 val = data.iat[idx,target_idx] # val = +1 or -1
                 y[b,0] = abs(val - 1) / 2 # +1 -> 0 and -1 -> 1
                 y[b,1] = abs(val + 1) / 2 # -1 -> 0 and +1 -> 1
@@ -216,7 +221,7 @@ class BatchGenerator(object):
                     train_wghts[b] = 0.0
                     valid_wghts[b] = 1.0
                 self._cursor[b] = (self._cursor[b] + 1) % self._data_len
-        return x, y, train_wghts, valid_wghts, attr
+        return x, y, train_wghts, valid_wghts, attr, valid
 
     def next_batch(self):
         """Generate the next batch of sequences from the data.
@@ -231,17 +236,29 @@ class BatchGenerator(object):
         train_wghts = list()
         valid_wghts = list()
         attribs = list()
+        batch_valid = True
         for i in range(self._num_unrollings):
-            x, y, tw, vw, attr = self._next_step(i, seq_lengths)
+            x, y, tw, vw, attr, valid = self._next_step(i, seq_lengths)
+            if not valid:
+                batch_valid = False
             x_batch.append(x)
             y_batch.append(y)
             train_wghts.append(tw)
             valid_wghts.append(vw)
             attribs.append(attr)
+
+        #############################################################################
+        #   Set cursor for next batch
+        #############################################################################
         if self._randomly_sample is True:
             self._cursor = random.sample(range(self._data_len),self._batch_size)
         elif self._use_fixed_k is True:
             self._cursor = self._get_next_cursor(self._cursor,saved_cursor)
+
+        if self.valid_mode:
+            if not batch_valid:
+                return None
+
         return Batch(x_batch, y_batch, seq_lengths, reset_flags,
                          train_wghts, valid_wghts, attribs )
 
@@ -253,7 +270,7 @@ class BatchGenerator(object):
                                   self._num_unrollings,
                                   validation_size=None,
                                   randomly_sample=self._randomly_sample,
-                                  data=train_data)
+                                  data=train_data, valid_mode=self.valid_mode)
 
     def valid_batches(self):
         valid_keys = list(self._validation_set.keys())
@@ -263,8 +280,8 @@ class BatchGenerator(object):
                                   self._num_unrollings,
                                   validation_size=None,
                                   randomly_sample=self._randomly_sample,
-                                  data=valid_data)
-        
+                                  data=valid_data, valid_mode=self.valid_mode)
+
     def num_data_points(self):
         return self._data_len
 
@@ -274,24 +291,29 @@ class BatchGenerator(object):
     @property
     def num_batches(self):
         return self._num_batches
-        
+
 class Batch(object):
     """
     A batch object is a container for a subset of data to be processed
     by a model. It has two dimensions: batch_size and num_unrollings.
-    batch_size is the number of simulaneous time sequences to process by 
+    batch_size is the number of simulaneous time sequences to process by
     the model in a batch. num_unrollings is the maximum length
     of each time sequence to process in a batch.
     Since num_unrollings is only relevant to RNN's, num_unrollings should
     be =1 for the MLP models.
 
     Attributes:
+<<<<<<< HEAD
       inputs: The batch's sequences of input values. The number of 
+=======
+
+      inputs: The batch's sequences of input values. The number of
+>>>>>>> 1d57fe4f00084a1e9423c91868de415f1c32b7ba
         sequences is equal to batch_size and the physical size of each
         sequence is equal to num_unrollings. The seq_lengths return
-        value (see below) might be less than num_unrollings if a sequence 
+        value (see below) might be less than num_unrollings if a sequence
         ends in less steps than num_unrollings.
-      targets: The batch's sequences of target values. The number of 
+      targets: The batch's sequences of target values. The number of
         sequences is equal to batch_size and the physical size of each
         sequence is equal to num_unrollings.
       seq_lengths: An integer vectors of size batch_size that contains the
@@ -308,7 +330,7 @@ class Batch(object):
       attribs: Currently this holds a key,date tuple for each data point in
         in the batch
     """
-    
+
     def __init__(self,inputs,targets,seq_lengths,reset_flags,
                      train_wghts,valid_wghts,attribs):
         self._inputs = inputs
@@ -342,7 +364,7 @@ class Batch(object):
     @property
     def valid_wghts(self):
         return self._valid_wghts
-    
+
     @property
     def attribs(self):
         return self._attribs
