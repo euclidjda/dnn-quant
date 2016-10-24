@@ -123,7 +123,6 @@ def main(_):
 
     print_summary_stats(stats)
 
-
 def get_seq_length(batch):
   return batch.seq_lengths[0]
 

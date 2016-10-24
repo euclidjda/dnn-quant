@@ -80,14 +80,15 @@ class BatchGenerator(object):
             if config.end_date is not None:
                 data = data.drop(data[data['date'] > config.end_date].index)
 
-        self._factor_start_idx = list(data.columns.values).index(target_name)+1
+        self._feature_start_idx = list(data.columns.values).index(target_name)+1
         self._key_idx = list(data.columns.values).index(key_name)
         self._target_idx = list(data.columns.values).index(target_name)
         self._date_idx = list(data.columns.values).index('date')
-        assert(self._factor_start_idx>=0)
-        # This assert ensures that no x factors are the yval
+        self._feature_names = list(data.columns.values)[self._target_idx+1:]
+        assert(self._feature_start_idx>=0)
+        # This assert ensures that no x features are the yval
         assert(list(data.columns.values).index(target_name)
-                   < self._factor_start_idx)
+                   < self._feature_start_idx)
         self._data = data
         self._data_len = len(data)
         self._validation_set = dict()
@@ -184,7 +185,7 @@ class BatchGenerator(object):
         valid_wghts = np.zeros(shape=(self._batch_size), dtype=np.float)
         attr = list()
         data = self._data
-        start_idx = self._factor_start_idx
+        start_idx = self._feature_start_idx
         key_idx = self._key_idx
         target_idx = self._target_idx
         date_idx = self._date_idx
@@ -285,7 +286,6 @@ class Batch(object):
     be =1 for the MLP models.
 
     Attributes:
-
       inputs: The batch's sequences of input values. The number of 
         sequences is equal to batch_size and the physical size of each
         sequence is equal to num_unrollings. The seq_lengths return
