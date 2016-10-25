@@ -12,11 +12,11 @@ CHKPTS_NAME=chkpts-${TRAIN_DIR}
 mkdir -p ${TRAIN_DIR}
 
 # Sets that can be done on seperate GPU's
-# 2000-2002, 2003-2006, 2007-2010, 2011-2014 
+# 2000-2003, 2004-2007, 2008-2011, 2012-2015 
 
 GPU=0
 START_YEAR=2000
-END_YEAR=2002
+END_YEAR=2003
 YEAR=$START_YEAR
 
 while [ $YEAR -le $END_YEAR ]
@@ -27,7 +27,7 @@ do
     TEST_PRE=`expr ${YEAR} - 6`06
     TRAIN_END=`expr ${YEAR} - 2`12
     
-    echo "Training model for train end ${TRAIN_END}"
+    echo "Training model on 197001 to ${TRAIN_END} for test set year of ${YEAR}"
     $BIN/train_net.py --config=${CONFIG_FILE} --default_gpu=/gpu:${GPU} --train_datafile=${TRAIN_FILE} \
     	--end_date=${TRAIN_END} --model_dir=${CHKPTS_NAME}-${TEST_START} > ${TRAIN_DIR}/stdout-${TEST_START}.txt
 
