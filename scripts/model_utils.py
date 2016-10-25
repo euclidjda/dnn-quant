@@ -45,6 +45,7 @@ def stop_training(config, perfs, file_prefix):
         if len(perfs) > window_size:
             total_min = min(perfs)
             window_min = min(perfs[-window_size:])
+            # print("total_min=%.4f window_min=%.4f"%(total_min,window_min))
             if total_min < window_min:
                 # early stop here
                 best_idx = perfs.index(total_min) # index of total min

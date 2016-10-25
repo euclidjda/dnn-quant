@@ -158,6 +158,10 @@ def main(_):
     train_history = list()
     valid_history = list()
 
+    if config.early_stop is not None:
+      print("Training will early stop without "
+        "improvement after %d epochs."%config.early_stop)
+
     for i in range(config.max_epoch):
 
       lr = model_utils.adjust_learning_rate(session,

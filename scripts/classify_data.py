@@ -92,15 +92,17 @@ def main(_):
       for i in range(num_data_points):
         batch = dataset.next_batch()
         preds = model.step(session, batch)
-        seq_len = get_seq_length( batch )
-        start = 0 if use_entire_seq(batch) is True else seq_len-1
+        seq_len = get_seq_length(batch)
+        start = seq_len-1
+        if classify_entire_seq(config,batch) is True:
+          start = 0
         for i in range(start,seq_len):
-          key, date = get_key_and_date( batch, i )
+          key, date = get_key_and_date(batch, i)
           if (date < config.print_start or date > config.print_end):
             continue
           if i+1 < config.min_test_k:
             continue
-          prob = get_pos_prob( preds, config, i )
+          prob = get_pos_prob(config, preds, i)
           target = get_target(batch, i)
           outfile.write("%s %s "
             "%.4f %.4f %d %d\n" % (key, date, 1.0 - prob, prob, target, i+1) )
@@ -127,11 +129,13 @@ def main(_):
 def get_seq_length(batch):
   return batch.seq_lengths[0]
 
-def use_entire_seq(batch):
+def classify_entire_seq(config,batch):
+  if config.nn_type != 'rnn':
+    return False
   rf = batch.reset_flags[0]
   return True if rf == 0.0 else False
 
-def get_pos_prob(preds,config,idx):
+def get_pos_prob(config,preds,idx):
   if config.nn_type != 'rnn':
     idx = 0
   assert(idx < len(preds))

@@ -26,10 +26,14 @@ do
     TEST_END_W_PAD=`expr ${YEAR} + 1`01
     TEST_PRE=`expr ${YEAR} - 6`06
     TRAIN_END=`expr ${YEAR} - 2`12
-    
-    echo "Training model on 197001 to ${TRAIN_END} for test set year of ${YEAR}"
-    $BIN/train_net.py --config=${CONFIG_FILE} --default_gpu=/gpu:${GPU} --train_datafile=${TRAIN_FILE} \
-    	--end_date=${TRAIN_END} --model_dir=${CHKPTS_NAME}-${TEST_START} > ${TRAIN_DIR}/stdout-${TEST_START}.txt
+
+    PROGRESS_FILE=${TRAIN_DIR}/stdout-${TEST_START}.txt
+
+    if [ ! -e $PROGRESS_FILE ]; then
+	echo "Training model on 197001 to ${TRAIN_END} for test set year of ${YEAR} progress in $PROGRESS_FILE"
+	$BIN/train_net.py --config=${CONFIG_FILE} --default_gpu=/gpu:${GPU} --train_datafile=${TRAIN_FILE} \
+    	    --end_date=${TRAIN_END} --model_dir=${CHKPTS_NAME}-${TEST_START} > $PROGRESS_FILE
+    fi
 
     echo "Creating test data set for ${TEST_START} to ${TEST_END} (Test pre is ${TEST_PRE})"
     $BIN/slice_data.pl $TEST_PRE $TEST_END_W_PAD < ${DATA_DIR}/${TRAIN_FILE} > ${TRAIN_DIR}/test-data-${TEST_START}.dat
