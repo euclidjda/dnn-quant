@@ -193,7 +193,6 @@ def main(_):
       chkpt_file_prefix = "training.ckpt"
 	
       if model_utils.stop_training(config,valid_history,chkpt_file_prefix):
-
         print("Training stopped.")
         quit()
       else:
