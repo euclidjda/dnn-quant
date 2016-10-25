@@ -26,7 +26,7 @@ class _ConfigValues(object):
   """
   Command line argument helper class.
   """
-  
+
   def __init__(self):
     """Global container and accessor for configs and their values."""
     self.__dict__['__configs'] = {}
@@ -37,7 +37,7 @@ class _ConfigValues(object):
     if '__configs' not in self.__dict__:
       self.__dict__['__configs'] = {}
     if '__parsed' not in self.__dict__:
-      self.__dict__['__parsed'] = False      
+      self.__dict__['__parsed'] = False
     for config_name, val in vars(result).items():
       self.__dict__['__configs'][config_name] = val
     self.__dict__['__parsed'] = True
@@ -63,7 +63,7 @@ class _LoadFromFile (argparse.Action):
         with values as f:
             parser.parse_known_args(f.read().split(), namespace)
 
-    
+
 def _define_helper(config_name, default_value, docstring, configtype):
   """Registers 'config_name' with 'default_value' and 'docstring'."""
   _global_parser.add_argument("--" + config_name,
@@ -133,13 +133,13 @@ def get_configs():
     """
     DEFINE_string("datafile",'data.dat',"a datafile name.")
     DEFINE_string("default_gpu",'',"The default GPU to use e.g., /gpu:0")
-    DEFINE_string("nn_type",'rnn',"Net Type: mlp or rnn")
+    DEFINE_string("nn_type",'rnn',"Net Type: mlp,rnn, sfm, or logreg")
     DEFINE_string("key_field", '',"Key column name header in datafile")
     DEFINE_string("target_field", '',"Target column name header in datafile")
     DEFINE_string("data_dir",'',"The data directory")
     DEFINE_string("model_dir", '',"Model directory")
     DEFINE_integer("num_unrollings",1,"Number of unrolling steps")
-    DEFINE_integer("batch_size",10,"Size of each batch")
+    DEFINE_integer("batch_size",1,"Size of each batch")
     DEFINE_integer("num_layers",1, "Numer of RNN layers")
     DEFINE_integer("num_inputs",10,"Number of inputs")
     DEFINE_integer("num_hidden",10,"Number of hidden layer units")
@@ -148,10 +148,11 @@ def get_configs():
     DEFINE_integer("end_date",210001,"Last date to train on as YYYYMM")
     DEFINE_float("keep_prob",1.0,"Keep probability for dropout")
     DEFINE_boolean("use_fixed_k",True,"Sequences fixed at num_unrolling")
+    DEFINE_boolean("use_cache",True,"Load data for logreg from cache (vs processing from batch generator)")
 
     _global_parser.add_argument('--config', type=open,
                                     action=_LoadFromFile,
-                                    help="File containing configuration")            
+                                    help="File containing configuration")
 
     return _ConfigValues()
 

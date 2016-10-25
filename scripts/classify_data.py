@@ -56,7 +56,7 @@ def main(_):
 
   if config.test_datafile is None:
      config.test_datafile = config.datafile
-  
+
   batch_size = 1
   num_unrollings = config.num_unrollings
   data_path = model_utils.get_data_path(config.data_dir,config.test_datafile)
@@ -66,11 +66,11 @@ def main(_):
   dataset = BatchGenerator(data_path, config,
                              batch_size=batch_size,
                              num_unrollings=num_unrollings)
-  
-  num_data_points = dataset.num_batches  
+
+  num_data_points = dataset.num_batches
   if config.num_batches is not None:
      num_data_points = config.num_batches
-     
+
   print("num_batches = ", num_data_points)
 
   tf_config = tf.ConfigProto( allow_soft_placement=True,
@@ -85,6 +85,7 @@ def main(_):
     stats = dict()
     key   = 'ALL'
     stats[key] = list()
+
 
     with open(config.output, "w") as outfile:
 
@@ -125,7 +126,6 @@ def main(_):
 
     print_summary_stats(stats)
 
-
 def get_seq_length(batch):
   return batch.seq_lengths[0]
 
@@ -163,7 +163,7 @@ def print_summary_stats(stats):
     #print(type(date))
     #print(len(stats[date]))
     #exit()
-      
+
     error = 0
     tpos  = 0
     tneg  = 0
@@ -190,7 +190,7 @@ def print_summary_stats(stats):
     if tpos+fneg > 0:
       recall = "%.4f"%(tpos/(tpos+fneg))
 
-    print("%s cnt=%d error=%.4f prec=%s recall=%s" % 
+    print("%s cnt=%d error=%.4f prec=%s recall=%s" %
           (date,n,error,precision,recall))
 
 if __name__ == "__main__":
