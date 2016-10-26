@@ -26,9 +26,11 @@ def get_data_path(data_dir, filename):
       If DNN_QUANT_ROOT is defined, the fully qualified data path is returned
       Otherwise a path relative to the working directory is returned
     """
-    path = data_dir + '/' + filename
+    path = os.path.join( data_dir, filename ) 
+    # path = data_dir + '/' + filename
     if data_dir != '.' and 'DNN_QUANT_ROOT' in os.environ:
-        path = os.environ['DNN_QUANT_ROOT'] + '/' + path
+        # path = os.environ['DNN_QUANT_ROOT'] + '/' + path
+        path = os.path.join(os.environ['DNN_QUANT_ROOT'], path)
     return path
 
 def stop_training(config, perfs, file_prefix):
@@ -234,10 +236,10 @@ def get_tabular_data(batch_gen):
     X = []
     Y = []
     dates = []
-    # print("Number of batches: ", batch_gen.num_batches)
+    print("Number of batches: ", batch_gen.num_batches)
     for i in range(batch_gen.num_batches):
-        # if i % 1000 == 0:
-        #   print("processed batch: ", i)
+        if i % 1000 == 0:
+          print("processed batch: ", i)
         x = batch_gen.next_batch()
         if x:
           inputs = x._inputs
