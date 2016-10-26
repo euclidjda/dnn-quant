@@ -58,14 +58,13 @@ def main(_):
      config.test_datafile = config.datafile
 
   batch_size = 1
-  num_unrollings = config.num_unrollings
   data_path = model_utils.get_data_path(config.data_dir,config.test_datafile)
 
   print("Loading data %s"%data_path)
 
   dataset = BatchGenerator(data_path, config,
                              batch_size=batch_size,
-                             num_unrollings=num_unrollings)
+                             num_unrollings=config.num_unrollings)
 
   num_data_points = dataset.num_batches
   if config.num_batches is not None:
@@ -86,16 +85,15 @@ def main(_):
     key   = 'ALL'
     stats[key] = list()
 
-
     with open(config.output, "w") as outfile:
 
       for i in range(num_data_points):
         batch = dataset.next_batch()
         preds = model.step(session, batch)
         seq_len = get_seq_length(batch)
-        start = seq_len-1
-        if classify_entire_seq(config,batch) is True:
-          start = 0
+        if config.nn_type != 'rnn' and seq_len < config.num_unrollings:
+          continue
+        start = 0 if classify_entire_seq(batch) is True else seq_len-1
         for i in range(start,seq_len):
           key, date = get_key_and_date(batch, i)
           if (date < config.print_start or date > config.print_end):
@@ -129,9 +127,7 @@ def main(_):
 def get_seq_length(batch):
   return batch.seq_lengths[0]
 
-def classify_entire_seq(config,batch):
-  if config.nn_type != 'rnn':
-    return False
+def classify_entire_seq(batch):
   rf = batch.reset_flags[0]
   return True if rf == 0.0 else False
 
