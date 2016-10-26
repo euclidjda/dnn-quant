@@ -49,10 +49,10 @@ do
 done
 
 # Now gen preds for training data
-TRAIN_END=`expr ${START_YEAR} - 1`12 
-TRAIN_TAG=${START_YEAR}01
+#TRAIN_END=`expr ${START_YEAR} - 1`12 
+#TRAIN_TAG=${START_YEAR}01
 
-$BIN/slice_data.pl 197001 ${TRAIN_END} < $DATA_DIR/${TRAIN_FILE} > ${TRAIN_DIR}/train-data.dat
+#$BIN/slice_data.pl 197001 ${TRAIN_END} < $DATA_DIR/${TRAIN_FILE} > ${TRAIN_DIR}/train-data.dat
 
-$BIN/classify_data.py --config=${CONFIG_FILE} --default_gpu=/gpu:${GPU} --model_dir=${CHKPTS_NAME}-${TRAIN_TAG} --print_start=197001 --print_end=${TRAIN_END} \
-    --data_dir="." --test_datafile=${TRAIN_DIR}/train-data.dat --output=${TRAIN_DIR}/train-preds.dat > ${TRAIN_DIR}/results-train.txt
+#$BIN/classify_data.py --config=${CONFIG_FILE} --default_gpu=/gpu:${GPU} --model_dir=${CHKPTS_NAME}-${TRAIN_TAG} --print_start=197001 --print_end=${TRAIN_END} \
+#    --data_dir="." --test_datafile=${TRAIN_DIR}/train-data.dat --output=${TRAIN_DIR}/train-preds.dat > ${TRAIN_DIR}/results-train.txt
