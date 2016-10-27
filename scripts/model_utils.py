@@ -241,7 +241,7 @@ def get_tabular_data(batch_gen):
         if i % 1000 == 0:
           print("processed batch: ", i)
         x = batch_gen.next_batch()
-        if x:
+        if x.seq_lengths[0] < batch_gen.num_unrollings:
           inputs = x._inputs
           flat_list = [input[0] for input in inputs]
           X.append(np.concatenate(flat_list))

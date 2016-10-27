@@ -31,7 +31,7 @@ class BatchGenerator(object):
                      batch_size,num_unrollings,
                      validation_size=None,
                      randomly_sample=False,
-                     data=None, valid_mode=False):
+                     data=None):
 
         """
         Init a BatchGenerator
@@ -73,7 +73,6 @@ class BatchGenerator(object):
         self._num_unrollings = num_unrollings
         self._batch_size = batch_size
         self._config = config # save this around for train_batches() method
-        self.valid_mode = valid_mode
 
         if data is None:
             if not os.path.isfile(filename):
@@ -221,7 +220,7 @@ class BatchGenerator(object):
                     train_wghts[b] = 0.0
                     valid_wghts[b] = 1.0
                 self._cursor[b] = (self._cursor[b] + 1) % self._data_len
-        return x, y, train_wghts, valid_wghts, attr, valid
+        return x, y, train_wghts, valid_wghts, attr
 
     def next_batch(self):
         """Generate the next batch of sequences from the data.
@@ -236,11 +235,8 @@ class BatchGenerator(object):
         train_wghts = list()
         valid_wghts = list()
         attribs = list()
-        batch_valid = True
         for i in range(self._num_unrollings):
-            x, y, tw, vw, attr, valid = self._next_step(i, seq_lengths)
-            if not valid:
-                batch_valid = False
+            x, y, tw, vw, attr = self._next_step(i, seq_lengths)
             x_batch.append(x)
             y_batch.append(y)
             train_wghts.append(tw)
@@ -255,9 +251,11 @@ class BatchGenerator(object):
         elif self._use_fixed_k is True:
             self._cursor = self._get_next_cursor(self._cursor,saved_cursor)
 
-        if self.valid_mode:
-            if not batch_valid:
-                return None
+        # Commenting out because it is not necessary. We can simply use seq_lengths
+        # property of a batch
+        #if self.valid_mode:
+        #    if not batch_valid:
+        #        return None
 
         return Batch(x_batch, y_batch, seq_lengths, reset_flags,
                          train_wghts, valid_wghts, attribs )
@@ -292,6 +290,10 @@ class BatchGenerator(object):
     def num_batches(self):
         return self._num_batches
 
+    @property
+    def num_unrollings(self):
+        return self._num_unrollings
+    
 class Batch(object):
     """
     A batch object is a container for a subset of data to be processed
@@ -303,12 +305,7 @@ class Batch(object):
     be =1 for the MLP models.
 
     Attributes:
-<<<<<<< HEAD
       inputs: The batch's sequences of input values. The number of 
-=======
-
-      inputs: The batch's sequences of input values. The number of
->>>>>>> 1d57fe4f00084a1e9423c91868de415f1c32b7ba
         sequences is equal to batch_size and the physical size of each
         sequence is equal to num_unrollings. The seq_lengths return
         value (see below) might be less than num_unrollings if a sequence
