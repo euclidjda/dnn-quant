@@ -43,7 +43,7 @@ from batch_generator import BatchGenerator
 Entry point and main loop for train_net.py. Uses command line arguments to get
 model and training specification (see config.py).
 """
-configs.DEFINE_string("train_datafile", '',"Training file")
+configs.DEFINE_string("train_datafile",None,"Training file")
 configs.DEFINE_float("lr_decay",0.9, "Learning rate decay")
 configs.DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
 configs.DEFINE_float("validation_size",0.0,"Size of validation set as %")
@@ -54,24 +54,26 @@ configs.DEFINE_integer("seed",None,"Seed for deterministic training")
 
 config = configs.get_configs()
 
-train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
+datafile = config.train_datafile if config.train_datafile else config.datafile
+
+train_path = model_utils.get_data_path(config.data_dir,config.datafile)
+
+cache_path = os.path.splitext(train_path)[0] + '.cache'
 
 print("Loading training data ...")
 
 rand_samp = True if config.use_fixed_k is True else False
 
-VALID_MODE = True
-
 ############################################################################
 #   If cached data doesn't exist, build it
 ############################################################################
-if not config.use_cache:
+if not os.path.exists(cache_path) or config.use_cache is False:
     print("Generating Data from Scratch")
 
     data_bg = BatchGenerator(train_path, config,
           config.batch_size, config.num_unrollings,
           validation_size=config.validation_size,
-          randomly_sample=False, valid_mode=VALID_MODE)
+          randomly_sample=False)
 
     train_bg = data_bg.train_batches()
     valid_bg = data_bg.valid_batches()
@@ -80,18 +82,28 @@ if not config.use_cache:
     X_train_full, Y_train_full, dates_train = get_tabular_data(train_bg)
     X_valid_full, Y_valid_full, dates_valid = get_tabular_data(valid_bg)
 
-
+    print("Saving tabular data to cache")    
+    # JDA 10/27/16: Save these objects to cache here
+    if not os.path.exists(cache_path):
+       os.mkdir(cache_path)
+    X_train_full.dump(os.path.join(cache_path, 'X_train_full.npy') )
+    Y_train_full.dump(os.path.join(cache_path, 'Y_train_full.npy') )
+    X_valid_full.dump(os.path.join(cache_path, 'X_valid_full.npy') )
+    Y_valid_full.dump(os.path.join(cache_path, 'Y_valid_full.npy') )
+    dates_train.dump(os.path.join(cache_path, 'dates_train.npy') )
+    dates_valid.dump(os.path.join(cache_path, 'dates_valid.npy') )    
+    
 ############################################################################
 #   Else load from cache
 ############################################################################
 else:
-    print("Loading data from cache (expecting to find ./datasets/rectangular/*.npy)")
-    X_train_full = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/X_train_full.npy")
-    Y_train_full = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/Y_train_full.npy")
-    X_valid_full = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/X_valid_full.npy")
-    Y_valid_full = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/Y_valid_full.npy")
-    dates_train = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/dates_train.npy")
-    dates_valid = np.load(os.environ['DNN_QUANT_ROOT'] + "/datasets/rectangular/dates_valid.npy")
+    print("Loading data from cache "+ cache_path)
+    X_train_full = np.load(os.path.join(cache_path, 'X_train_full.npy') )
+    Y_train_full = np.load(os.path.join(cache_path, 'Y_train_full.npy') )
+    X_valid_full = np.load(os.path.join(cache_path, 'X_valid_full.npy') )
+    Y_valid_full = np.load(os.path.join(cache_path, 'Y_valid_full.npy') )
+    dates_train = np.load(os.path.join(cache_path, 'dates_train.npy') )
+    dates_valid = np.load(os.path.join(cache_path, 'dates_valid.npy') )
 
 #############################################################################
 #   Take only those rows that finish before the end date

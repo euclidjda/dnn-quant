@@ -32,7 +32,6 @@ class BatchGenerator(object):
                      validation_size=None,
                      randomly_sample=False,
                      data=None):
-
         """
         Init a BatchGenerator
         Args:
@@ -268,7 +267,7 @@ class BatchGenerator(object):
                                   self._num_unrollings,
                                   validation_size=None,
                                   randomly_sample=self._randomly_sample,
-                                  data=train_data, valid_mode=self.valid_mode)
+                                  data=train_data)
 
     def valid_batches(self):
         valid_keys = list(self._validation_set.keys())
@@ -278,7 +277,7 @@ class BatchGenerator(object):
                                   self._num_unrollings,
                                   validation_size=None,
                                   randomly_sample=self._randomly_sample,
-                                  data=valid_data, valid_mode=self.valid_mode)
+                                  data=valid_data)
 
     def num_data_points(self):
         return self._data_len
@@ -329,7 +328,7 @@ class Batch(object):
     """
 
     def __init__(self,inputs,targets,seq_lengths,reset_flags,
-                     train_wghts,valid_wghts,attribs):
+                     train_wghts,valid_wghts, attribs):
         self._inputs = inputs
         self._targets = targets
         self._seq_lengths = seq_lengths

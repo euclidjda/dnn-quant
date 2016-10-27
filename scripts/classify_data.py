@@ -88,12 +88,23 @@ def main(_):
     with open(config.output, "w") as outfile:
 
       for i in range(num_data_points):
+
         batch = dataset.next_batch()
         preds = model.step(session, batch)
         seq_len = get_seq_length(batch)
+        start = seq_len - 1
+
+	########################################################################
+	#
+	# rnn's can classify partial sequences so we do that here if we are
+	# on the first segment of an entity's sequence. for non-rnn we skip
+	#
+	########################################################################
         if config.nn_type != 'rnn' and seq_len < config.num_unrollings:
           continue
-        start = 0 if classify_entire_seq(batch) is True else seq_len-1
+        elif config.nn_type == 'rnn' and classify_entire_seq(batch):
+          start = 0
+
         for i in range(start,seq_len):
           key, date = get_key_and_date(batch, i)
           if (date < config.print_start or date > config.print_end):

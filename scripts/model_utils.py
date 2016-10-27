@@ -241,12 +241,20 @@ def get_tabular_data(batch_gen):
         if i % 1000 == 0:
           print("processed batch: ", i)
         x = batch_gen.next_batch()
-        if x.seq_lengths[0] < batch_gen.num_unrollings:
+        if x.seq_lengths[0] == batch_gen.num_unrollings:
           inputs = x._inputs
           flat_list = [input[0] for input in inputs]
           X.append(np.concatenate(flat_list))
           Y.append(x.targets[-1][0,0])
           dates.append(x.attribs[-1][0][1])
+
+    #
+    # JDA 10/27/16: Convert to numpy array so that the type is consistent
+    # with he cached type
+    X = np.asarray(X)
+    Y = np.asarray(Y)
+    dates = np.asarray(dates)
+          
     return (X, Y, dates)
 
 
