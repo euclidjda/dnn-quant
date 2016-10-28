@@ -32,7 +32,7 @@ do
     if [ ! -e $PROGRESS_FILE ]; then
 	echo "Training model on 197001 to ${TRAIN_END} for test set year of ${YEAR} progress in $PROGRESS_FILE"
 	$BIN/train_net.py --config=${CONFIG_FILE} --default_gpu=/gpu:${GPU} --train_datafile=${TRAIN_FILE} \
-    	    --end_date=${TRAIN_END} --model_dir=${CHKPTS_NAME}-${TEST_START} > $PROGRESS_FILE
+    	    --end_date=${TRAIN_END} --model_dir=${CHKPTS_NAME}-${TEST_START} > "${PROGRESS_FILE}"
     fi
 
     FINAL_PREDICTIONS_FILE=${TRAIN_DIR}/test-preds-${TEST_START}.dat
@@ -43,13 +43,14 @@ do
 	echo "Creating predictions file for period ${TEST_PRE} to ${TEST_END}"
 	$BIN/classify_data.py --config=${CONFIG_FILE} --default_gpu=/gpu:${GPU} --model_dir=${CHKPTS_NAME}-${TEST_START}  --print_start=${TEST_START} --print_end=${TEST_END} \
             --data_dir=. --test_datafile=${TRAIN_DIR}/test-data-${TEST_START}.dat --output=${TRAIN_DIR}/preds-${TEST_START}.dat > ${TRAIN_DIR}/results-${TEST_START}.txt
-	echo "Slicing predictions file ${TEST_START} to ${TEST_END}"
-	$BIN/slice_data.pl $TEST_START $TEST_END < ${TRAIN_DIR}/preds-${TEST_START}.dat > $FINAL_PREDICTIONS_FILE
+	echo "Slicing predictions file ${TEST_START} to ${TEST_END} to create ${FINAL_PREDICTIONS_FILE}"
+	$BIN/slice_data.pl $TEST_START $TEST_END < ${TRAIN_DIR}/preds-${TEST_START}.dat > "${FINAL_PREDICTIONS_FILE}"
     fi
 
     YEAR=`expr $YEAR + 1`
 done
 
+echo "Generating predictions for training data." 
 # Now gen preds for training data
 TRAIN_END=`expr ${START_YEAR} - 1`12 
 TRAIN_TAG=${START_YEAR}01
