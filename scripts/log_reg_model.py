@@ -55,7 +55,7 @@ class LogRegModel(object):
      """
      X, Y, dates = model_utils.batch_to_tabular(batch)
      Yhat = self.clf.predict_proba(X)
-     predictions = np.vstack([Yhat,(1-Yhat)]).T
+     predictions = np.vstack([(1-Yhat), Yhat]).T
 
      return predictions
 
