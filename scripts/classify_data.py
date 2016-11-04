@@ -103,13 +103,11 @@ def main(_):
         if config.nn_type != 'rnn' and seq_len < config.num_unrollings:
           continue
         elif config.nn_type == 'rnn' and classify_entire_seq(batch):
-          start = 0
+          start = config.min_test_k - 1
 
         for i in range(start,seq_len):
           key, date = get_key_and_date(batch, i)
           if (date < config.print_start or date > config.print_end):
-            continue
-          if i+1 < config.min_test_k:
             continue
           prob = get_pos_prob(config, preds, i)
           target = get_target(batch, i)
