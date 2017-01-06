@@ -1,0 +1,3 @@
+Creating test data set for 201301 to 201312 (Test pre is 200706)
+Creating predictions file for period 200706 to 201312
+Slicing predictions file 201301 to 201312 to create train-rnn/test-preds-201301.dat

@@ -84,7 +84,7 @@ to organize the summary statistics by date.
 
 ```shell
 $ cd exprmnts/holdout-exprmnts-1/
-$ train_ney.py --config=rnn-gru-small.conf
+$ train_net.py --config=rnn-gru-small.conf
 $ classify_data.py --config=rnn-gru-small.conf --test_datafile=all-1yr.dat --time_field=date
 ```
 
@@ -92,7 +92,7 @@ To train the MLP model (Note: at this point this does not work at all :-).
 
 ```shell
 $ cd exprmnts/holdout-exprmnts-1/
-$ train_ney.py --config=mlp-tanh.conf
+$ train_net.py --config=mlp-tanh.conf
 $ classify_data.py --config=mlp-tanh.conf --test_datafile=test-1yr.dat --output=mlp-output.dat
 ```
 

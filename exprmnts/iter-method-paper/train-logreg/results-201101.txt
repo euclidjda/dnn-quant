@@ -1,0 +1,16 @@
+Loading data ./train-logreg/test-data-201101.dat
+num_batches =  54427
+Loading model.
+201101 cnt=3113 error=0.3569 prec=0.6139 recall=0.8106
+201102 cnt=3101 error=0.3518 prec=0.6193 recall=0.8081
+201103 cnt=3097 error=0.3587 prec=0.6170 recall=0.7979
+201104 cnt=3097 error=0.3565 prec=0.6173 recall=0.7902
+201105 cnt=3088 error=0.3546 prec=0.6247 recall=0.7842
+201106 cnt=3083 error=0.3425 prec=0.6340 recall=0.7972
+201107 cnt=3069 error=0.3486 prec=0.6280 recall=0.7939
+201108 cnt=3057 error=0.3458 prec=0.6305 recall=0.7913
+201109 cnt=3046 error=0.3503 prec=0.6213 recall=0.7900
+201110 cnt=3039 error=0.3508 prec=0.6167 recall=0.8013
+201111 cnt=3029 error=0.3506 prec=0.6198 recall=0.7960
+201112 cnt=3014 error=0.3530 prec=0.6140 recall=0.8093
+ALL cnt=36833 error=0.3517 prec=0.6213 recall=0.7975

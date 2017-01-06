@@ -1,0 +1,4 @@
+Training model for train end 201312
+Creating test data set for 201501 to 201512 (Test pre is 200906)
+Creating predictions file for period 200906 to 201512
+Slicing predictions file 201501 to 201512

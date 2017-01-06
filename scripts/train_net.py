@@ -1,5 +1,7 @@
-#! /usr/bin/env python3
+#!/bin/sh
+''''exec python3 -u -- "$0" ${1+"$@"} # '''
 
+# #! /usr/bin/env python3
 # Copyright 2016 Euclidean Technologies Management LLC All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,139 +35,161 @@ import configs
 from tensorflow.python.platform import gfile
 from batch_generator import BatchGenerator
 
-def run_epoch(session, model, dataset, passes=1, verbose=False):
+def run_epoch(session, model, dataset,
+                keep_prob=1.0, passes=1.0, verbose=False):
   """Run the specified data set through the model.
 
   Args:
     session: The tf session to run graph in
     model: The model. An object of type deep_rnn_model
     dataset: The data. An object of type BatchGenerator
-    passes: The number of times to run through the entire dataset
+    keep_prob: Dropout keep_prob for training
     verbose: Display iteration output to stdout
   Returns:
-    cost: average cross-entropy loss value on data
-    error: average binary classification error rate on data
+    train_cost: average cross-entropy loss value on data
+    train_accy: average binary classification accuracy rate
+    valid_cost: average cross-entropy loss value on data
+    valid_accy: average binary classification accuracy rate
   Raises:
     RuntimeError: the batch size cannot be larger than the training
       data set size
   """
   num_batches = dataset.num_batches
   start_time = time.time()
-  costs = 0.0
-  errors = 0.0
-  iters = 0
-  count = 0
+  train_cost = train_accy = valid_cost = valid_accy = 0.0
+  train_evals = valid_evals = 0.0
   dot_count = 0
-  prog_int = passes*num_batches/100 # progress interval for stdout
-  
+  total_steps = int(passes*num_batches)
+  prog_int = total_steps/100 # progress interval for stdout
+
   if not num_batches > 0:
     raise RuntimeError("batch_size*num_unrollings is larger "
                          "than the training set size.")
 
   dataset.rewind() # make sure we start a beggining
 
-  for _ in range(passes):
+  print("batches: %d "%num_batches,end=' ')
 
-    for step in range(num_batches):
-      
-      batch = dataset.next_batch()
-      cost, error, evals, _ = model.step(session, batch)
-      costs  += cost
-      errors += error
-      iters  += evals
-      count  += 1
-      if ( verbose and ((prog_int<=1) or (step % (int(prog_int)+1)) == 0) ):
-        dot_count += 1
-        print('.',end='')
-        sys.stdout.flush()
+  for step in range(total_steps):
+    batch = dataset.next_batch()
+    (tcost, taccy, tevals,
+     vcost, vaccy, vevals) = model.train_step(session, batch,
+                                              keep_prob=keep_prob)
+
+    train_cost  += tcost
+    train_accy  += taccy
+    train_evals += tevals
+    valid_cost  += vcost
+    valid_accy  += vaccy
+    valid_evals += vevals
+
+    if ( verbose and ((prog_int<=1) or
+                      (step % (int(prog_int)+1)) == 0) ):
+      dot_count += 1
+      print('.',end='')
+      sys.stdout.flush()
 
   if verbose:
     print("."*(100-dot_count),end='')
-    print(" passes: %d iters: %d, speed: %.0f seconds"%
-            (passes, iters, (time.time() - start_time) ) )
+    print(" passes: %.2f train iters: %d valid iters: %d "
+          "speed: %.0f seconds" % (passes,
+                                   train_evals,
+                                   valid_evals,
+                                   (time.time() - start_time)) )
   sys.stdout.flush()
 
-  return (costs / count), (errors / count)
+  return (np.exp(train_cost/train_evals),
+          1.0 - train_accy/train_evals,
+          np.exp(valid_cost/valid_evals),
+          1.0 - valid_accy/valid_evals)
 
 def main(_):
   """
   Entry point and main loop for train_net.py. Uses command line arguments to get
   model and training specification (see config.py).
   """
+  configs.DEFINE_string("train_datafile", None,"Training file")
+  configs.DEFINE_string("optimizer", 'gd', 'Optimizer to use gd, adam, adagrad')
+  configs.DEFINE_float("lr_decay",0.9, "Learning rate decay")
+  configs.DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
+  configs.DEFINE_float("validation_size",0.0,"Size of validation set as %")
+  configs.DEFINE_float("passes",1.0,"Passes through day per epoch")
+  configs.DEFINE_float("rnn_loss_weight",None,"How much moret to weight kth example")
+  configs.DEFINE_integer("max_epoch",0,"Stop after max_epochs")
+  configs.DEFINE_integer("early_stop",None,"Early stop parameter")
+  configs.DEFINE_integer("seed",None,"Seed for deterministic training")
+
   config = configs.get_configs()
 
-  train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
-  valid_path = model_utils.get_data_path(config.data_dir,config.valid_datafile)
-  
-  train_data = BatchGenerator(train_path,
-                                   config.key_field, config.target_field,
-                                   config.num_inputs,
-                                   config.batch_size,
-                                   config.num_unrollings )
+  if config.train_datafile is None:
+     config.train_datafile = config.datafile
 
-  valid_data = BatchGenerator(valid_path,
-                                   config.key_field, config.target_field,
-                                   config.num_inputs,
-                                   config.batch_size,
-                                   config.num_unrollings )
-  
-  tf_config = tf.ConfigProto( allow_soft_placement=True, 
+  train_path = model_utils.get_data_path(config.data_dir,config.train_datafile)
+
+  print("Loading training data ...")
+
+  rand_samp = True if config.use_fixed_k is True else False
+
+  train_data = BatchGenerator(train_path, config,
+			      config.batch_size,config.num_unrollings,
+			      validation_size=config.validation_size,
+			      randomly_sample=rand_samp)
+
+  tf_config = tf.ConfigProto( allow_soft_placement=True,
                               log_device_placement=False )
 
   with tf.Graph().as_default(), tf.Session(config=tf_config) as session:
 
-    mtrain, mvalid = model_utils.get_training_models(session, config,
-                                                       verbose=True)
-    
+    if config.seed is not None:
+      tf.set_random_seed(config.seed)
+
+    print("Constructing model ...")
+
+    model = model_utils.get_training_model(session, config, verbose=True)
+
     lr = config.initial_learning_rate
-    perf_history = list()
-    
+    train_history = list()
+    valid_history = list()
+
+    if config.early_stop is not None:
+      print("Training will early stop without "
+        "improvement after %d epochs."%config.early_stop)
+
     for i in range(config.max_epoch):
 
       lr = model_utils.adjust_learning_rate(session,
-                                              mtrain,
-                                              lr,
+                                              model, lr,
                                               config.lr_decay,
-                                              perf_history )
+                                              train_history )
 
-      train_xentrop, train_error = run_epoch(session,
-                                                  mtrain, train_data,
-                                                  passes=config.passes,
-                                                  verbose=True)
+      trc, tre, vdc, vde = run_epoch(session, model, train_data,
+                                       keep_prob=config.keep_prob,
+                                       passes=config.passes,
+                                       verbose=True)
 
-      valid_xentrop, valid_error = run_epoch(session,
-                                                  mvalid, valid_data,
-                                                  passes=1,
-                                                  verbose=True)
-      
-      print( ('Epoch: %d XEntrop: %.6f %.6f'
-              ' Error: %.6f %.6f Learning rate: %.3f') % 
-            (i + 1, 
-             train_xentrop, valid_xentrop, train_error, valid_error, lr) )
+      trc = 999.0 if trc > 999.0 else trc
+      vdc = 999.0 if vdc > 999.0 else vdc
+
+      print( ('Epoch: %d loss: %.6f %.6f'
+              ' error: %.6f %.6f Learning rate: %.4f') %
+            (i + 1, trc, vdc, tre, vde, lr) )
       sys.stdout.flush()
 
-      perf_history.append( train_xentrop )
+      train_history.append( trc )
+      valid_history.append( vdc )
 
       if not os.path.exists(config.model_dir):
         print("Creating directory %s" % config.model_dir)
         os.mkdir(config.model_dir)
-      
-      checkpoint_path = os.path.join(config.model_dir, "training.ckpt" )
-      tf.train.Saver().save(session, checkpoint_path, global_step=i)
-      
-      # If train and valid are the same data (e.g. as in the system-test)
-      # then this is a test to make
-      # sure that the model is producing the same error on both. Note,
-      # however, if keep_prob < 1 then the train model is probabilistic
-      # and so these can only be approx equal.
-      if (False):
-        check_xentrop, check_error = run_epoch(session,
-                                                    mtrain, train_data,
-                                                    passes=1,
-                                                    verbose=True)
-        print("Check: %d XEntrop: %.2f =? %.2f Error: %.6f =? %.6f " %
-                (i + 1, check_xentrop, valid_xentrop, check_error, valid_error))
-        sys.stdout.flush()
+
+      chkpt_file_prefix = "training.ckpt"
+
+      if model_utils.stop_training(config,valid_history,chkpt_file_prefix):
+        print("Training stopped.")
+        quit()
+      else:
+        checkpoint_path = os.path.join(config.model_dir, chkpt_file_prefix)
+        tf.train.Saver().save(session, checkpoint_path, global_step=i)
 
 if __name__ == "__main__":
   tf.app.run()

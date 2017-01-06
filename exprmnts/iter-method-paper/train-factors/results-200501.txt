@@ -1,0 +1,16 @@
+Loading data ./train-factors/test-data-200501.dat
+num_batches =  382760
+Loading model.
+200501 cnt=4665 error=0.3730 prec=0.6211 recall=0.6504
+200502 cnt=4642 error=0.3647 prec=0.6280 recall=0.6613
+200503 cnt=4639 error=0.3826 prec=0.6122 recall=0.6373
+200504 cnt=4637 error=0.4048 prec=0.5908 recall=0.6131
+200505 cnt=4631 error=0.4047 prec=0.5911 recall=0.6136
+200506 cnt=4622 error=0.3812 prec=0.6122 recall=0.6462
+200507 cnt=4560 error=0.3818 prec=0.6153 recall=0.6487
+200508 cnt=4617 error=0.3855 prec=0.6063 recall=0.6458
+200509 cnt=4541 error=0.3726 prec=0.6129 recall=0.6638
+200510 cnt=4588 error=0.3764 prec=0.6168 recall=0.6457
+200511 cnt=4578 error=0.3810 prec=0.6126 recall=0.6384
+200512 cnt=4570 error=0.3912 prec=0.6011 recall=0.6354
+ALL cnt=55290 error=0.3833 prec=0.6101 recall=0.6416

@@ -1,0 +1,28 @@
+Loading training data ...
+setting random seed to 1000
+Num training entities: 8442
+Num validation entities: 937
+Constructing model ...
+Model has the following geometry:
+  num_unroll  = 1
+  batch_size  = 512
+  evals/batch = 512
+  num_inputs  = 3
+  num_hidden  = 0
+  num_layers  = 0
+Created model with fresh parameters.
+Training will early stop without improvement after 2 epochs.
+batches: 2941  .................................................................................................... passes: 0.20 train iters: 269818 valid iters: 31238 speed: 87 seconds
+Epoch: 1 loss: 1.965914 1.963623 error: 0.420487 0.412927 Learning rate: 0.0400
+Creating directory chkpts-train-mlp-factors-201001
+batches: 2941  .................................................................................................... passes: 0.20 train iters: 270168 valid iters: 30888 speed: 88 seconds
+Epoch: 2 loss: 1.955987 1.957069 error: 0.415601 0.417023 Learning rate: 0.0400
+batches: 2941  .................................................................................................... passes: 0.20 train iters: 269906 valid iters: 31150 speed: 89 seconds
+Epoch: 3 loss: 1.957412 1.955743 error: 0.416682 0.420225 Learning rate: 0.0400
+batches: 2941  .................................................................................................... passes: 0.20 train iters: 269969 valid iters: 31087 speed: 89 seconds
+Epoch: 4 loss: 1.957095 1.952950 error: 0.417126 0.414032 Learning rate: 0.0400
+batches: 2941  .................................................................................................... passes: 0.20 train iters: 269703 valid iters: 31353 speed: 87 seconds
+Epoch: 5 loss: 1.956854 1.956220 error: 0.416343 0.416611 Learning rate: 0.0400
+batches: 2941  .................................................................................................... passes: 0.20 train iters: 269964 valid iters: 31092 speed: 87 seconds
+Epoch: 6 loss: 1.956598 1.954522 error: 0.416789 0.416088 Learning rate: 0.0400
+Training stopped.

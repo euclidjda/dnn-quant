@@ -1,0 +1,22 @@
+Loading training data ...
+setting random seed to 100
+Num training entities: 6606
+Num validation entities: 733
+Constructing model ...
+Model has the following geometry:
+  num_unroll  = 64
+  batch_size  = 512
+  evals/batch = 32768
+  num_inputs  = 84
+  num_hidden  = 512
+  num_layers  = 3
+Created model with fresh parameters.
+Training will early stop without improvement after 1000 epochs.
+batches: 1126  .................................................................................................... passes: 0.25 train iters: 129286 valid iters: 14586 speed: 2213 seconds
+Epoch: 1 loss: 999.000000 999.000000 error: 0.500340 0.498560 Learning rate: 1.0000
+Creating directory rnn-gru-093-chkpts
+batches: 1126  .................................................................................................... passes: 0.25 train iters: 129343 valid iters: 14529 speed: 2218 seconds
+Epoch: 2 loss: 4.995964 5.055790 error: 0.501674 0.497075 Learning rate: 1.0000
+batches: 1126  .................................................................................................... passes: 0.25 train iters: 129100 valid iters: 14772 speed: 2215 seconds
+Epoch: 3 loss: 2.420712 2.418198 error: 0.497289 0.496683 Learning rate: 1.0000
+batches: 1126  ......................................

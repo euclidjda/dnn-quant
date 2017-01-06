@@ -1,0 +1,16 @@
+Loading data ./train-rnn/test-data-200501.dat
+num_batches =  65594
+Loading model.
+200501 cnt=3699 error=0.3325 prec=0.6311 recall=0.8108
+200502 cnt=3692 error=0.3321 prec=0.6300 recall=0.8148
+200503 cnt=3716 error=0.3563 prec=0.6109 recall=0.7893
+200504 cnt=3745 error=0.3717 prec=0.5967 recall=0.7740
+200505 cnt=3768 error=0.3806 prec=0.5897 recall=0.7580
+200506 cnt=3794 error=0.3711 prec=0.5982 recall=0.7632
+200507 cnt=3761 error=0.3566 prec=0.6166 recall=0.7820
+200508 cnt=3829 error=0.3651 prec=0.6077 recall=0.7713
+200509 cnt=3759 error=0.3549 prec=0.6118 recall=0.7923
+200510 cnt=3821 error=0.3462 prec=0.6192 recall=0.7961
+200511 cnt=3826 error=0.3539 prec=0.6145 recall=0.7823
+200512 cnt=3841 error=0.3517 prec=0.6126 recall=0.7858
+ALL cnt=45251 error=0.3561 prec=0.6116 recall=0.7849

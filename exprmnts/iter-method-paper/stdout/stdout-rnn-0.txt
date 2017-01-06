@@ -1,0 +1,3 @@
+Training model on 197001 to 199812 for test set year of 2000 progress in train-rnn/stdout-200001.txt
+Creating test data set for 200001 to 200012 (Test pre is 199406)
+Creating predictions file for period 199406 to 200012

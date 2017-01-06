@@ -1,0 +1,12 @@
+Creating test data set for 200401 to 200412 (Test pre is 199806)
+Creating predictions file for period 199806 to 200412
+Slicing predictions file 200401 to 200412 to create train-mlp/test-preds-200401.dat
+Creating test data set for 200501 to 200512 (Test pre is 199906)
+Creating predictions file for period 199906 to 200512
+Slicing predictions file 200501 to 200512 to create train-mlp/test-preds-200501.dat
+Creating test data set for 200601 to 200612 (Test pre is 200006)
+Creating predictions file for period 200006 to 200612
+Slicing predictions file 200601 to 200612 to create train-mlp/test-preds-200601.dat
+Creating test data set for 200701 to 200712 (Test pre is 200106)
+Creating predictions file for period 200106 to 200712
+Slicing predictions file 200701 to 200712 to create train-mlp/test-preds-200701.dat

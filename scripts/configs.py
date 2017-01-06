@@ -26,7 +26,7 @@ class _ConfigValues(object):
   """
   Command line argument helper class.
   """
-  
+
   def __init__(self):
     """Global container and accessor for configs and their values."""
     self.__dict__['__configs'] = {}
@@ -34,13 +34,17 @@ class _ConfigValues(object):
 
   def _parse_configs(self):
     result, _ = _global_parser.parse_known_args()
+    if '__configs' not in self.__dict__:
+      self.__dict__['__configs'] = {}
+    if '__parsed' not in self.__dict__:
+      self.__dict__['__parsed'] = False
     for config_name, val in vars(result).items():
       self.__dict__['__configs'][config_name] = val
     self.__dict__['__parsed'] = True
 
   def __getattr__(self, name):
     """Retrieves the 'value' attribute of the config --name."""
-    if not self.__dict__['__parsed']:
+    if ('__parsed' not in self.__dict__) or (not self.__dict__['__parsed']):
       self._parse_configs()
     if name not in self.__dict__['__configs']:
       raise AttributeError(name)
@@ -48,7 +52,7 @@ class _ConfigValues(object):
 
   def __setattr__(self, name, value):
     """Sets the 'value' attribute of the config --name."""
-    if not self.__dict__['__parsed']:
+    if ('__parsed' not in self.__dict__) or (not self.__dict__['__parsed']):
       self._parse_configs()
     self.__dict__['__configs'][name] = value
 
@@ -57,9 +61,9 @@ class _LoadFromFile (argparse.Action):
     """Helper that supports the reading of config from a file"""
     def __call__ (self, parser, namespace, values, option_string = None):
         with values as f:
-            parser.parse_args(f.read().split(), namespace)
+            parser.parse_known_args(f.read().split(), namespace)
 
-    
+
 def _define_helper(config_name, default_value, docstring, configtype):
   """Registers 'config_name' with 'default_value' and 'docstring'."""
   _global_parser.add_argument("--" + config_name,
@@ -110,7 +114,6 @@ def DEFINE_boolean(config_name, default_value, docstring):
                               action='store_false',
                               dest=config_name)
 
-
 # The internal google library defines the following alias, so we match
 # the API for consistency.
 DEFINE_bool = DEFINE_boolean  # pylint: disable=invalid-name
@@ -128,31 +131,28 @@ def DEFINE_float(config_name, default_value, docstring):
 def get_configs():
     """Defines all configuration params passable to command line.
     """
+    DEFINE_string("datafile",'data.dat',"a datafile name.")
     DEFINE_string("default_gpu",'',"The default GPU to use e.g., /gpu:0")
-    DEFINE_string("nn_type",'rnn',"Net Type: mlp or rnn")
+    DEFINE_string("nn_type",'rnn',"Net Type: mlp,rnn, sfm, or logreg")
     DEFINE_string("key_field", '',"Key column name header in datafile")
     DEFINE_string("target_field", '',"Target column name header in datafile")
-    DEFINE_string("train_datafile", '',"Training file")
-    DEFINE_string("valid_datafile", '',"Validation file")
     DEFINE_string("data_dir",'',"The data directory")
     DEFINE_string("model_dir", '',"Model directory")
-    DEFINE_float("lr_decay",0.9, "Learning rate decay")
-    DEFINE_float("init_scale",0.1, "Initial scale for weights")
-    DEFINE_float("max_grad_norm",10.0,"Gradient clipping")
-    DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
-    DEFINE_float("keep_prob",1.0,"Keep probability for dropout")
-    DEFINE_integer("passes",1,"Passes through day per epoch")
-    DEFINE_integer("max_epoch",0,"Stop after max_epochs")
-    DEFINE_integer("min_history",1,"Minimum history required")
     DEFINE_integer("num_unrollings",1,"Number of unrolling steps")
-    DEFINE_integer("batch_size",10,"Size of each batch")
+    DEFINE_integer("batch_size",1,"Size of each batch")
     DEFINE_integer("num_layers",1, "Numer of RNN layers")
     DEFINE_integer("num_inputs",10,"Number of inputs")
     DEFINE_integer("num_hidden",10,"Number of hidden layer units")
+    DEFINE_float("init_scale",0.1, "Initial scale for weights")
+    DEFINE_float("max_grad_norm",10.0,"Gradient clipping")
+    DEFINE_integer("end_date",210001,"Last date to train on as YYYYMM")
+    DEFINE_float("keep_prob",1.0,"Keep probability for dropout")
+    DEFINE_boolean("use_fixed_k",True,"Sequences fixed at num_unrolling")
+    DEFINE_boolean("use_cache",True,"Load data for logreg from cache (vs processing from batch generator)")
 
     _global_parser.add_argument('--config', type=open,
                                     action=_LoadFromFile,
-                                    help="File containing configuration")            
+                                    help="File containing configuration")
 
     return _ConfigValues()
 

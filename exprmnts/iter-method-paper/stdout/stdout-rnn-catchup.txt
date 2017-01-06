@@ -1,0 +1,52 @@
+Thu Dec 22 11:18:27 PST 2016
+Creating test data set for 200401 to 200412 (Test pre is 199806)
+Thu Dec 22 11:18:50 PST 2016
+Creating predictions file for period 199806 to 200412
+I tensorflow/stream_executor/dso_loader.cc:108] successfully opened CUDA library libcublas.so locally
+I tensorflow/stream_executor/dso_loader.cc:108] successfully opened CUDA library libcudnn.so locally
+I tensorflow/stream_executor/dso_loader.cc:108] successfully opened CUDA library libcufft.so locally
+I tensorflow/stream_executor/dso_loader.cc:108] successfully opened CUDA library libcuda.so.1 locally
+I tensorflow/stream_executor/dso_loader.cc:108] successfully opened CUDA library libcurand.so locally
+I tensorflow/core/common_runtime/gpu/gpu_init.cc:102] Found device 0 with properties: 
+name: GeForce GTX TITAN X
+major: 5 minor: 2 memoryClockRate (GHz) 1.2155
+pciBusID 0000:0a:00.0
+Total memory: 12.00GiB
+Free memory: 439.29MiB
+W tensorflow/stream_executor/cuda/cuda_driver.cc:572] creating context when one is currently active; existing: 0x13e49b40
+I tensorflow/core/common_runtime/gpu/gpu_init.cc:102] Found device 1 with properties: 
+name: GeForce GTX TITAN X
+major: 5 minor: 2 memoryClockRate (GHz) 1.2155
+pciBusID 0000:09:00.0
+Total memory: 12.00GiB
+Free memory: 439.01MiB
+W tensorflow/stream_executor/cuda/cuda_driver.cc:572] creating context when one is currently active; existing: 0x128b3b00
+I tensorflow/core/common_runtime/gpu/gpu_init.cc:102] Found device 2 with properties: 
+name: GeForce GTX TITAN X
+major: 5 minor: 2 memoryClockRate (GHz) 1.2155
+pciBusID 0000:06:00.0
+Total memory: 12.00GiB
+Free memory: 547.39MiB
+W tensorflow/stream_executor/cuda/cuda_driver.cc:572] creating context when one is currently active; existing: 0x12d5e7a0
+I tensorflow/core/common_runtime/gpu/gpu_init.cc:102] Found device 3 with properties: 
+name: GeForce GTX TITAN X
+major: 5 minor: 2 memoryClockRate (GHz) 1.2155
+pciBusID 0000:05:00.0
+Total memory: 11.99GiB
+Free memory: 11.32GiB
+I tensorflow/core/common_runtime/gpu/gpu_init.cc:126] DMA: 0 1 2 3 
+I tensorflow/core/common_runtime/gpu/gpu_init.cc:136] 0:   Y Y Y Y 
+I tensorflow/core/common_runtime/gpu/gpu_init.cc:136] 1:   Y Y Y Y 
+I tensorflow/core/common_runtime/gpu/gpu_init.cc:136] 2:   Y Y Y Y 
+I tensorflow/core/common_runtime/gpu/gpu_init.cc:136] 3:   Y Y Y Y 
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:839] Creating TensorFlow device (/gpu:0) -> (device: 0, name: GeForce GTX TITAN X, pci bus id: 0000:0a:00.0)
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:839] Creating TensorFlow device (/gpu:1) -> (device: 1, name: GeForce GTX TITAN X, pci bus id: 0000:09:00.0)
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:839] Creating TensorFlow device (/gpu:2) -> (device: 2, name: GeForce GTX TITAN X, pci bus id: 0000:06:00.0)
+I tensorflow/core/common_runtime/gpu/gpu_device.cc:839] Creating TensorFlow device (/gpu:3) -> (device: 3, name: GeForce GTX TITAN X, pci bus id: 0000:05:00.0)
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:244] PoolAllocator: After 17906 get requests, put_count=17903 evicted_count=1000 eviction_rate=0.0558566 and unsatisfied allocation rate=0.0615995
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:256] Raising pool_size_limit_ from 100 to 110
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:244] PoolAllocator: After 8468176 get requests, put_count=8468181 evicted_count=8000 eviction_rate=0.000944713 and unsatisfied allocation rate=0.00094554
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:244] PoolAllocator: After 11524970 get requests, put_count=11524976 evicted_count=18000 eviction_rate=0.00156183 and unsatisfied allocation rate=0.00156235
+I tensorflow/core/common_runtime/gpu/pool_allocator.cc:244] PoolAllocator: After 14610954 get requests, put_count=14610960 evicted_count=28000 eviction_rate=0.00191637 and unsatisfied allocation rate=0.00191678
+Thu Dec 22 12:35:00 PST 2016
+Slicing predictions file 200401 to 200412

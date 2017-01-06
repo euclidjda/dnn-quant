@@ -1,0 +1,116 @@
+Loading training data ...
+setting random seed to 100
+Num training entities: 6606
+Num validation entities: 733
+Constructing model ...
+Model has the following geometry:
+  num_unroll  = 64
+  batch_size  = 512
+  evals/batch = 32768
+  num_inputs  = 84
+  num_hidden  = 128
+  num_layers  = 1
+Created model with fresh parameters.
+Training will early stop without improvement after 1000 epochs.
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159988 valid iters: 16992 speed: 2809 seconds
+Epoch: 1 loss: 1.942463 1.943457 error: 0.422672 0.422081 Learning rate: 0.1000
+Creating directory rnn-gru-122-chkpts
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159916 valid iters: 17182 speed: 2825 seconds
+Epoch: 2 loss: 1.927311 1.926380 error: 0.410414 0.411454 Learning rate: 0.1000
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159776 valid iters: 17305 speed: 2792 seconds
+Epoch: 3 loss: 1.922904 1.920178 error: 0.406895 0.407409 Learning rate: 0.1000
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159842 valid iters: 17164 speed: 2761 seconds
+Epoch: 4 loss: 1.920786 1.923628 error: 0.405486 0.408891 Learning rate: 0.1000
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159896 valid iters: 17152 speed: 2759 seconds
+Epoch: 5 loss: 1.918632 1.919265 error: 0.403561 0.408382 Learning rate: 0.1000
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159911 valid iters: 17103 speed: 2769 seconds
+Epoch: 6 loss: 1.917753 1.919286 error: 0.402412 0.408676 Learning rate: 0.1000
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159937 valid iters: 17209 speed: 2767 seconds
+Epoch: 7 loss: 1.915799 1.923834 error: 0.400212 0.409794 Learning rate: 0.0990
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159909 valid iters: 17115 speed: 2763 seconds
+Epoch: 8 loss: 1.916876 1.922858 error: 0.402355 0.407339 Learning rate: 0.0980
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160001 valid iters: 17045 speed: 2756 seconds
+Epoch: 9 loss: 1.915450 1.919146 error: 0.399904 0.403257 Learning rate: 0.0970
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159994 valid iters: 17078 speed: 2759 seconds
+Epoch: 10 loss: 1.914041 1.921555 error: 0.398922 0.406478 Learning rate: 0.0961
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159896 valid iters: 17215 speed: 2761 seconds
+Epoch: 11 loss: 1.913404 1.920190 error: 0.399150 0.403143 Learning rate: 0.0951
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159915 valid iters: 17148 speed: 2759 seconds
+Epoch: 12 loss: 1.914057 1.924342 error: 0.398496 0.405515 Learning rate: 0.0941
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159999 valid iters: 16992 speed: 2759 seconds
+Epoch: 13 loss: 1.913704 1.918413 error: 0.399916 0.401994 Learning rate: 0.0932
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160087 valid iters: 16943 speed: 2758 seconds
+Epoch: 14 loss: 1.911376 1.913144 error: 0.396278 0.403410 Learning rate: 0.0923
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159924 valid iters: 17050 speed: 2751 seconds
+Epoch: 15 loss: 1.911708 1.918672 error: 0.397280 0.404636 Learning rate: 0.0914
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159710 valid iters: 17339 speed: 2757 seconds
+Epoch: 16 loss: 1.910684 1.920762 error: 0.396611 0.405778 Learning rate: 0.0904
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159971 valid iters: 17128 speed: 2761 seconds
+Epoch: 17 loss: 1.908525 1.917591 error: 0.395892 0.400650 Learning rate: 0.0895
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159929 valid iters: 17028 speed: 2758 seconds
+Epoch: 18 loss: 1.908589 1.914882 error: 0.394242 0.396845 Learning rate: 0.0886
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160037 valid iters: 17057 speed: 2769 seconds
+Epoch: 19 loss: 1.909820 1.914362 error: 0.395034 0.397485 Learning rate: 0.0878
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159927 valid iters: 17095 speed: 2770 seconds
+Epoch: 20 loss: 1.907203 1.916289 error: 0.393211 0.398204 Learning rate: 0.0869
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160122 valid iters: 16935 speed: 2765 seconds
+Epoch: 21 loss: 1.907010 1.914375 error: 0.393781 0.398697 Learning rate: 0.0860
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159954 valid iters: 17080 speed: 2763 seconds
+Epoch: 22 loss: 1.905307 1.916541 error: 0.391154 0.400822 Learning rate: 0.0851
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160104 valid iters: 17011 speed: 2770 seconds
+Epoch: 23 loss: 1.905744 1.912831 error: 0.391961 0.397985 Learning rate: 0.0843
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160008 valid iters: 17097 speed: 2766 seconds
+Epoch: 24 loss: 1.904574 1.912285 error: 0.392042 0.395324 Learning rate: 0.0835
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159766 valid iters: 17255 speed: 2772 seconds
+Epoch: 25 loss: 1.903726 1.912031 error: 0.390439 0.392510 Learning rate: 0.0826
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159977 valid iters: 17107 speed: 2766 seconds
+Epoch: 26 loss: 1.900759 1.915078 error: 0.387784 0.399482 Learning rate: 0.0818
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160275 valid iters: 16801 speed: 2761 seconds
+Epoch: 27 loss: 1.901665 1.910711 error: 0.389313 0.395407 Learning rate: 0.0810
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160035 valid iters: 17067 speed: 2766 seconds
+Epoch: 28 loss: 1.898368 1.909662 error: 0.386170 0.394042 Learning rate: 0.0802
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159988 valid iters: 16977 speed: 2763 seconds
+Epoch: 29 loss: 1.898708 1.916468 error: 0.387143 0.399149 Learning rate: 0.0794
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159926 valid iters: 17048 speed: 2764 seconds
+Epoch: 30 loss: 1.898394 1.913640 error: 0.386636 0.397030 Learning rate: 0.0786
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159829 valid iters: 17201 speed: 2769 seconds
+Epoch: 31 loss: 1.895678 1.909437 error: 0.384736 0.389537 Learning rate: 0.0778
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159783 valid iters: 17313 speed: 2765 seconds
+Epoch: 32 loss: 1.895683 1.907589 error: 0.385414 0.389358 Learning rate: 0.0770
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160072 valid iters: 16996 speed: 2766 seconds
+Epoch: 33 loss: 1.894133 1.902285 error: 0.384630 0.386907 Learning rate: 0.0762
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159830 valid iters: 17228 speed: 2775 seconds
+Epoch: 34 loss: 1.893181 1.912546 error: 0.383103 0.394400 Learning rate: 0.0755
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159910 valid iters: 17104 speed: 2777 seconds
+Epoch: 35 loss: 1.892552 1.913984 error: 0.383113 0.393329 Learning rate: 0.0747
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159772 valid iters: 17297 speed: 2775 seconds
+Epoch: 36 loss: 1.891906 1.908676 error: 0.382550 0.386539 Learning rate: 0.0740
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160112 valid iters: 17095 speed: 2773 seconds
+Epoch: 37 loss: 1.889184 1.916404 error: 0.380303 0.395556 Learning rate: 0.0732
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160200 valid iters: 16931 speed: 2772 seconds
+Epoch: 38 loss: 1.888027 1.908527 error: 0.379695 0.389230 Learning rate: 0.0725
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159937 valid iters: 17179 speed: 2764 seconds
+Epoch: 39 loss: 1.888728 1.905670 error: 0.380144 0.388872 Learning rate: 0.0718
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159971 valid iters: 17045 speed: 2767 seconds
+Epoch: 40 loss: 1.887721 1.909878 error: 0.379245 0.394166 Learning rate: 0.0711
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159848 valid iters: 17275 speed: 2774 seconds
+Epoch: 41 loss: 1.887429 1.899744 error: 0.379335 0.383539 Learning rate: 0.0703
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160000 valid iters: 17062 speed: 2772 seconds
+Epoch: 42 loss: 1.885980 1.902766 error: 0.378904 0.383202 Learning rate: 0.0696
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160034 valid iters: 17031 speed: 2767 seconds
+Epoch: 43 loss: 1.883636 1.902887 error: 0.376340 0.383211 Learning rate: 0.0689
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160128 valid iters: 16977 speed: 2772 seconds
+Epoch: 44 loss: 1.885160 1.910045 error: 0.378942 0.389761 Learning rate: 0.0683
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159841 valid iters: 17201 speed: 2771 seconds
+Epoch: 45 loss: 1.882221 1.901943 error: 0.376771 0.383465 Learning rate: 0.0676
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159786 valid iters: 17200 speed: 2762 seconds
+Epoch: 46 loss: 1.880443 1.898882 error: 0.374415 0.379904 Learning rate: 0.0669
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159895 valid iters: 17142 speed: 2767 seconds
+Epoch: 47 loss: 1.878179 1.899878 error: 0.373705 0.381317 Learning rate: 0.0662
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159885 valid iters: 17169 speed: 2777 seconds
+Epoch: 48 loss: 1.878976 1.907955 error: 0.372836 0.385652 Learning rate: 0.0656
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 160043 valid iters: 16973 speed: 2766 seconds
+Epoch: 49 loss: 1.878631 1.903489 error: 0.373669 0.383081 Learning rate: 0.0649
+batches: 1126  .................................................................................................... passes: 0.33 train iters: 159910 valid iters: 17109 speed: 2768 seconds
+Epoch: 50 loss: 1.878418 1.902399 error: 0.373439 0.381755 Learning rate: 0.0643
+batches: 1126  .....................................................................
