@@ -1,0 +1,120 @@
+Loading trainng data ...
+Num training entities: 6516
+Num validation entities: 724
+Constructing model ...
+Model has the following geometry:
+  num_unroll  = 64
+  batch_size  = 32
+  evals/batch = 2048
+  num_inputs  = 84
+  num_hidden  = 256
+  num_layers  = 2
+Created model with fresh parameters.
+.................................................................................................... passes: 1 train iters: 644608 valid iters: 74164 speed: 283 seconds
+Epoch: 1 xentrpy: 1.955828 1.950944 error: 0.430299 0.426555 Learning rate: 0.5000
+Creating directory rnn-gru-031-chkpts
+.................................................................................................... passes: 1 train iters: 646119 valid iters: 71886 speed: 282 seconds
+Epoch: 2 xentrpy: 1.946816 1.932309 error: 0.422181 0.419595 Learning rate: 0.5000
+.................................................................................................... passes: 1 train iters: 647992 valid iters: 73301 speed: 283 seconds
+Epoch: 3 xentrpy: 1.946401 1.938886 error: 0.420436 0.417648 Learning rate: 0.5000
+.................................................................................................... passes: 1 train iters: 652254 valid iters: 70362 speed: 284 seconds
+Epoch: 4 xentrpy: 1.946532 1.920340 error: 0.422368 0.407905 Learning rate: 0.5000
+.................................................................................................... passes: 1 train iters: 652887 valid iters: 68234 speed: 284 seconds
+Epoch: 5 xentrpy: 1.941745 1.938830 error: 0.418060 0.420538 Learning rate: 0.5000
+.................................................................................................... passes: 1 train iters: 649196 valid iters: 70311 speed: 285 seconds
+Epoch: 6 xentrpy: 1.939742 1.934063 error: 0.418558 0.416436 Learning rate: 0.5000
+.................................................................................................... passes: 1 train iters: 645369 valid iters: 72162 speed: 281 seconds
+Epoch: 7 xentrpy: 1.942337 1.930490 error: 0.419140 0.409869 Learning rate: 0.4950
+.................................................................................................... passes: 1 train iters: 644979 valid iters: 73294 speed: 285 seconds
+Epoch: 8 xentrpy: 1.939006 1.920585 error: 0.415038 0.404440 Learning rate: 0.4900
+.................................................................................................... passes: 1 train iters: 647859 valid iters: 74242 speed: 278 seconds
+Epoch: 9 xentrpy: 1.938325 1.930827 error: 0.414274 0.410724 Learning rate: 0.4851
+.................................................................................................... passes: 1 train iters: 647541 valid iters: 70418 speed: 281 seconds
+Epoch: 10 xentrpy: 1.939437 1.929168 error: 0.417435 0.410009 Learning rate: 0.4803
+.................................................................................................... passes: 1 train iters: 646496 valid iters: 68570 speed: 280 seconds
+Epoch: 11 xentrpy: 1.934093 1.938866 error: 0.411375 0.415079 Learning rate: 0.4755
+.................................................................................................... passes: 1 train iters: 643416 valid iters: 74698 speed: 279 seconds
+Epoch: 12 xentrpy: 1.934634 1.930407 error: 0.413920 0.409663 Learning rate: 0.4707
+.................................................................................................... passes: 1 train iters: 646962 valid iters: 73464 speed: 281 seconds
+Epoch: 13 xentrpy: 1.931865 1.915214 error: 0.411251 0.399420 Learning rate: 0.4660
+.................................................................................................... passes: 1 train iters: 649634 valid iters: 71394 speed: 276 seconds
+Epoch: 14 xentrpy: 1.934945 1.939174 error: 0.413253 0.416071 Learning rate: 0.4614
+.................................................................................................... passes: 1 train iters: 652166 valid iters: 69207 speed: 277 seconds
+Epoch: 15 xentrpy: 1.937152 1.917119 error: 0.413688 0.403500 Learning rate: 0.4568
+.................................................................................................... passes: 1 train iters: 648647 valid iters: 72575 speed: 277 seconds
+Epoch: 16 xentrpy: 1.934757 1.933541 error: 0.414603 0.415804 Learning rate: 0.4568
+.................................................................................................... passes: 1 train iters: 650352 valid iters: 70293 speed: 276 seconds
+Epoch: 17 xentrpy: 1.933846 1.927791 error: 0.413027 0.404222 Learning rate: 0.4568
+.................................................................................................... passes: 1 train iters: 646108 valid iters: 78314 speed: 275 seconds
+Epoch: 18 xentrpy: 1.934489 1.919881 error: 0.414355 0.405266 Learning rate: 0.4522
+.................................................................................................... passes: 1 train iters: 652360 valid iters: 70424 speed: 274 seconds
+Epoch: 19 xentrpy: 1.935810 1.928730 error: 0.413755 0.413126 Learning rate: 0.4477
+.................................................................................................... passes: 1 train iters: 646911 valid iters: 72147 speed: 275 seconds
+Epoch: 20 xentrpy: 1.935150 1.910699 error: 0.411724 0.394860 Learning rate: 0.4477
+.................................................................................................... passes: 1 train iters: 649488 valid iters: 72843 speed: 273 seconds
+Epoch: 21 xentrpy: 1.930328 1.921992 error: 0.411113 0.408632 Learning rate: 0.4477
+.................................................................................................... passes: 1 train iters: 647164 valid iters: 67569 speed: 273 seconds
+Epoch: 22 xentrpy: 1.935191 1.915392 error: 0.412960 0.399236 Learning rate: 0.4432
+.................................................................................................... passes: 1 train iters: 641960 valid iters: 74564 speed: 273 seconds
+Epoch: 23 xentrpy: 1.930771 1.927868 error: 0.411423 0.414946 Learning rate: 0.4432
+.................................................................................................... passes: 1 train iters: 642757 valid iters: 73227 speed: 274 seconds
+Epoch: 24 xentrpy: 1.930910 1.938140 error: 0.410854 0.418821 Learning rate: 0.4388
+.................................................................................................... passes: 1 train iters: 647300 valid iters: 70725 speed: 273 seconds
+Epoch: 25 xentrpy: 1.935228 1.923153 error: 0.413121 0.405062 Learning rate: 0.4344
+.................................................................................................... passes: 1 train iters: 647252 valid iters: 73493 speed: 274 seconds
+Epoch: 26 xentrpy: 1.932375 1.923235 error: 0.410431 0.414529 Learning rate: 0.4344
+.................................................................................................... passes: 1 train iters: 640495 valid iters: 76786 speed: 272 seconds
+Epoch: 27 xentrpy: 1.934195 1.913933 error: 0.412187 0.405491 Learning rate: 0.4344
+.................................................................................................... passes: 1 train iters: 647509 valid iters: 69159 speed: 274 seconds
+Epoch: 28 xentrpy: 1.929050 1.932706 error: 0.409078 0.412716 Learning rate: 0.4344
+.................................................................................................... passes: 1 train iters: 640932 valid iters: 74570 speed: 274 seconds
+Epoch: 29 xentrpy: 1.932487 1.918164 error: 0.409674 0.403205 Learning rate: 0.4300
+.................................................................................................... passes: 1 train iters: 644347 valid iters: 70298 speed: 276 seconds
+Epoch: 30 xentrpy: 1.930525 1.924208 error: 0.407088 0.403852 Learning rate: 0.4257
+.................................................................................................... passes: 1 train iters: 642477 valid iters: 71541 speed: 275 seconds
+Epoch: 31 xentrpy: 1.927989 1.917203 error: 0.408913 0.403405 Learning rate: 0.4215
+.................................................................................................... passes: 1 train iters: 646562 valid iters: 71490 speed: 274 seconds
+Epoch: 32 xentrpy: 1.933279 1.921820 error: 0.412271 0.409344 Learning rate: 0.4173
+.................................................................................................... passes: 1 train iters: 646776 valid iters: 71228 speed: 274 seconds
+Epoch: 33 xentrpy: 1.925800 1.926351 error: 0.407682 0.405515 Learning rate: 0.4173
+.................................................................................................... passes: 1 train iters: 647364 valid iters: 73301 speed: 273 seconds
+Epoch: 34 xentrpy: 1.931468 1.927056 error: 0.409620 0.410185 Learning rate: 0.4131
+.................................................................................................... passes: 1 train iters: 647504 valid iters: 69335 speed: 275 seconds
+Epoch: 35 xentrpy: 1.925962 1.918738 error: 0.405486 0.406476 Learning rate: 0.4131
+.................................................................................................... passes: 1 train iters: 648938 valid iters: 70194 speed: 274 seconds
+Epoch: 36 xentrpy: 1.927755 1.916725 error: 0.408130 0.407627 Learning rate: 0.4090
+.................................................................................................... passes: 1 train iters: 650467 valid iters: 72213 speed: 277 seconds
+Epoch: 37 xentrpy: 1.925918 1.916834 error: 0.406479 0.402351 Learning rate: 0.4049
+.................................................................................................... passes: 1 train iters: 649400 valid iters: 75935 speed: 276 seconds
+Epoch: 38 xentrpy: 1.927891 1.924022 error: 0.407935 0.412326 Learning rate: 0.4008
+.................................................................................................... passes: 1 train iters: 640005 valid iters: 73866 speed: 271 seconds
+Epoch: 39 xentrpy: 1.930134 1.917531 error: 0.408767 0.409742 Learning rate: 0.4008
+.................................................................................................... passes: 1 train iters: 643121 valid iters: 74260 speed: 275 seconds
+Epoch: 40 xentrpy: 1.930118 1.913384 error: 0.408155 0.401549 Learning rate: 0.4008
+.................................................................................................... passes: 1 train iters: 648292 valid iters: 71077 speed: 274 seconds
+Epoch: 41 xentrpy: 1.928623 1.918037 error: 0.407350 0.404814 Learning rate: 0.4008
+.................................................................................................... passes: 1 train iters: 649852 valid iters: 74588 speed: 277 seconds
+Epoch: 42 xentrpy: 1.926670 1.912246 error: 0.405346 0.401231 Learning rate: 0.4008
+.................................................................................................... passes: 1 train iters: 647809 valid iters: 73292 speed: 274 seconds
+Epoch: 43 xentrpy: 1.926971 1.924412 error: 0.405160 0.410222 Learning rate: 0.3968
+.................................................................................................... passes: 1 train iters: 645992 valid iters: 73525 speed: 273 seconds
+Epoch: 44 xentrpy: 1.925139 1.929545 error: 0.405168 0.411329 Learning rate: 0.3928
+.................................................................................................... passes: 1 train iters: 646302 valid iters: 69422 speed: 273 seconds
+Epoch: 45 xentrpy: 1.924832 1.902276 error: 0.405951 0.395221 Learning rate: 0.3889
+.................................................................................................... passes: 1 train iters: 644622 valid iters: 71870 speed: 273 seconds
+Epoch: 46 xentrpy: 1.924993 1.922251 error: 0.404355 0.406011 Learning rate: 0.3850
+.................................................................................................... passes: 1 train iters: 656725 valid iters: 68779 speed: 275 seconds
+Epoch: 47 xentrpy: 1.926983 1.909110 error: 0.406662 0.397680 Learning rate: 0.3812
+.................................................................................................... passes: 1 train iters: 650104 valid iters: 73255 speed: 275 seconds
+Epoch: 48 xentrpy: 1.925133 1.909170 error: 0.405238 0.399672 Learning rate: 0.3812
+.................................................................................................... passes: 1 train iters: 651220 valid iters: 69084 speed: 274 seconds
+Epoch: 49 xentrpy: 1.922040 1.923851 error: 0.401465 0.406404 Learning rate: 0.3774
+.................................................................................................... passes: 1 train iters: 650038 valid iters: 69485 speed: 274 seconds
+Epoch: 50 xentrpy: 1.919842 1.921140 error: 0.403173 0.405771 Learning rate: 0.3736
+.................................................................................................... passes: 1 train iters: 649397 valid iters: 70651 speed: 272 seconds
+Epoch: 51 xentrpy: 1.925471 1.918460 error: 0.405516 0.410992 Learning rate: 0.3699
+.................................................................................................... passes: 1 train iters: 653550 valid iters: 67043 speed: 269 seconds
+Epoch: 52 xentrpy: 1.923791 1.914571 error: 0.403325 0.412511 Learning rate: 0.3699
+.................................................................................................... passes: 1 train iters: 650675 valid iters: 71091 speed: 268 seconds
+Epoch: 53 xentrpy: 1.922101 1.922745 error: 0.400924 0.408856 Learning rate: 0.3699
+Training stopped.

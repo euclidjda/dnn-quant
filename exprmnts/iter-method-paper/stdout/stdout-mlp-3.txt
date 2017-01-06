@@ -1,0 +1,13 @@
+Creating test data set for 201201 to 201212 (Test pre is 200606)
+Creating predictions file for period 200606 to 201212
+Slicing predictions file 201201 to 201212 to create train-mlp/test-preds-201201.dat
+Creating test data set for 201301 to 201312 (Test pre is 200706)
+Creating predictions file for period 200706 to 201312
+Slicing predictions file 201301 to 201312 to create train-mlp/test-preds-201301.dat
+Creating test data set for 201401 to 201412 (Test pre is 200806)
+Creating predictions file for period 200806 to 201412
+Slicing predictions file 201401 to 201412 to create train-mlp/test-preds-201401.dat
+Training model on 197001 to 201312 for test set year of 2015 progress in train-mlp/stdout-201501.txt
+Creating test data set for 201501 to 201512 (Test pre is 200906)
+Creating predictions file for period 200906 to 201512
+Slicing predictions file 201501 to 201512 to create train-mlp/test-preds-201501.dat

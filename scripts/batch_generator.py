@@ -71,8 +71,13 @@ class BatchGenerator(object):
         self._num_inputs = config.num_inputs
         self._num_unrollings = num_unrollings
         self._batch_size = batch_size
-        self._config = config # save this around for train_batches() method
 
+        self._rnn_loss_weight = None
+        if hasattr(config,'rnn_loss_weight'):
+            self._rnn_loss_weight = config.rnn_loss_weight
+        
+        self._config = config # save this around for train_batches() method
+        
         if data is None:
             if not os.path.isfile(filename):
                 raise RuntimeError("The data file %s does not exists" % filename)
@@ -186,15 +191,14 @@ class BatchGenerator(object):
         key_idx = self._key_idx
         target_idx = self._target_idx
         date_idx = self._date_idx
-        valid = None
         for b in range(self._batch_size):
             idx = self._cursor[b]
+            next_idx = (idx+1) % self._data_len
             prev_idx = idx-1 if idx > 0 else self._data_len - 1
             ########################################################################
             #   Checks to see if hit end of sequence for this stock before num_rollings
             ########################################################################
             if (step>0 and (data.iat[prev_idx,key_idx] != data.iat[idx,key_idx])):
-                valid = False
                 x[b,:] = 0.0
                 y[b,:] = 0.0
                 train_wghts[b] = 0.0
@@ -203,7 +207,6 @@ class BatchGenerator(object):
                     seq_lengths[b] = step
                 attr.append(None)
             else:
-                valid = True
                 x[b,:] = data.iloc[idx,start_idx:start_idx+num_inputs].as_matrix()
                 val = data.iat[idx,target_idx] # val = +1 or -1
                 y[b,0] = abs(val - 1) / 2 # +1 -> 0 and -1 -> 1
@@ -211,13 +214,19 @@ class BatchGenerator(object):
                 date = data.iat[idx,date_idx]
                 key = data.iat[idx,key_idx]
                 attr.append((key,date))
-                next_idx = (idx+1) % self._data_len
+                weight = 1.0
+                if self._rnn_loss_weight is not None:
+                    factor = self._num_unrollings-1 if self._num_unrollings > 1 else 1
+                    weight = (1.0 - self._rnn_loss_weight) / factor
+                    if ((step+1 == self._num_unrollings) 
+                        or (data.iat[next_idx,key_idx] != data.iat[idx,key_idx])):
+                        weight = self._rnn_loss_weight
                 if key not in self._validation_set:
-                    train_wghts[b] = 1.0
+                    train_wghts[b] = weight
                     valid_wghts[b] = 0.0
                 else:
                     train_wghts[b] = 0.0
-                    valid_wghts[b] = 1.0
+                    valid_wghts[b] = weight
                 self._cursor[b] = (self._cursor[b] + 1) % self._data_len
         return x, y, train_wghts, valid_wghts, attr
 
@@ -249,12 +258,6 @@ class BatchGenerator(object):
             self._cursor = random.sample(range(self._data_len),self._batch_size)
         elif self._use_fixed_k is True:
             self._cursor = self._get_next_cursor(self._cursor,saved_cursor)
-
-        # Commenting out because it is not necessary. We can simply use seq_lengths
-        # property of a batch
-        #if self.valid_mode:
-        #    if not batch_valid:
-        #        return None
 
         return Batch(x_batch, y_batch, seq_lengths, reset_flags,
                          train_wghts, valid_wghts, attribs )

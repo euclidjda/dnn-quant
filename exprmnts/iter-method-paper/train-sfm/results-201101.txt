@@ -1,0 +1,16 @@
+Loading data ./train-sfm/test-data-201101.dat
+num_batches =  333778
+Loading model.
+201101 cnt=3773 error=0.3766 prec=0.6374 recall=0.5673
+201102 cnt=3752 error=0.3675 prec=0.6491 recall=0.5732
+201103 cnt=3738 error=0.3748 prec=0.6401 recall=0.5684
+201104 cnt=3726 error=0.3790 prec=0.6369 recall=0.5594
+201105 cnt=3713 error=0.3951 prec=0.6173 recall=0.5491
+201106 cnt=3704 error=0.3863 prec=0.6277 recall=0.5575
+201107 cnt=3689 error=0.3852 prec=0.6298 recall=0.5564
+201108 cnt=3669 error=0.3590 prec=0.6603 recall=0.5815
+201109 cnt=3659 error=0.3772 prec=0.6425 recall=0.5554
+201110 cnt=3642 error=0.3756 prec=0.6460 recall=0.5532
+201111 cnt=3627 error=0.3780 prec=0.6378 recall=0.5643
+201112 cnt=3614 error=0.3960 prec=0.6206 recall=0.5387
+ALL cnt=44306 error=0.3792 prec=0.6371 recall=0.5604

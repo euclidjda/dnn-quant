@@ -1,0 +1,16 @@
+Loading data ./train-logreg/test-data-201501.dat
+num_batches =  44741
+Loading model.
+201501 cnt=2740 error=0.3741 prec=0.5990 recall=0.8138
+201502 cnt=2715 error=0.3676 prec=0.6039 recall=0.8139
+201503 cnt=2714 error=0.3740 prec=0.6034 recall=0.8053
+201504 cnt=2698 error=0.3829 prec=0.5958 recall=0.8033
+201505 cnt=2688 error=0.3810 prec=0.5952 recall=0.8081
+201506 cnt=2682 error=0.3665 prec=0.6106 recall=0.8182
+201507 cnt=2682 error=0.3624 prec=0.6182 recall=0.8152
+201508 cnt=2669 error=0.3807 prec=0.6030 recall=0.8091
+201509 cnt=2653 error=0.3754 prec=0.6042 recall=0.8129
+201510 cnt=2648 error=0.3995 prec=0.5694 recall=0.8096
+201511 cnt=2640 error=0.4409 prec=0.5372 recall=0.7705
+201512 cnt=2612 error=0.4621 prec=0.5344 recall=0.7399
+ALL cnt=32141 error=0.3886 prec=0.5896 recall=0.8020

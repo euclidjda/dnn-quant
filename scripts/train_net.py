@@ -109,10 +109,12 @@ def main(_):
   model and training specification (see config.py).
   """
   configs.DEFINE_string("train_datafile", None,"Training file")
+  configs.DEFINE_string("optimizer", 'gd', 'Optimizer to use gd, adam, adagrad')
   configs.DEFINE_float("lr_decay",0.9, "Learning rate decay")
   configs.DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
   configs.DEFINE_float("validation_size",0.0,"Size of validation set as %")
   configs.DEFINE_float("passes",1.0,"Passes through day per epoch")
+  configs.DEFINE_float("rnn_loss_weight",None,"How much moret to weight kth example")
   configs.DEFINE_integer("max_epoch",0,"Stop after max_epochs")
   configs.DEFINE_integer("early_stop",None,"Early stop parameter")
   configs.DEFINE_integer("seed",None,"Seed for deterministic training")

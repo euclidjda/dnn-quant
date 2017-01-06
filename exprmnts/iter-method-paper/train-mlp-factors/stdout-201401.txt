@@ -1,0 +1,24 @@
+Loading training data ...
+setting random seed to 1000
+Num training entities: 8821
+Num validation entities: 980
+Constructing model ...
+Model has the following geometry:
+  num_unroll  = 1
+  batch_size  = 512
+  evals/batch = 512
+  num_inputs  = 3
+  num_hidden  = 0
+  num_layers  = 0
+Created model with fresh parameters.
+Training will early stop without improvement after 2 epochs.
+batches: 3297  .................................................................................................... passes: 0.20 train iters: 304265 valid iters: 33143 speed: 101 seconds
+Epoch: 1 loss: 1.964263 1.959029 error: 0.418849 0.413903 Learning rate: 0.0400
+Creating directory chkpts-train-mlp-factors-201401
+batches: 3297  .................................................................................................... passes: 0.20 train iters: 304408 valid iters: 33000 speed: 100 seconds
+Epoch: 2 loss: 1.956321 1.950239 error: 0.415886 0.411121 Learning rate: 0.0400
+batches: 3297  .................................................................................................... passes: 0.20 train iters: 304253 valid iters: 33155 speed: 97 seconds
+Epoch: 3 loss: 1.956105 1.952798 error: 0.416344 0.415231 Learning rate: 0.0400
+batches: 3297  .................................................................................................... passes: 0.20 train iters: 304296 valid iters: 33112 speed: 99 seconds
+Epoch: 4 loss: 1.955920 1.953386 error: 0.416223 0.416647 Learning rate: 0.0400
+Training stopped.

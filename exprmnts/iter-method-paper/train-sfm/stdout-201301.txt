@@ -1,0 +1,9 @@
+Loading training data ...
+Loading data from cache /home/user/work/dnn-quant/datasets/sfm-all-100M.cache
+Data processing complete: end_date is 201112
+X_train_full len is: 1622112
+X_train len is: 1479466
+Training logistic regression classifer
+training accuracy:  0.559711409387
+validation accuracy:  0.570547607301
+Creating directory chkpts-train-sfm-201301

@@ -1,0 +1,65 @@
+Training model on 197001 to 199812 for test set year of 2000 progress in train-sfm/stdout-200001.txt
+Creating test data set for 200001 to 200012 (Test pre is 199406)
+Creating predictions file for period 199406 to 200012
+Slicing predictions file 200001 to 200012 to create train-sfm/test-preds-200001.dat
+Training model on 197001 to 199912 for test set year of 2001 progress in train-sfm/stdout-200101.txt
+Creating test data set for 200101 to 200112 (Test pre is 199506)
+Creating predictions file for period 199506 to 200112
+Slicing predictions file 200101 to 200112 to create train-sfm/test-preds-200101.dat
+Training model on 197001 to 200012 for test set year of 2002 progress in train-sfm/stdout-200201.txt
+Creating test data set for 200201 to 200212 (Test pre is 199606)
+Creating predictions file for period 199606 to 200212
+Slicing predictions file 200201 to 200212 to create train-sfm/test-preds-200201.dat
+Training model on 197001 to 200112 for test set year of 2003 progress in train-sfm/stdout-200301.txt
+Creating test data set for 200301 to 200312 (Test pre is 199706)
+Creating predictions file for period 199706 to 200312
+Slicing predictions file 200301 to 200312 to create train-sfm/test-preds-200301.dat
+Training model on 197001 to 200212 for test set year of 2004 progress in train-sfm/stdout-200401.txt
+Creating test data set for 200401 to 200412 (Test pre is 199806)
+Creating predictions file for period 199806 to 200412
+Slicing predictions file 200401 to 200412 to create train-sfm/test-preds-200401.dat
+Training model on 197001 to 200312 for test set year of 2005 progress in train-sfm/stdout-200501.txt
+Creating test data set for 200501 to 200512 (Test pre is 199906)
+Creating predictions file for period 199906 to 200512
+Slicing predictions file 200501 to 200512 to create train-sfm/test-preds-200501.dat
+Training model on 197001 to 200412 for test set year of 2006 progress in train-sfm/stdout-200601.txt
+Creating test data set for 200601 to 200612 (Test pre is 200006)
+Creating predictions file for period 200006 to 200612
+Slicing predictions file 200601 to 200612 to create train-sfm/test-preds-200601.dat
+Training model on 197001 to 200512 for test set year of 2007 progress in train-sfm/stdout-200701.txt
+Creating test data set for 200701 to 200712 (Test pre is 200106)
+Creating predictions file for period 200106 to 200712
+Slicing predictions file 200701 to 200712 to create train-sfm/test-preds-200701.dat
+Training model on 197001 to 200612 for test set year of 2008 progress in train-sfm/stdout-200801.txt
+Creating test data set for 200801 to 200812 (Test pre is 200206)
+Creating predictions file for period 200206 to 200812
+Slicing predictions file 200801 to 200812 to create train-sfm/test-preds-200801.dat
+Training model on 197001 to 200712 for test set year of 2009 progress in train-sfm/stdout-200901.txt
+Creating test data set for 200901 to 200912 (Test pre is 200306)
+Creating predictions file for period 200306 to 200912
+Slicing predictions file 200901 to 200912 to create train-sfm/test-preds-200901.dat
+Training model on 197001 to 200812 for test set year of 2010 progress in train-sfm/stdout-201001.txt
+Creating test data set for 201001 to 201012 (Test pre is 200406)
+Creating predictions file for period 200406 to 201012
+Slicing predictions file 201001 to 201012 to create train-sfm/test-preds-201001.dat
+Training model on 197001 to 200912 for test set year of 2011 progress in train-sfm/stdout-201101.txt
+Creating test data set for 201101 to 201112 (Test pre is 200506)
+Creating predictions file for period 200506 to 201112
+Slicing predictions file 201101 to 201112 to create train-sfm/test-preds-201101.dat
+Training model on 197001 to 201012 for test set year of 2012 progress in train-sfm/stdout-201201.txt
+Creating test data set for 201201 to 201212 (Test pre is 200606)
+Creating predictions file for period 200606 to 201212
+Slicing predictions file 201201 to 201212 to create train-sfm/test-preds-201201.dat
+Training model on 197001 to 201112 for test set year of 2013 progress in train-sfm/stdout-201301.txt
+Creating test data set for 201301 to 201312 (Test pre is 200706)
+Creating predictions file for period 200706 to 201312
+Slicing predictions file 201301 to 201312 to create train-sfm/test-preds-201301.dat
+Training model on 197001 to 201212 for test set year of 2014 progress in train-sfm/stdout-201401.txt
+Creating test data set for 201401 to 201412 (Test pre is 200806)
+Creating predictions file for period 200806 to 201412
+Slicing predictions file 201401 to 201412 to create train-sfm/test-preds-201401.dat
+Training model on 197001 to 201312 for test set year of 2015 progress in train-sfm/stdout-201501.txt
+Creating test data set for 201501 to 201512 (Test pre is 200906)
+Creating predictions file for period 200906 to 201512
+Slicing predictions file 201501 to 201512 to create train-sfm/test-preds-201501.dat
+Generating predictions for training data.

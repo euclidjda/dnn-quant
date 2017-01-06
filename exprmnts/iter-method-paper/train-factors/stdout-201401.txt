@@ -1,0 +1,9 @@
+Loading training data ...
+Loading data from cache /home/user/work/dnn-quant/datasets/factors-all-100M.cache
+Data processing complete: end_date is 201212
+X_train_full len is: 1623442
+X_train len is: 1520494
+Training logistic regression classifer
+training accuracy:  0.584694184916
+validation accuracy:  0.582453904426
+Creating directory chkpts-train-factors-201401

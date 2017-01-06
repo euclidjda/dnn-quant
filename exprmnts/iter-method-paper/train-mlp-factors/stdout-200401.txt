@@ -1,0 +1,30 @@
+Loading training data ...
+setting random seed to 1000
+Num training entities: 7579
+Num validation entities: 842
+Constructing model ...
+Model has the following geometry:
+  num_unroll  = 1
+  batch_size  = 512
+  evals/batch = 512
+  num_inputs  = 3
+  num_hidden  = 0
+  num_layers  = 0
+Created model with fresh parameters.
+Training will early stop without improvement after 2 epochs.
+batches: 2304  .................................................................................................... passes: 0.20 train iters: 211584 valid iters: 23936 speed: 70 seconds
+Epoch: 1 loss: 1.974117 1.971807 error: 0.428014 0.426387 Learning rate: 0.0400
+Creating directory chkpts-train-mlp-factors-200401
+batches: 2304  .................................................................................................... passes: 0.20 train iters: 211525 valid iters: 23995 speed: 68 seconds
+Epoch: 2 loss: 1.965277 1.961854 error: 0.423647 0.420754 Learning rate: 0.0400
+batches: 2304  .................................................................................................... passes: 0.20 train iters: 211559 valid iters: 23961 speed: 69 seconds
+Epoch: 3 loss: 1.964387 1.961527 error: 0.423201 0.420225 Learning rate: 0.0400
+batches: 2304  .................................................................................................... passes: 0.20 train iters: 211779 valid iters: 23741 speed: 70 seconds
+Epoch: 4 loss: 1.962763 1.960472 error: 0.421151 0.421381 Learning rate: 0.0400
+batches: 2304  .................................................................................................... passes: 0.20 train iters: 211588 valid iters: 23932 speed: 68 seconds
+Epoch: 5 loss: 1.964151 1.959452 error: 0.423162 0.419062 Learning rate: 0.0400
+batches: 2304  .................................................................................................... passes: 0.20 train iters: 211452 valid iters: 24068 speed: 67 seconds
+Epoch: 6 loss: 1.965423 1.965214 error: 0.425335 0.427705 Learning rate: 0.0400
+batches: 2304  .................................................................................................... passes: 0.20 train iters: 211548 valid iters: 23972 speed: 70 seconds
+Epoch: 7 loss: 1.963659 1.963878 error: 0.422089 0.427374 Learning rate: 0.0396
+Training stopped.
