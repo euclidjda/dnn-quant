@@ -62,7 +62,7 @@ cache_path = os.path.splitext(train_path)[0] + '.cache'
 
 print("Loading training data ...")
 
-rand_samp = True if config.use_fixed_k is True else False
+end_date = config.end_date
 
 ############################################################################
 #   If cached data doesn't exist, build it
@@ -70,6 +70,8 @@ rand_samp = True if config.use_fixed_k is True else False
 if not os.path.exists(cache_path) or config.use_cache is False:
     print("Generating Data from Scratch")
 
+    config.end_date = 999912
+    
     data_bg = BatchGenerator(train_path, config,
           config.batch_size, config.num_unrollings,
           validation_size=config.validation_size,
@@ -108,8 +110,8 @@ else:
 #############################################################################
 #   Take only those rows that finish before the end date
 #############################################################################
-train_indices = [i for i in range(len(dates_train)) if dates_train[i] <= config.end_date]
-valid_indices = [i for i in range(len(dates_valid)) if dates_valid[i] <= config.end_date]
+train_indices = [i for i in range(len(dates_train)) if dates_train[i] <= end_date]
+valid_indices = [i for i in range(len(dates_valid)) if dates_valid[i] <= end_date]
 
 X_train = X_train_full[train_indices]
 Y_train = Y_train_full[train_indices]

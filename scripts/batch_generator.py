@@ -262,7 +262,7 @@ class BatchGenerator(object):
     def train_batches(self):
         valid_keys = list(self._validation_set.keys())
         indexes = self._data[self._key_name].isin(valid_keys)
-        train_data = self._data[~indexes]
+        train_data = self._data[~indexes] # The ~ gives oposite of indexes
         return BatchGenerator("",self._config,self._batch_size,
                                   self._num_unrollings,
                                   validation_size=None,

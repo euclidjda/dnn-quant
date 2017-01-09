@@ -1,7 +1,7 @@
 
 - Complete and fix some issues with current dataset
   1. Needs to add dividends, lctq, loq, and capital expenditures
-  2. Momentum calcs are wrong size (i.e., 6mo is actually 5mo)
+  2. Momentum calcs are wrong size (i.e., 6mo is actually 5mo) (DONE)
 
 - Support multi-class output
 
@@ -12,13 +12,13 @@
   seperate model objects which share weights for training and validation
   
 - Allow RNN model step function to exclude the first num_unrollings
-  from the loss function calculation
+  from the loss function calculation (D
 
 - Redo configs.py so that it is not such a kludge and give ability for
   user to make a command line arg mandatory
 
 - Make training global step number pick up the last number from last save
-instead of starting over at epoch #1
+instead of starting over at epoch #1 (DONE)
 
 - (DONE: These features were added to classify_examples.py) 
   Create python script that takes predications and targets and calcs
