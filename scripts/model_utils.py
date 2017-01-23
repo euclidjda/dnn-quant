@@ -72,7 +72,7 @@ def adjust_learning_rate(session, model, learning_rate,
 
   Args:
     session: the current tf session for training
-    model: the deep_rnn_model being trained
+    model: the model being trained
     learning_rate: the current learning rate
     lr_decay: the learning rate decay factor
     batch_perfs: list of historical performance
@@ -194,7 +194,6 @@ def _create_all_models_rnn(session,config,verbose=False):
                                batch_size     = 1)
 
     return mtrain, mdeploy
-
 
 def _create_all_models_mlp(session,config,verbose=False):
 

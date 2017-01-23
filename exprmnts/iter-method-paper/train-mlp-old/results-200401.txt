@@ -1,3 +1,0 @@
-Loading data ./train-mlp/test-data-200401.dat
-num_batches =  64114
-Loading model.

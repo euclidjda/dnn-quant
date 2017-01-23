@@ -1,16 +1,16 @@
 Loading data ./train-rnn/test-data-200001.dat
 num_batches =  56910
 Loading model.
-200001 cnt=3155 error=0.3293 prec=0.6507 recall=0.8915
-200002 cnt=3157 error=0.2917 prec=0.6857 recall=0.9181
-200003 cnt=3165 error=0.2853 prec=0.6954 recall=0.9192
-200004 cnt=3163 error=0.2804 prec=0.6989 recall=0.9218
-200005 cnt=3176 error=0.2900 prec=0.6864 recall=0.9202
-200006 cnt=3181 error=0.3021 prec=0.6704 recall=0.9203
-200007 cnt=3198 error=0.2858 prec=0.6938 recall=0.9197
-200008 cnt=3197 error=0.2868 prec=0.6930 recall=0.9197
-200009 cnt=3198 error=0.2842 prec=0.6963 recall=0.9183
-200010 cnt=3197 error=0.2803 prec=0.6967 recall=0.9242
-200011 cnt=3193 error=0.2863 prec=0.6878 recall=0.9212
-200012 cnt=3198 error=0.3089 prec=0.6643 recall=0.9056
-ALL cnt=38178 error=0.2926 prec=0.6850 recall=0.9168
+200001 cnt=3155 error=0.3550 prec=0.6656 recall=0.7379
+200002 cnt=3157 error=0.3123 prec=0.7126 recall=0.7740
+200003 cnt=3165 error=0.2932 prec=0.7297 recall=0.7993
+200004 cnt=3163 error=0.2864 prec=0.7330 recall=0.8092
+200005 cnt=3176 error=0.2947 prec=0.7156 recall=0.8159
+200006 cnt=3181 error=0.3037 prec=0.6977 recall=0.8206
+200007 cnt=3198 error=0.2755 prec=0.7351 recall=0.8309
+200008 cnt=3197 error=0.2731 prec=0.7415 recall=0.8223
+200009 cnt=3198 error=0.2686 prec=0.7450 recall=0.8276
+200010 cnt=3197 error=0.2687 prec=0.7434 recall=0.8271
+200011 cnt=3193 error=0.2769 prec=0.7321 recall=0.8189
+200012 cnt=3198 error=0.3068 prec=0.6996 recall=0.7922
+ALL cnt=38178 error=0.2928 prec=0.7212 recall=0.8067

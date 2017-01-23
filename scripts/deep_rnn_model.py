@@ -100,11 +100,20 @@ class DeepRnnModel(object):
 
       self._state = state
 
-      softmax_w = tf.get_variable("softmax_w", [num_hidden, num_outputs])
+      softmax_w = tf.get_variable("softmax_w", [num_hidden+num_inputs*num_unrollings, 
+                                                num_outputs])
       softmax_b = tf.get_variable("softmax_b", [num_outputs])
 
+      skip_con_inputs = list()
+      for _ in range(num_unrollings-1):
+        skip_con_inputs.append(tf.Variable(tf.zeros([batch_size,num_unrollings*num_inputs]),
+                                dtype=tf.float32, trainable=False))
+      skip_con_inputs.append( tf.concat( 1, self._inputs ) )
+
       with tf.control_dependencies([self._saved_state.assign(state)]):
-        logits = tf.nn.xw_plus_b( tf.concat(0, outputs), softmax_w, softmax_b)
+        logits = tf.nn.xw_plus_b( tf.concat(1, [ tf.concat(0, skip_con_inputs), 
+                                                 tf.concat(0, outputs)]),
+                                  softmax_w, softmax_b)
 
       targets = tf.concat(0, self._targets)
 
