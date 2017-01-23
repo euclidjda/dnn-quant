@@ -71,7 +71,8 @@ class DeepMlpModel(object):
         self._train_wghts.append(tf.placeholder(tf.float32, shape=[batch_size]))
         self._valid_wghts.append(tf.placeholder(tf.float32, shape=[batch_size]))
 
-      outputs = tf.concat( 1, self._inputs )
+      inputs = tf.concat( 1, self._inputs )
+      outputs = inputs
       if input_dropout is True:
         outputs = tf.nn.dropout(outputs, self._keep_prob)
       num_prev = total_input_size
@@ -83,10 +84,13 @@ class DeepMlpModel(object):
         outputs = tf.nn.dropout(outputs, self._keep_prob)
         num_prev = num_hidden
 
-      softmax_w = tf.get_variable("softmax_w", [num_prev, num_outputs])
+      softmax_w = tf.get_variable("softmax_w", 
+                                  [total_input_size+num_prev, num_outputs])
+
       softmax_b = tf.get_variable("softmax_b", [num_outputs])
 
-      logits = tf.nn.xw_plus_b( outputs, softmax_w, softmax_b)
+      logits = tf.nn.xw_plus_b( tf.concat( 1, [ inputs, outputs]), 
+                                softmax_w, softmax_b)
 
       targets = tf.unpack(tf.reverse_sequence(tf.reshape(
         tf.concat(1, self._targets ),[batch_size,num_unrollings,num_outputs] ),
