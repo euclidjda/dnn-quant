@@ -6,6 +6,7 @@ my $MAX = 1.000000;
 use strict;
 
 my $total = 0;
+my $correct = 0;
 my $count = 0;
 
 while(<STDIN>) {
@@ -25,6 +26,7 @@ while(<STDIN>) {
     $term = $MAX if $term > $MAX;
 
     $total += -log( $term );
+    $correct++ if ($target && ($p1>0.5)) || (!$target && ($p1<0.5));
     $count++;
 
     #printf("%.4f %.4f %d\n",$total,$term,$count);
@@ -32,6 +34,7 @@ while(<STDIN>) {
 }
 
 my $logloss = exp($total/$count);
+my $accy = $correct/$count;
 
-printf("%.8f\n",$logloss);
+printf("%.8f %.8f\n",$accy,$logloss);
 
