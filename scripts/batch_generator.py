@@ -110,49 +110,33 @@ class BatchGenerator(object):
             print("Num training entities: %d"%(len(keys)-sample_size))
             print("Num validation entities: %d"%sample_size)
             # print(self._validation_set)
+
+        # Setup indexes into the sequences
+        min_seq_length = 32
+        self._start_idx = list()
+        self._end_idx = list()
+        last_key = ""
+        cur_length = 1
+        for i in range(self._data_len):
+            key = data.iat[i,self._key_idx]
+            if (key != last_key):
+                cur_length = 1
+            if (cur_length >= min_seq_length):
+                self._end_idx.append(i)
+                seq_length = min(cur_length,num_unrollings)
+                self._start_idx.append(i-seq_length+1)
+            cur_length += 1
+            last_key = key
+
+        #print("%d %d"%(len(self._start_idx),len(self._end_idx)))
         # Create a cursor of equally spaced indicies into the dataset. Each index
         # in the cursor points to one sequence in a batch and is used to keep
         # track of where we are in the dataset.
         batch_size = self._batch_size
-        segment = self._data_len // batch_size
-        self._init_cursor = [ offset * segment for offset in range(batch_size) ]
-        # The following loop ensures that every starting index in the cursor is
-        # at the beggining of an entity's time sequences.
-        for b in range(batch_size):
-            idx = self._init_cursor[b]
-            key = data.iat[idx,self._key_idx]
-            while data.iat[idx,self._key_idx] == key:
-                # TDO: THIS SHOULD BE FIXED AS IT CAN GO INTO AN INFINITE LOOP
-                # IF THERE IS ONLY ONE ENTITY IN DATASET
-                idx = (idx + 1) % self._data_len
-            if b>0:
-                self._init_cursor[b] = idx
-        self._cursor = self._init_cursor[:]
-        self._num_batches = self._calc_num_batches()
-
-    def _calc_num_batches(self):
-        num_batches = 0
-        data = self._data
-        counts = data.groupby(self._key_name).size()
-        unrls = self._num_unrollings
-        if self._batch_size == 1 and self._num_unrollings == 1:
-            num_batches = self._data_len
-        #elif self._randomly_sample is True:
-        #    num_batches = self._data_len // (self._batch_size*self._num_unrollings)
-        elif self._use_fixed_k:
-            for i in range(len(counts)):
-                count = counts.iloc[i]
-                incr = (count - unrls + 1) if count >= unrls else 1
-                num_batches += incr
-            num_batches = num_batches // self._batch_size
-        else: # self._use_fixed_k is False:
-            for i in range(len(counts)):
-                count = counts.iloc[i]
-                num_batches += count // unrls
-                if count % unrls > 0:
-                    num_batches += 1
-            num_batches = num_batches // self._batch_size
-        return num_batches
+        num_batches = len(self._start_idx) // batch_size
+        self._cursor = [ offset * num_batches for offset in range(batch_size) ]
+        self._init_cursor = self._cursor[:]
+        self._num_batches = num_batches
 
     def _get_reset_flags(self):
         reset_flags = None
@@ -165,17 +149,6 @@ class BatchGenerator(object):
                 reset_flags[b] = 0.0
         return reset_flags
 
-    def _get_next_cursor(self,cur_cursor,saved_cursor):
-        assert(len(cur_cursor) == self._batch_size)
-        assert(len(saved_cursor) == self._batch_size)
-        next_cursor = cur_cursor[:]
-        data = self._data
-        kidx = self._key_idx
-        for b in range(self._batch_size):
-            if (data.iat[cur_cursor[b],kidx] == data.iat[saved_cursor[b],kidx]):
-                next_cursor[b] = (saved_cursor[b]+1) % self._data_len
-        return next_cursor
-
     def _next_step(self, step, seq_lengths):
         """
         Get next step in current batch.
@@ -186,28 +159,27 @@ class BatchGenerator(object):
         valid_wghts = np.zeros(shape=(self._batch_size), dtype=np.float)
         attr = list()
         data = self._data
-        start_idx = self._feature_start_idx
+        features_idx = self._feature_start_idx
         num_inputs = self._num_inputs
         key_idx = self._key_idx
         target_idx = self._target_idx
         date_idx = self._date_idx
         for b in range(self._batch_size):
-            idx = self._cursor[b]
-            next_idx = (idx+1) % self._data_len
-            prev_idx = idx-1 if idx > 0 else self._data_len - 1
-            ########################################################################
-            #   Checks to see if hit end of sequence for this stock before num_rollings
-            ########################################################################
-            if (step>0 and (data.iat[prev_idx,key_idx] != data.iat[idx,key_idx])):
+            cur_idx = self._cursor[b]
+            start_idx = self._start_idx[cur_idx]
+            end_idx = self._end_idx[cur_idx]
+            idx = start_idx + step
+            ##### TODO: MOVE THIS OUT OF _next_step()
+            seq_lengths[b] = end_idx-start_idx+1
+            ########
+            if (idx > end_idx):
                 x[b,:] = 0.0
                 y[b,:] = 0.0
                 train_wghts[b] = 0.0
                 valid_wghts[b] = 0.0
-                if (seq_lengths[b]==self._num_unrollings):
-                    seq_lengths[b] = step
                 attr.append(None)
             else:
-                x[b,:] = data.iloc[idx,start_idx:start_idx+num_inputs].as_matrix()
+                x[b,:] = data.iloc[idx,features_idx:features_idx+num_inputs].as_matrix()
                 val = data.iat[idx,target_idx] # val = +1 or -1
                 y[b,0] = abs(val - 1) / 2 # +1 -> 0 and -1 -> 1
                 y[b,1] = abs(val + 1) / 2 # -1 -> 0 and +1 -> 1
@@ -217,17 +189,16 @@ class BatchGenerator(object):
                 weight = 1.0
                 if self._rnn_loss_weight is not None:
                     factor = self._num_unrollings-1 if self._num_unrollings > 1 else 1
-                    weight = (1.0 - self._rnn_loss_weight) / factor
-                    if ((step+1 == self._num_unrollings) 
-                        or (data.iat[next_idx,key_idx] != data.iat[idx,key_idx])):
+                    if (idx == end_idx):
                         weight = self._rnn_loss_weight
+                    else:
+                        weight = (1.0 - self._rnn_loss_weight) / factor
                 if key not in self._validation_set:
                     train_wghts[b] = weight
                     valid_wghts[b] = 0.0
                 else:
                     train_wghts[b] = 0.0
                     valid_wghts[b] = weight
-                self._cursor[b] = (self._cursor[b] + 1) % self._data_len
         return x, y, train_wghts, valid_wghts, attr
 
     def next_batch(self):
@@ -235,7 +206,6 @@ class BatchGenerator(object):
         Returns:
           A batch of type Batch (see class def below)
         """
-        saved_cursor = self._cursor[:]
         seq_lengths = np.full(self._batch_size, self._num_unrollings, dtype=int)
         reset_flags = self._get_reset_flags()
         x_batch = list()
@@ -255,9 +225,10 @@ class BatchGenerator(object):
         #   Set cursor for next batch
         #############################################################################
         if self._randomly_sample is True:
-            self._cursor = random.sample(range(self._data_len),self._batch_size)
-        elif self._use_fixed_k is True:
-            self._cursor = self._get_next_cursor(self._cursor,saved_cursor)
+            self._cursor = random.sample(range(len(self._start_idx)),self._batch_size)
+        else:
+            num_idxs = len(self._start_idx)
+            self._cursor = [ (self._cursor[b]+1)%num_idxs for b in range(batch_size) ]
 
         return Batch(x_batch, y_batch, seq_lengths, reset_flags,
                          train_wghts, valid_wghts, attribs )
