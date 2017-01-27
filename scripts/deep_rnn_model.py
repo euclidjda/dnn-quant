@@ -225,10 +225,6 @@ class DeepRnnModel(object):
    
   def _get_feed_dict(self,batch,keep_prob=1.0):
 
-    print("In deep_rnn_model.py: ")
-    print(batch.seq_lengths)
-    print("")
-
     reset_flags = np.repeat( batch.reset_flags.reshape( [self._batch_size, 1] ),
                                self._state_size, axis=1 )
 

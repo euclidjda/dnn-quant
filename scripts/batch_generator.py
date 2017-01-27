@@ -165,9 +165,9 @@ class BatchGenerator(object):
         target_idx = self._target_idx
         date_idx = self._date_idx
         for b in range(self._batch_size):
-            cur_cursor = self._cursor[b]
-            start_idx = self._start_idx[cur_cursor]
-            end_idx = self._end_idx[cur_cursor]
+            cur_idx = self._cursor[b]
+            start_idx = self._start_idx[cur_idx]
+            end_idx = self._end_idx[cur_idx]
             idx = start_idx + step
             ##### TODO: MOVE THIS OUT OF _next_step()
             seq_lengths[b] = end_idx-start_idx+1
