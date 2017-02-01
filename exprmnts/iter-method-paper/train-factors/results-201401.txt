@@ -1,0 +1,16 @@
+Loading data ./train-factors/test-data-201401.dat
+num_batches =  294168
+Loading model.
+201401 cnt=3293 error=0.4002 prec=0.5812 recall=0.7307
+201402 cnt=3275 error=0.3716 prec=0.6044 recall=0.7608
+201403 cnt=3259 error=0.3768 prec=0.5982 recall=0.7570
+201404 cnt=3241 error=0.3838 prec=0.5946 recall=0.7483
+201405 cnt=3229 error=0.3949 prec=0.5851 recall=0.7287
+201406 cnt=3219 error=0.4113 prec=0.5689 recall=0.7139
+201407 cnt=3203 error=0.4068 prec=0.5758 recall=0.7201
+201408 cnt=3192 error=0.4110 prec=0.5699 recall=0.7146
+201409 cnt=3171 error=0.4122 prec=0.5732 recall=0.7072
+201410 cnt=3159 error=0.4052 prec=0.5801 recall=0.7112
+201411 cnt=3142 error=0.3892 prec=0.5904 recall=0.7295
+201412 cnt=3126 error=0.3980 prec=0.5841 recall=0.7210
+ALL cnt=38509 error=0.3967 prec=0.5840 recall=0.7288

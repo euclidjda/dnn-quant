@@ -36,7 +36,7 @@ from tensorflow.python.platform import gfile
 from batch_generator import BatchGenerator
 
 def run_epoch(session, model, dataset,
-                keep_prob=1.0, passes=1, verbose=False):
+                keep_prob=1.0, passes=1.0, verbose=False):
   """Run the specified data set through the model.
 
   Args:
@@ -59,8 +59,8 @@ def run_epoch(session, model, dataset,
   train_cost = train_accy = valid_cost = valid_accy = 0.0
   train_evals = valid_evals = 0.0
   dot_count = 0
-  count = passes*num_batches
-  prog_int = count/100 # progress interval for stdout
+  total_steps = int(passes*num_batches)
+  prog_int = total_steps/100 # progress interval for stdout
 
   if not num_batches > 0:
     raise RuntimeError("batch_size*num_unrollings is larger "
@@ -70,37 +70,28 @@ def run_epoch(session, model, dataset,
 
   print("batches: %d "%num_batches,end=' ')
 
-  for i in range(passes):
-    for step in range(num_batches):
-      batch = dataset.next_batch()
-      (tcost, taccy, tevals,
-       vcost, vaccy, vevals) = model.train_step(session, batch,
-                                               keep_prob=keep_prob)
+  for step in range(total_steps):
+    batch = dataset.next_batch()
+    (tcost, taccy, tevals,
+     vcost, vaccy, vevals) = model.train_step(session, batch,
+                                              keep_prob=keep_prob)
 
-      train_cost  += tcost
-      train_accy  += taccy
-      train_evals += tevals
-      valid_cost  += vcost
-      valid_accy  += vaccy
-      valid_evals += vevals
+    train_cost  += tcost
+    train_accy  += taccy
+    train_evals += tevals
+    valid_cost  += vcost
+    valid_accy  += vaccy
+    valid_evals += vevals
 
-      #print("-"*80)
-      #print("train_evals %d"%train_evals)
-      #print("valid_evals %d"%valid_evals)
-      #print("train_cost %.2f"%train_cost)
-      #print("train_accy %.2f"%train_accy)
-      #print("-"*80)
-      # exit()
-      if ( verbose and ((prog_int<=1) or
-                        (step % (int(prog_int)+1)) == 0) ):
-        dot_count += 1
-        print('.',end='')
-        sys.stdout.flush()
-      #exit()
-  #exit()
+    if ( verbose and ((prog_int<=1) or
+                      (step % (int(prog_int)+1)) == 0) ):
+      dot_count += 1
+      print('.',end='')
+      sys.stdout.flush()
+
   if verbose:
     print("."*(100-dot_count),end='')
-    print(" passes: %d train iters: %d valid iters: %d "
+    print(" passes: %.2f train iters: %d valid iters: %d "
           "speed: %.0f seconds" % (passes,
                                    train_evals,
                                    valid_evals,
@@ -118,10 +109,12 @@ def main(_):
   model and training specification (see config.py).
   """
   configs.DEFINE_string("train_datafile", None,"Training file")
+  configs.DEFINE_string("optimizer", 'gd', 'Optimizer to use gd, adam, adagrad')
   configs.DEFINE_float("lr_decay",0.9, "Learning rate decay")
   configs.DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
   configs.DEFINE_float("validation_size",0.0,"Size of validation set as %")
-  configs.DEFINE_integer("passes",1,"Passes through day per epoch")
+  configs.DEFINE_float("passes",1.0,"Passes through day per epoch")
+  configs.DEFINE_float("rnn_loss_weight",None,"How much moret to weight kth example")
   configs.DEFINE_integer("max_epoch",0,"Stop after max_epochs")
   configs.DEFINE_integer("early_stop",None,"Early stop parameter")
   configs.DEFINE_integer("seed",None,"Seed for deterministic training")

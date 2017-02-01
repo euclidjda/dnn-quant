@@ -1,0 +1,6 @@
+Thu Dec 22 11:31:05 PST 2016
+Creating test data set for 201001 to 201012 (Test pre is 200406)
+Thu Dec 22 11:31:27 PST 2016
+Creating predictions file for period 200406 to 201012
+Thu Dec 22 12:38:23 PST 2016
+Slicing predictions file 201001 to 201012

@@ -1,0 +1,16 @@
+Loading data ./train-mlp-factors/test-data-201201.dat
+num_batches =  321609
+Loading model.
+201201 cnt=3612 error=0.4053 prec=0.5848 recall=0.6515
+201202 cnt=3606 error=0.3763 prec=0.6103 recall=0.6844
+201203 cnt=3597 error=0.3673 prec=0.6178 recall=0.6958
+201204 cnt=3589 error=0.3664 prec=0.6170 recall=0.7060
+201205 cnt=3591 error=0.3704 prec=0.6153 recall=0.6967
+201206 cnt=3585 error=0.3838 prec=0.6054 recall=0.6728
+201207 cnt=3549 error=0.3919 prec=0.5960 recall=0.6755
+201208 cnt=3536 error=0.4154 prec=0.5751 recall=0.6546
+201209 cnt=3527 error=0.4188 prec=0.5712 recall=0.6544
+201210 cnt=3518 error=0.4090 prec=0.5794 recall=0.6723
+201211 cnt=3515 error=0.4202 prec=0.5703 recall=0.6542
+201212 cnt=3501 error=0.4373 prec=0.5553 recall=0.6385
+ALL cnt=42726 error=0.3966 prec=0.5915 recall=0.6715

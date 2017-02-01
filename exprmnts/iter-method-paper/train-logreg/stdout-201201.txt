@@ -1,0 +1,9 @@
+Loading training data ...
+Loading data from cache /home/user/work/dnn-quant/datasets/row-norm-all-100M.cache
+Data processing complete: end_date is 201012
+X_train_full len is: 1087115
+X_train len is: 930630
+Training logistic regression classifer
+training accuracy:  0.635813373736
+validation accuracy:  0.620970115574
+Creating directory chkpts-train-logreg-201201

@@ -56,7 +56,7 @@ config = configs.get_configs()
 
 datafile = config.train_datafile if config.train_datafile else config.datafile
 
-train_path = model_utils.get_data_path(config.data_dir,config.datafile)
+train_path = model_utils.get_data_path(config.data_dir,datafile)
 
 cache_path = os.path.splitext(train_path)[0] + '.cache'
 
@@ -88,12 +88,12 @@ if not os.path.exists(cache_path) or config.use_cache is False:
     # JDA 10/27/16: Save these objects to cache here
     if not os.path.exists(cache_path):
        os.mkdir(cache_path)
-    X_train_full.dump(os.path.join(cache_path, 'X_train_full.npy') )
-    Y_train_full.dump(os.path.join(cache_path, 'Y_train_full.npy') )
-    X_valid_full.dump(os.path.join(cache_path, 'X_valid_full.npy') )
-    Y_valid_full.dump(os.path.join(cache_path, 'Y_valid_full.npy') )
-    dates_train.dump(os.path.join(cache_path, 'dates_train.npy') )
-    dates_valid.dump(os.path.join(cache_path, 'dates_valid.npy') )    
+    np.save(os.path.join(cache_path, 'X_train_full.npy'), X_train_full )
+    np.save(os.path.join(cache_path, 'Y_train_full.npy'), Y_train_full )
+    np.save(os.path.join(cache_path, 'X_valid_full.npy'), X_valid_full )
+    np.save(os.path.join(cache_path, 'Y_valid_full.npy'), Y_valid_full )
+    np.save(os.path.join(cache_path, 'dates_train.npy'), dates_train )
+    np.save(os.path.join(cache_path, 'dates_valid.npy'), dates_valid )    
     
 ############################################################################
 #   Else load from cache
@@ -110,6 +110,7 @@ else:
 #############################################################################
 #   Take only those rows that finish before the end date
 #############################################################################
+
 train_indices = [i for i in range(len(dates_train)) if dates_train[i] <= end_date]
 valid_indices = [i for i in range(len(dates_valid)) if dates_valid[i] <= end_date]
 
@@ -118,7 +119,9 @@ Y_train = Y_train_full[train_indices]
 X_valid = X_valid_full[valid_indices]
 Y_valid = Y_valid_full[valid_indices]
 
-print("Data processing complete")
+print("Data processing complete: end_date is %d"%end_date)
+print("X_train_full len is: %d"%len(X_train_full))
+print("X_train len is: %d"%len(X_train))
 
 ############################################################################
 #   Instantiate logistic regression classifier (sk-learn) and train

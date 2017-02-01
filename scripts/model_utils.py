@@ -166,6 +166,8 @@ def _create_all_models_rnn(session,config,verbose=False):
       print("  num_hidden  = %d"% config.num_hidden)
       print("  num_layers  = %d"% config.num_layers)
 
+    optimizer = config.optimizer if hasattr(config,'optimizer') else 'gd'
+
     # Training and validation graph
     with tf.variable_scope("model", reuse=None, initializer=initer), \
       tf.device(config.default_gpu):
@@ -175,7 +177,8 @@ def _create_all_models_rnn(session,config,verbose=False):
                               use_fixed_k    = config.use_fixed_k,
                               num_unrollings = config.num_unrollings,
                               batch_size     = config.batch_size,
-                              max_grad_norm  = config.max_grad_norm)
+                              max_grad_norm  = config.max_grad_norm, 
+                              optimizer      = optimizer)
 
 
     num_unrollings = config.num_unrollings if config.use_fixed_k is True else 1

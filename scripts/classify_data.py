@@ -41,7 +41,7 @@ def main(_):
   point in --test_datafile and the model output is sent to --output. The unix
   command 'paste' can be used to stich the input file and output together.
   e.g.,
-  $ classifiy_data.py --config=train.conf --test_datafile=test.dat -output=output.dat
+  $ classifiy_data.py --config=train.conf --test_datafile=test.dat --output=output.dat
   $ paste -d ' ' test.dat output.dat > input_and_output.dat
   """
   configs.DEFINE_string('test_datafile',None,'file with test data')
@@ -94,22 +94,16 @@ def main(_):
         seq_len = get_seq_length(batch)
         start = seq_len - 1
 
-	########################################################################
-	#
-	# rnn's can classify partial sequences so we do that here if we are
-	# on the first segment of an entity's sequence. for non-rnn we skip
-	#
-	########################################################################
-        if config.nn_type != 'rnn' and seq_len < config.num_unrollings:
+        if seq_len < config.num_unrollings:
           continue
-        elif config.nn_type == 'rnn' and classify_entire_seq(batch):
-          start = 0
+        #if config.nn_type != 'rnn' and seq_len < config.num_unrollings:
+        #  continue
+        #elif config.nn_type == 'rnn' and classify_entire_seq(batch):
+        #  start = config.min_test_k - 1
 
         for i in range(start,seq_len):
           key, date = get_key_and_date(batch, i)
           if (date < config.print_start or date > config.print_end):
-            continue
-          if i+1 < config.min_test_k:
             continue
           prob = get_pos_prob(config, preds, i)
           target = get_target(batch, i)

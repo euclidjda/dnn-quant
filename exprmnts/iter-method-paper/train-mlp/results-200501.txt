@@ -1,0 +1,16 @@
+Loading data ./train-mlp/test-data-200501.dat
+num_batches =  65594
+Loading model.
+200501 cnt=3699 error=0.3460 prec=0.6104 recall=0.8566
+200502 cnt=3692 error=0.3399 prec=0.6138 recall=0.8641
+200503 cnt=3716 error=0.3590 prec=0.5994 recall=0.8481
+200504 cnt=3745 error=0.3760 prec=0.5851 recall=0.8326
+200505 cnt=3768 error=0.3705 prec=0.5882 recall=0.8369
+200506 cnt=3794 error=0.3645 prec=0.5934 recall=0.8387
+200507 cnt=3761 error=0.3560 prec=0.6060 recall=0.8482
+200508 cnt=3829 error=0.3633 prec=0.5997 recall=0.8332
+200509 cnt=3759 error=0.3533 prec=0.6028 recall=0.8584
+200510 cnt=3821 error=0.3468 prec=0.6087 recall=0.8553
+200511 cnt=3826 error=0.3552 prec=0.6031 recall=0.8446
+200512 cnt=3841 error=0.3559 prec=0.5996 recall=0.8442
+ALL cnt=45251 error=0.3572 prec=0.6008 recall=0.8467

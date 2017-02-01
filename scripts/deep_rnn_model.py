@@ -36,7 +36,7 @@ class DeepRnnModel(object):
                num_unrollings, batch_size,
                max_grad_norm=5.0, 
                use_fixed_k=False,
-               input_dropout=False):
+               input_dropout=False,optimizer='gd'):
       """
       Initialize the model
       Args:
@@ -145,12 +145,19 @@ class DeepRnnModel(object):
 
       # here is the learning part of the graph
       
-      self._lr = tf.Variable(0.0, trainable=False)
+      self.lr = tf.Variable(0.0, trainable=False)
       tvars = tf.trainable_variables()
       grads, _ = tf.clip_by_global_norm(tf.gradients(self._batch_cst,
                                                          tvars),max_grad_norm)
-      # optimizer = tf.train.GradientDescentOptimizer(self.lr)
-      optimizer = tf.train.AdagradOptimizer(self.lr)
+      if optimizer == 'gd':
+        optimizer = tf.train.GradientDescentOptimizer(self.lr)
+      elif optimizer == 'adagrad':
+        optimizer = tf.train.AdagradOptimizer(self.lr)
+      elif optimizer == 'adam':
+        optimizer = tf.train.AdamOptimizer(self.lr)
+      elif optimizer == 'mo':
+        optimizer = tf.train.MomentumOptimizer(self.lr)
+
       self._train_op = optimizer.apply_gradients(zip(grads, tvars))
 
   def train_step(self, sess, batch, keep_prob=1.0):
@@ -240,10 +247,6 @@ class DeepRnnModel(object):
   @property
   def cost(self):
     return self._cost
-
-  @property
-  def lr(self):
-    return self._lr
 
   @property
   def num_unrollings(self):
