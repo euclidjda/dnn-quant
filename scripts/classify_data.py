@@ -116,7 +116,7 @@ def main(_):
           fpos = 1.0 if (pred==1 and target==0) else 0.0
           fneg = 1.0 if (pred==0 and target==1) else 0.0
           # print("pred=%.2f target=%.2f tp=%d tn=%d fp=%d fn=%d"%(pred,target,tp,tn,fp,fn))
-          data = {
+          curstat = {
 	      'error' : error ,
 	      'tpos'  : tpos  ,
 	      'tneg'  : tneg  ,
@@ -124,8 +124,8 @@ def main(_):
 	      'fneg'  : fneg  }
           if date not in stats:
             stats[date] = list()
-          stats[date].append(data)
-          stats['ALL'].append(data)
+          stats[date].append(curstat)
+          stats['ALL'].append(curstat)
 
     print_summary_stats(stats)
 
