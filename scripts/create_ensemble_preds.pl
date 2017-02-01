@@ -16,13 +16,9 @@ sub main {
 
     $| = 1;
 
+    my $method   = $ARGV[0] || "mean";
 
-    my $probfile = $ARGV[0] || die "First arg must be predictions file.";
-    my $method   = $ARGV[1] || "mean";
-
-    open(F1,"< $probfile");
-
-    while(<F1>) {
+    while(<STDIN>) {
 
 	chomp;
 	my @fields = split(' ',$_);
@@ -72,6 +68,7 @@ sub main {
 	       $fields[$PRED_FILE_STEPS_IDX]);
 
     }
+
 
     close(F1);
 

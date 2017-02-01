@@ -94,6 +94,7 @@ def main(_):
         key, date = get_key_and_date(batch, seq_len-1)
         if (date < config.print_start or date > config.print_end):
           continue
+
         prob = 0.5
         if (config.nn_type != 'logreg' or seq_len == config.num_unrollings):
           prob = get_pos_prob(config, preds, seq_len-1)
