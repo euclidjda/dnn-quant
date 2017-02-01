@@ -35,7 +35,6 @@ class DeepRnnModel(object):
   def __init__(self, num_layers, num_inputs, num_hidden,
                num_unrollings, batch_size,
                max_grad_norm=5.0, 
-               use_fixed_k=False,
                input_dropout=False,optimizer='gd'):
       """
       Initialize the model
@@ -84,36 +83,18 @@ class DeepRnnModel(object):
       self._state_size = cell.state_size
 
       state_shape=[batch_size, cell.state_size]
-      self._reset_state_flags = tf.placeholder(tf.float32, shape=state_shape)
-      self._saved_state = tf.Variable(tf.zeros(state_shape), dtype=tf.float32,
-                                          trainable=False)
 
-      init_state = None
-
-      if use_fixed_k is False:
-        init_state = tf.mul( self._saved_state, self._reset_state_flags )
-    
       outputs, state = tf.nn.rnn(cell, self._inputs,
-                                 initial_state=init_state,
+                                 initial_state=None,
                                  dtype=tf.float32,
                                  sequence_length=self._seq_lengths)
 
       self._state = state
 
-      softmax_w = tf.get_variable("softmax_w", [num_hidden+num_inputs*num_unrollings, 
-                                                num_outputs])
+      softmax_w = tf.get_variable("softmax_w", [num_hidden, num_outputs])
       softmax_b = tf.get_variable("softmax_b", [num_outputs])
 
-      skip_con_inputs = list()
-      for _ in range(num_unrollings-1):
-        skip_con_inputs.append(tf.Variable(tf.zeros([batch_size,num_unrollings*num_inputs]),
-                                dtype=tf.float32, trainable=False))
-      skip_con_inputs.append( tf.concat( 1, self._inputs ) )
-
-      with tf.control_dependencies([self._saved_state.assign(state)]):
-        logits = tf.nn.xw_plus_b( tf.concat(1, [ tf.concat(0, skip_con_inputs), 
-                                                 tf.concat(0, outputs)]),
-                                  softmax_w, softmax_b)
+      logits = tf.nn.xw_plus_b( tf.concat(0, outputs), softmax_w, softmax_b)
 
       targets = tf.concat(0, self._targets)
 
@@ -214,7 +195,7 @@ class DeepRnnModel(object):
      Returns:
        predictions: the model predictions for each data point in batch
      """
-     assert( len(batch.inputs) ==self._num_unrollings )
+     assert( len(batch.inputs) == self._num_unrollings )
       
      feed_dict = self._get_feed_dict(batch)
 
@@ -225,13 +206,9 @@ class DeepRnnModel(object):
    
   def _get_feed_dict(self,batch,keep_prob=1.0):
 
-    reset_flags = np.repeat( batch.reset_flags.reshape( [self._batch_size, 1] ),
-                               self._state_size, axis=1 )
-
     feed_dict = dict()
 
     feed_dict[self._keep_prob] = keep_prob
-    feed_dict[self._reset_state_flags] = reset_flags
     feed_dict[self._seq_lengths] = batch.seq_lengths
     
     for i in range(self._num_unrollings):

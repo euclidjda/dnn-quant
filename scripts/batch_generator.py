@@ -40,8 +40,7 @@ class BatchGenerator(object):
             field. The columns have headers that are used to identify the field.
           config: The configuration which should include the following
              config.key_name (entity id): The column with the header key_name is the column
-               that contains the unique id (entity id) for the sequences. In the
-               context of an RNN, the state should be reset when an entity ID changes
+               that contains the unique id (entity id) for the sequences. 
              config.target_name: The column with the header target_name is the name of
                the column containing the target values (-1 or +1) for the record
              config.num_inputs: The input fields are the first num_inputs columns
@@ -66,7 +65,7 @@ class BatchGenerator(object):
         self._key_name = key_name
         self._target_name = target_name
         self._randomly_sample = randomly_sample
-        self._use_fixed_k = config.use_fixed_k
+        self._min_seq_length = config.min_seq_length
         self._num_classes = _NUM_CLASSES
         self._num_inputs = config.num_inputs
         self._num_unrollings = num_unrollings
@@ -97,22 +96,25 @@ class BatchGenerator(object):
         self._data = data
         self._data_len = len(data)
         self._validation_set = dict()
+        
+
         if validation_size is not None:
             if config.seed is not None:
                 print("setting random seed to "+str(config.seed))
                 random.seed( config.seed )
             # get number of keys
             keys = list(set(data[key_name]))
+            keys.sort()
             sample_size = int( config.validation_size * len(keys) )
             sample = random.sample(keys, sample_size)
-            sample.sort()
             self._validation_set = dict(zip(sample,[1]*sample_size))
             print("Num training entities: %d"%(len(keys)-sample_size))
             print("Num validation entities: %d"%sample_size)
-            # print(self._validation_set)
+            #print("\n".join(sample))
+            #exit()
 
         # Setup indexes into the sequences
-        min_seq_length = 32
+        min_seq_length = config.min_seq_length
         self._start_idx = list()
         self._end_idx = list()
         last_key = ""
@@ -125,10 +127,10 @@ class BatchGenerator(object):
                 self._end_idx.append(i)
                 seq_length = min(cur_length,num_unrollings)
                 self._start_idx.append(i-seq_length+1)
+                # print("%d %d %d"%(seq_length,i,i-seq_length+1))
             cur_length += 1
             last_key = key
 
-        #print("%d %d"%(len(self._start_idx),len(self._end_idx)))
         # Create a cursor of equally spaced indicies into the dataset. Each index
         # in the cursor points to one sequence in a batch and is used to keep
         # track of where we are in the dataset.
@@ -137,17 +139,6 @@ class BatchGenerator(object):
         self._cursor = [ offset * num_batches for offset in range(batch_size) ]
         self._init_cursor = self._cursor[:]
         self._num_batches = num_batches
-
-    def _get_reset_flags(self):
-        reset_flags = None
-        data = self._data
-        reset_flags = np.ones(self._batch_size)
-        kidx = self._key_idx
-        for b in range(self._batch_size):
-            i = self._cursor[b]
-            if (i==0 or (data.iat[i,kidx] != data.iat[i-1,kidx])):
-                reset_flags[b] = 0.0
-        return reset_flags
 
     def _next_step(self, step, seq_lengths):
         """
@@ -165,12 +156,13 @@ class BatchGenerator(object):
         target_idx = self._target_idx
         date_idx = self._date_idx
         for b in range(self._batch_size):
-            cur_idx = self._cursor[b]
-            start_idx = self._start_idx[cur_idx]
-            end_idx = self._end_idx[cur_idx]
+            cursor = self._cursor[b]
+            start_idx = self._start_idx[cursor]
+            end_idx = self._end_idx[cursor]
+            seq_lengths[b] = end_idx-start_idx+1
+            assert(seq_lengths[b]>0)
             idx = start_idx + step
             ##### TODO: MOVE THIS OUT OF _next_step()
-            seq_lengths[b] = end_idx-start_idx+1
             ########
             if (idx > end_idx):
                 x[b,:] = 0.0
@@ -188,11 +180,12 @@ class BatchGenerator(object):
                 attr.append((key,date))
                 weight = 1.0
                 if self._rnn_loss_weight is not None:
-                    factor = self._num_unrollings-1 if self._num_unrollings > 1 else 1
+                    len_minus_one = seq_lengths[b]-1
+                    assert(len_minus_one > 0)
                     if (idx == end_idx):
                         weight = self._rnn_loss_weight
                     else:
-                        weight = (1.0 - self._rnn_loss_weight) / factor
+                        weight = (1.0 - self._rnn_loss_weight) / len_minus_one
                 if key not in self._validation_set:
                     train_wghts[b] = weight
                     valid_wghts[b] = 0.0
@@ -207,7 +200,6 @@ class BatchGenerator(object):
           A batch of type Batch (see class def below)
         """
         seq_lengths = np.full(self._batch_size, self._num_unrollings, dtype=int)
-        reset_flags = self._get_reset_flags()
         x_batch = list()
         y_batch = list()
         train_wghts = list()
@@ -224,13 +216,14 @@ class BatchGenerator(object):
         #############################################################################
         #   Set cursor for next batch
         #############################################################################
+        batch_size = self._batch_size
         if self._randomly_sample is True:
-            self._cursor = random.sample(range(len(self._start_idx)),self._batch_size)
+            self._cursor = random.sample(range(len(self._start_idx)),batch_size)
         else:
             num_idxs = len(self._start_idx)
             self._cursor = [ (self._cursor[b]+1)%num_idxs for b in range(batch_size) ]
 
-        return Batch(x_batch, y_batch, seq_lengths, reset_flags,
+        return Batch(x_batch, y_batch, seq_lengths,
                          train_wghts, valid_wghts, attribs )
 
     def train_batches(self):
@@ -289,10 +282,6 @@ class Batch(object):
       seq_lengths: An integer vectors of size batch_size that contains the
         length of each sequence in the batch. The maximum length is
         num_unrollings.
-      reset_flags: A binary vector of size batch_size. A value of 0 in
-        position n indicates that the data in sequence n of the batch is a
-        new entity since the last batch and that the RNN's state should be
-        reset.
       train_wghts: Weights that specify an example is in the training data
         and how much they should contribute to the training loss function
       valid_wghts: Weights that specify an example is in the validation data
@@ -301,12 +290,11 @@ class Batch(object):
         in the batch
     """
 
-    def __init__(self,inputs,targets,seq_lengths,reset_flags,
+    def __init__(self,inputs,targets,seq_lengths,
                      train_wghts,valid_wghts, attribs):
         self._inputs = inputs
         self._targets = targets
         self._seq_lengths = seq_lengths
-        self._reset_flags = reset_flags
         self._train_wghts = train_wghts
         self._valid_wghts = valid_wghts
         self._attribs = attribs
@@ -322,10 +310,6 @@ class Batch(object):
     @property
     def seq_lengths(self):
         return self._seq_lengths
-
-    @property
-    def reset_flags(self):
-        return self._reset_flags
 
     @property
     def train_wghts(self):

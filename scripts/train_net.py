@@ -128,12 +128,10 @@ def main(_):
 
   print("Loading training data ...")
 
-  rand_samp = True if config.use_fixed_k is True else False
-
   train_data = BatchGenerator(train_path, config,
 			      config.batch_size,config.num_unrollings,
 			      validation_size=config.validation_size,
-			      randomly_sample=rand_samp)
+			      randomly_sample=True)
 
   tf_config = tf.ConfigProto( allow_soft_placement=True,
                               log_device_placement=False )

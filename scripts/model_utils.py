@@ -174,14 +174,10 @@ def _create_all_models_rnn(session,config,verbose=False):
         mtrain = DeepRnnModel(num_layers     = config.num_layers,
                               num_inputs     = config.num_inputs,
                               num_hidden     = config.num_hidden,
-                              use_fixed_k    = config.use_fixed_k,
                               num_unrollings = config.num_unrollings,
                               batch_size     = config.batch_size,
                               max_grad_norm  = config.max_grad_norm, 
                               optimizer      = optimizer)
-
-
-    num_unrollings = config.num_unrollings if config.use_fixed_k is True else 1
 
     # Deployment / testing graph
     with tf.variable_scope("model", reuse=True, initializer=initer), \
@@ -189,8 +185,7 @@ def _create_all_models_rnn(session,config,verbose=False):
         mdeploy = DeepRnnModel(num_layers     = config.num_layers,
                                num_inputs     = config.num_inputs,
                                num_hidden     = config.num_hidden,
-                               use_fixed_k    = config.use_fixed_k,
-                               num_unrollings = num_unrollings,
+                               num_unrollings = config.num_unrollings,
                                batch_size     = 1)
 
     return mtrain, mdeploy

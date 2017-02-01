@@ -49,7 +49,6 @@ def main(_):
   configs.DEFINE_string('time_field','date','fields used for dates/time')
   configs.DEFINE_string('print_start','190001','only print data on or after')
   configs.DEFINE_string('print_end','210012','only print data on or before')
-  configs.DEFINE_integer('min_test_k',1,'minimum seq length classified')
   configs.DEFINE_integer('num_batches',None,'num_batches overrride')
 
   config = configs.get_configs()
@@ -92,49 +91,38 @@ def main(_):
         batch = dataset.next_batch()
         preds = model.step(session, batch)
         seq_len = get_seq_length(batch)
-        start = seq_len - 1
-
-        if seq_len < config.num_unrollings:
+        key, date = get_key_and_date(batch, seq_len-1)
+        if (date < config.print_start or date > config.print_end):
           continue
-        #if config.nn_type != 'rnn' and seq_len < config.num_unrollings:
-        #  continue
-        #elif config.nn_type == 'rnn' and classify_entire_seq(batch):
-        #  start = config.min_test_k - 1
+        prob = 0.5
+        if (config.nn_type != 'logreg' or seq_len == config.num_unrollings):
+          prob = get_pos_prob(config, preds, seq_len-1)
+        target = get_target(batch, seq_len-1)
+        outfile.write("%s %s "
+          "%.4f %.4f %d %d\n" % (key, date, 1.0 - prob, prob, target, seq_len) )
 
-        for i in range(start,seq_len):
-          key, date = get_key_and_date(batch, i)
-          if (date < config.print_start or date > config.print_end):
-            continue
-          prob = get_pos_prob(config, preds, i)
-          target = get_target(batch, i)
-          outfile.write("%s %s "
-            "%.4f %.4f %d %d\n" % (key, date, 1.0 - prob, prob, target, i+1) )
-          pred   = +1.0 if prob >= 0.5 else 0.0
-          error = 0.0 if (pred == target) else 1.0
-          tpos = 1.0 if (pred==1 and target==1) else 0.0
-          tneg = 1.0 if (pred==0 and target==0) else 0.0
-          fpos = 1.0 if (pred==1 and target==0) else 0.0
-          fneg = 1.0 if (pred==0 and target==1) else 0.0
-          # print("pred=%.2f target=%.2f tp=%d tn=%d fp=%d fn=%d"%(pred,target,tp,tn,fp,fn))
-          data = {
-	      'error' : error ,
-	      'tpos'  : tpos  ,
-	      'tneg'  : tneg  ,
-	      'fpos'  : fpos  ,
-	      'fneg'  : fneg  }
-          if date not in stats:
-            stats[date] = list()
-          stats[date].append(data)
-          stats['ALL'].append(data)
+        pred   = +1.0 if prob >= 0.5 else 0.0
+        error = 0.0 if (pred == target) else 1.0
+        tpos = 1.0 if (pred==1 and target==1) else 0.0
+        tneg = 1.0 if (pred==0 and target==0) else 0.0
+        fpos = 1.0 if (pred==1 and target==0) else 0.0
+        fneg = 1.0 if (pred==0 and target==1) else 0.0
+        # print("pred=%.2f target=%.2f tp=%d tn=%d fp=%d fn=%d"%(pred,target,tp,tn,fp,fn))
+        data = {
+	    'error' : error ,
+	    'tpos'  : tpos  ,
+	    'tneg'  : tneg  ,
+	    'fpos'  : fpos  ,
+	    'fneg'  : fneg  }
+        if date not in stats:
+          stats[date] = list()
+        stats[date].append(data)
+        stats['ALL'].append(data)
 
     print_summary_stats(stats)
 
 def get_seq_length(batch):
   return batch.seq_lengths[0]
-
-def classify_entire_seq(batch):
-  rf = batch.reset_flags[0]
-  return True if rf == 0.0 else False
 
 def get_pos_prob(config,preds,idx):
   if config.nn_type != 'rnn':
