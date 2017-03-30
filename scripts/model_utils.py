@@ -57,15 +57,17 @@ def stop_training(config, perfs, file_prefix):
     return False
 
 def rewrite_chkpt(model_dir,chkpt_name):
-  # open file model_dir/checkpoint
-  path = model_dir+"/checkpoint"
-  # write file as tensorflow expects
-  with open(path, "w") as outfile:
-    outfile.write("model_checkpoint_path: \"%s\"\n"%chkpt_name)
-    outfile.write("all_model_checkpoint_paths: \"%s\"\n"%chkpt_name)
+    # open file model_dir/checkpoint
+    path = model_dir+"/checkpoint"
+    # write file as tensorflow expects
+    with open(path, "w") as outfile:
+      outfile.write("model_checkpoint_path: \"%s\"\n"%chkpt_name)
+      outfile.write("all_model_checkpoint_paths: \"%s\"\n"%chkpt_name)
 
-def adjust_learning_rate(session, model, learning_rate,
-                           lr_decay, batch_perfs, num=5):
+
+
+def adjust_learning_rate(session, model, 
+                         learning_rate, lr_decay, cost_history, lookback=5):
   """
   Systematically decrease learning rate if current performance is not at
   least 1% better than the moving average performance
@@ -75,17 +77,17 @@ def adjust_learning_rate(session, model, learning_rate,
     model: the model being trained
     learning_rate: the current learning rate
     lr_decay: the learning rate decay factor
-    batch_perfs: list of historical performance
+    cost_history: list of historical performance
   Returns:
     the updated learning rate being used by the model for training
   """
-  num += 1
-  if len(batch_perfs) >= num:
-    mean = np.mean(batch_perfs[-num:-2])
-    curr = batch_perfs[-1]
+  lookback += 1
+  if len(cost_history) >= lookback:
+    mean = np.mean(cost_history[-lookback:-2])
+    curr = cost_history[-1]
     # If performance has dropped by less than 1%, decay learning_rate
     if ((learning_rate >= 0.0001) and (mean > 0.0)
-            and (mean >= curr) and (curr/mean >= 0.99)):
+        and (mean >= curr) and (curr/mean >= 0.99)):
         learning_rate = learning_rate * lr_decay
   model.assign_lr(session, learning_rate)
   return learning_rate
@@ -96,7 +98,6 @@ def get_training_model(session, config, verbose=True):
 
 def get_trained_model(session, config, verbose=False):
     mtrain, mdeploy = get_all_models(session, config, verbose)
-
     return mdeploy
 
 def get_all_models(session, config, verbose=False):
@@ -120,7 +121,7 @@ def get_all_models(session, config, verbose=False):
       mtrain, mdeploy = _create_all_models(session, config, verbose)
 
       ckpt = tf.train.get_checkpoint_state(config.model_dir)
-      if ckpt and gfile.Exists(ckpt.model_checkpoint_path):
+      if ckpt and gfile.Exists(ckpt.model_checkpoint_path+".index"):
         if verbose:
           print("Reading model parameters from %s" % ckpt.model_checkpoint_path)
         tf.train.Saver(max_to_keep=200).restore(session,
@@ -128,7 +129,7 @@ def get_all_models(session, config, verbose=False):
       else:
         if verbose:
           print("Created model with fresh parameters.")
-        session.run(tf.initialize_all_variables())
+        session.run(tf.global_variables_initializer())
 
     return mtrain, mdeploy
 
@@ -157,6 +158,8 @@ def _create_all_models_rnn(session,config,verbose=False):
 
     initer = tf.random_uniform_initializer(-config.init_scale,config.init_scale)
 
+    optimizer = config.optimizer if hasattr(config,'optimizer') else 'gd'
+
     if verbose is True:
       print("Model has the following geometry:")
       print("  num_unroll  = %d"% config.num_unrollings)
@@ -164,9 +167,10 @@ def _create_all_models_rnn(session,config,verbose=False):
       print("  evals/batch = %d"% (config.batch_size*config.num_unrollings))
       print("  num_inputs  = %d"% config.num_inputs)
       print("  num_hidden  = %d"% config.num_hidden)
+      print("  num_output  = %d"% config.num_outputs)
       print("  num_layers  = %d"% config.num_layers)
-
-    optimizer = config.optimizer if hasattr(config,'optimizer') else 'gd'
+      print("  optimizer   = %s"% optimizer)
+      print("  device      = %s"% config.default_gpu)
 
     # Training and validation graph
     with tf.variable_scope("model", reuse=None, initializer=initer), \
@@ -174,6 +178,7 @@ def _create_all_models_rnn(session,config,verbose=False):
         mtrain = DeepRnnModel(num_layers     = config.num_layers,
                               num_inputs     = config.num_inputs,
                               num_hidden     = config.num_hidden,
+                              num_outputs    = config.num_outputs,
                               num_unrollings = config.num_unrollings,
                               batch_size     = config.batch_size,
                               max_grad_norm  = config.max_grad_norm, 
@@ -185,6 +190,7 @@ def _create_all_models_rnn(session,config,verbose=False):
         mdeploy = DeepRnnModel(num_layers     = config.num_layers,
                                num_inputs     = config.num_inputs,
                                num_hidden     = config.num_hidden,
+                               num_outputs    = config.num_outputs,
                                num_unrollings = config.num_unrollings,
                                batch_size     = 1)
 
@@ -192,6 +198,7 @@ def _create_all_models_rnn(session,config,verbose=False):
 
 def _create_all_models_mlp(session,config,verbose=False):
 
+    optimizer = config.optimizer if hasattr(config,'optimizer') else 'gd'
 
     initer = tf.random_uniform_initializer(-config.init_scale,config.init_scale)
 
@@ -202,7 +209,10 @@ def _create_all_models_mlp(session,config,verbose=False):
       print("  evals/batch = %d"% (config.batch_size*config.num_unrollings))
       print("  num_inputs  = %d"% config.num_inputs)
       print("  num_hidden  = %d"% config.num_hidden)
+      print("  num_outputs = %d"% config.num_outputs)
       print("  num_layers  = %d"% config.num_layers)
+      print("  optimizer   = %s"% optimizer)
+      print("  device      = %s"% config.default_gpu)
 
     # Training and validation graph
     with tf.variable_scope("model", reuse=None, initializer=initer), \
@@ -210,9 +220,11 @@ def _create_all_models_mlp(session,config,verbose=False):
         mtrain = DeepMlpModel(num_layers     = config.num_layers,
                               num_inputs     = config.num_inputs,
                               num_hidden     = config.num_hidden,
+                              num_outputs    = config.num_outputs,
                               num_unrollings = config.num_unrollings,
                               batch_size     = config.batch_size,
-                              max_grad_norm  = config.max_grad_norm)
+                              max_grad_norm  = config.max_grad_norm, 
+                              optimizer      = optimizer)
 
     # Deployment / testing graph
     with tf.variable_scope("model", reuse=True, initializer=initer), \
@@ -220,6 +232,7 @@ def _create_all_models_mlp(session,config,verbose=False):
         mdeploy = DeepMlpModel(num_layers     = config.num_layers,
                                num_inputs     = config.num_inputs,
                                num_hidden     = config.num_hidden,
+                               num_outputs    = config.num_outputs,
                                num_unrollings = config.num_unrollings,
                                batch_size     = 1)
 

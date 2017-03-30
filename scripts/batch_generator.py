@@ -66,7 +66,7 @@ class BatchGenerator(object):
         self._target_name = target_name
         self._randomly_sample = randomly_sample
         self._min_seq_length = config.min_seq_length
-        self._num_classes = _NUM_CLASSES
+        self._num_classes = config.num_outputs
         self._num_inputs = config.num_inputs
         self._num_unrollings = num_unrollings
         self._batch_size = batch_size
@@ -90,13 +90,13 @@ class BatchGenerator(object):
         self._date_idx = list(data.columns.values).index('date')
         self._feature_names = list(data.columns.values)[self._target_idx+1:]
         assert(self._feature_start_idx>=0)
+
         # This assert ensures that no x features are the yval
         assert(list(data.columns.values).index(target_name)
                    < self._feature_start_idx)
         self._data = data
         self._data_len = len(data)
         self._validation_set = dict()
-        
 
         if validation_size is not None:
             if config.seed is not None:
@@ -111,7 +111,6 @@ class BatchGenerator(object):
             print("Num training entities: %d"%(len(keys)-sample_size))
             print("Num validation entities: %d"%sample_size)
             #print("\n".join(sample))
-            #exit()
 
         # Setup indexes into the sequences
         min_seq_length = config.min_seq_length
@@ -140,14 +139,24 @@ class BatchGenerator(object):
         self._init_cursor = self._cursor[:]
         self._num_batches = num_batches
 
+    def _target_to_class_idx(self, target_val):
+        n = self._num_classes
+        assert( n > 0 )
+        class_idx = 0
+        if target_val == 1.0:
+            class_idx = n-1
+        else:
+            class_idx = int(target_val*n)
+        return class_idx
+
     def _next_step(self, step, seq_lengths):
         """
         Get next step in current batch.
         """
         x = np.zeros(shape=(self._batch_size, self._num_inputs), dtype=np.float)
         y = np.zeros(shape=(self._batch_size, self._num_classes), dtype=np.float)
-        train_wghts = np.zeros(shape=(self._batch_size), dtype=np.float)
-        valid_wghts = np.zeros(shape=(self._batch_size), dtype=np.float)
+        train_mask = np.zeros(shape=(self._batch_size), dtype=np.float)
+        valid_mask = np.zeros(shape=(self._batch_size), dtype=np.float)
         attr = list()
         data = self._data
         features_idx = self._feature_start_idx
@@ -167,32 +176,36 @@ class BatchGenerator(object):
             if (idx > end_idx):
                 x[b,:] = 0.0
                 y[b,:] = 0.0
-                train_wghts[b] = 0.0
-                valid_wghts[b] = 0.0
+                train_mask[b] = 0.0
+                valid_mask[b] = 0.0
                 attr.append(None)
             else:
                 x[b,:] = data.iloc[idx,features_idx:features_idx+num_inputs].as_matrix()
-                val = data.iat[idx,target_idx] # val = +1 or -1
-                y[b,0] = abs(val - 1) / 2 # +1 -> 0 and -1 -> 1
-                y[b,1] = abs(val + 1) / 2 # -1 -> 0 and +1 -> 1
+                val = data.iat[idx,target_idx] # val in [0.0,1.0]
+                #y[b,0] = abs(val - 1) / 2 
+                #y[b,1] = abs(val + 1) / 2 
+                class_idx = self._target_to_class_idx( val )
+                y[b,class_idx] = 1.0
                 date = data.iat[idx,date_idx]
                 key = data.iat[idx,key_idx]
                 attr.append((key,date))
-                weight = 1.0
-                if self._rnn_loss_weight is not None:
-                    len_minus_one = seq_lengths[b]-1
-                    assert(len_minus_one > 0)
-                    if (idx == end_idx):
-                        weight = self._rnn_loss_weight
-                    else:
-                        weight = (1.0 - self._rnn_loss_weight) / len_minus_one
-                if key not in self._validation_set:
-                    train_wghts[b] = weight
-                    valid_wghts[b] = 0.0
+                #train_mask[b] = 0.0
+                #valid_mask[b] = 0.0
+                if key in self._validation_set:
+                    if idx==end_idx:
+                        valid_mask[b] = 1.0
                 else:
-                    train_wghts[b] = 0.0
-                    valid_wghts[b] = weight
-        return x, y, train_wghts, valid_wghts, attr
+                    if self._rnn_loss_weight is None:
+                        train_mask[b] = 1.0
+                    else:
+                        len_minus_one = seq_lengths[b]-1
+                        if (idx == end_idx):
+                            train_mask[b] = self._rnn_loss_weight
+                        else:
+                            assert(len_minus_one > 0)
+                            train_mask[b] = (1.0 - self._rnn_loss_weight) / len_minus_one
+
+        return x, y, train_mask, valid_mask, attr
 
     def next_batch(self):
         """Generate the next batch of sequences from the data.
@@ -202,15 +215,15 @@ class BatchGenerator(object):
         seq_lengths = np.full(self._batch_size, self._num_unrollings, dtype=int)
         x_batch = list()
         y_batch = list()
-        train_wghts = list()
-        valid_wghts = list()
+        train_mask = list()
+        valid_mask = list()
         attribs = list()
         for i in range(self._num_unrollings):
             x, y, tw, vw, attr = self._next_step(i, seq_lengths)
             x_batch.append(x)
             y_batch.append(y)
-            train_wghts.append(tw)
-            valid_wghts.append(vw)
+            train_mask.append(tw)
+            valid_mask.append(vw)
             attribs.append(attr)
 
         #############################################################################
@@ -224,7 +237,7 @@ class BatchGenerator(object):
             self._cursor = [ (self._cursor[b]+1)%num_idxs for b in range(batch_size) ]
 
         return Batch(x_batch, y_batch, seq_lengths,
-                         train_wghts, valid_wghts, attribs )
+                         train_mask, valid_mask, attribs )
 
     def train_batches(self):
         valid_keys = list(self._validation_set.keys())
@@ -246,7 +259,7 @@ class BatchGenerator(object):
                                   randomly_sample=self._randomly_sample,
                                   data=valid_data)
 
-    def num_data_points(self):
+    def num_data_pints(self):
         return self._data_len
 
     def rewind(self):
@@ -282,21 +295,21 @@ class Batch(object):
       seq_lengths: An integer vectors of size batch_size that contains the
         length of each sequence in the batch. The maximum length is
         num_unrollings.
-      train_wghts: Weights that specify an example is in the training data
+      train_mask: Weights that specify an example is in the training data
         and how much they should contribute to the training loss function
-      valid_wghts: Weights that specify an example is in the validation data
+      valid_mask: Weights that specify an example is in the validation data
         set and how much they should contribute to the validation loss
       attribs: Currently this holds a key,date tuple for each data point in
         in the batch
     """
 
     def __init__(self,inputs,targets,seq_lengths,
-                     train_wghts,valid_wghts, attribs):
+                     train_mask,valid_mask, attribs):
         self._inputs = inputs
         self._targets = targets
         self._seq_lengths = seq_lengths
-        self._train_wghts = train_wghts
-        self._valid_wghts = valid_wghts
+        self._train_mask = train_mask
+        self._valid_mask = valid_mask
         self._attribs = attribs
 
     @property
@@ -312,12 +325,12 @@ class Batch(object):
         return self._seq_lengths
 
     @property
-    def train_wghts(self):
-        return self._train_wghts
+    def train_mask(self):
+        return self._train_mask
 
     @property
-    def valid_wghts(self):
-        return self._valid_wghts
+    def valid_mask(self):
+        return self._valid_mask
 
     @property
     def attribs(self):

@@ -98,9 +98,9 @@ def run_epoch(session, model, dataset,
                                    (time.time() - start_time)) )
   sys.stdout.flush()
 
-  return (np.exp(train_cost/train_evals),
+  return (train_cost/train_evals,
           1.0 - train_accy/train_evals,
-          np.exp(valid_cost/valid_evals),
+          valid_cost/valid_evals,
           1.0 - valid_accy/valid_evals)
 
 def main(_):
@@ -109,7 +109,7 @@ def main(_):
   model and training specification (see config.py).
   """
   configs.DEFINE_string("train_datafile", None,"Training file")
-  configs.DEFINE_string("optimizer", 'gd', 'Optimizer to use gd, adam, adagrad')
+  configs.DEFINE_string("optimizer", 'gd', 'Optimizer to use gd, adam, adagrad, momentum')
   configs.DEFINE_float("lr_decay",0.9, "Learning rate decay")
   configs.DEFINE_float("initial_learning_rate",1.0,"Initial learning rate")
   configs.DEFINE_float("validation_size",0.0,"Size of validation set as %")
@@ -133,7 +133,7 @@ def main(_):
 			      validation_size=config.validation_size,
 			      randomly_sample=True)
 
-  tf_config = tf.ConfigProto( allow_soft_placement=True,
+  tf_config = tf.ConfigProto( allow_soft_placement=True  ,
                               log_device_placement=False )
 
   with tf.Graph().as_default(), tf.Session(config=tf_config) as session:
@@ -145,20 +145,17 @@ def main(_):
 
     model = model_utils.get_training_model(session, config, verbose=True)
 
-    lr = config.initial_learning_rate
-    train_history = list()
-    valid_history = list()
 
     if config.early_stop is not None:
       print("Training will early stop without "
         "improvement after %d epochs."%config.early_stop)
+    
+    train_history = list()
+    valid_history = list()
+    # This sets the initial learning rate tensor
+    lr = model.assign_lr(session,config.initial_learning_rate)
 
     for i in range(config.max_epoch):
-
-      lr = model_utils.adjust_learning_rate(session,
-                                              model, lr,
-                                              config.lr_decay,
-                                              train_history )
 
       trc, tre, vdc, vde = run_epoch(session, model, train_data,
                                        keep_prob=config.keep_prob,
@@ -176,18 +173,23 @@ def main(_):
       train_history.append( trc )
       valid_history.append( vdc )
 
+      # update learning rate 
+      if config.optimizer == 'gd' or config.optimizer == 'momentum':
+        lr = model_utils.adjust_learning_rate(session, model, 
+                                              lr, config.lr_decay, train_history )
+
       if not os.path.exists(config.model_dir):
         print("Creating directory %s" % config.model_dir)
         os.mkdir(config.model_dir)
 
       chkpt_file_prefix = "training.ckpt"
-
       if model_utils.stop_training(config,valid_history,chkpt_file_prefix):
         print("Training stopped.")
         quit()
       else:
         checkpoint_path = os.path.join(config.model_dir, chkpt_file_prefix)
         tf.train.Saver().save(session, checkpoint_path, global_step=i)
+
 
 if __name__ == "__main__":
   tf.app.run()
