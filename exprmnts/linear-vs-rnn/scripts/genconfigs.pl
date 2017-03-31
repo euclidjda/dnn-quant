@@ -14,7 +14,7 @@ for my $num_outputs (3,10) {
 
   for my $num_layers (1,2,4) {
 
-      for my $num_hidden (16,64,256,512,1024) {
+      for my $num_hidden (64,256,512) {
 
 	  for my $keep_prob (0.5,1.0) {
 
@@ -26,7 +26,7 @@ for my $num_outputs (3,10) {
 
 			  for my $loss_weight (0.50,0.75,1.00) {
 
-			      my $name = sprintf("rnn-c%02d-l%d-h%d-k%02d-i%04d-s%04d-m%03d-w%03d",
+			      my $name = sprintf("rnn-c%02d-l%d-h%03d-k%02d-i%04d-s%04d-m%03d-w%03d",
 						 $num_outputs,
 						 $num_layers,
 						 $num_hidden,

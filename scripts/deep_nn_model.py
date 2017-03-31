@@ -47,8 +47,8 @@ class DeepNNModel(object):
 
     feed_dict = self._get_feed_dict(batch,keep_prob)
 
-    (x,y) = sess.run([self._grad_norm,self._grad_norm],feed_dict)
-    print("%.2f %.2f"%(x,y))
+    #(x,y) = sess.run([self._grad_norm,self._grad_norm],feed_dict)
+    #print("%.2f %.2f"%(x,y))
     # exit()
 
     (train_cst,train_accy, train_evals,

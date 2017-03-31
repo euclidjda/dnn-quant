@@ -137,6 +137,7 @@ class DeepMlpModel(DeepNNModel):
       # here is the learning part of the graph
       tvars = tf.trainable_variables()
       grads = tf.gradients(self._batch_cst,tvars)
+
       if (max_grad_norm > 0):
         grads, _ = tf.clip_by_global_norm(grads,max_grad_norm)
 
