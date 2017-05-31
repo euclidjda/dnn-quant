@@ -139,6 +139,7 @@ def get_configs():
     DEFINE_string("data_dir",'',"The data directory")
     DEFINE_string("model_dir", '',"Model directory")
     DEFINE_integer("num_unrollings",1,"Number of unrolling steps")
+    DEFINE_integer("stride",1,"How many steps to skip per unrolling")
     DEFINE_integer("min_seq_length",1,"Min sequence legnth")
     DEFINE_integer("batch_size",1,"Size of each batch")
     DEFINE_integer("num_layers",1, "Numer of RNN layers")

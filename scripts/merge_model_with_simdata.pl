@@ -48,7 +48,7 @@ sub main {
 
 	my $gvkey = $fields[$SIMDAT_FILE_GVKEY_IDX];
 	my $date  = $fields[$SIMDAT_FILE_DATE_IDX];
-	my $prob = '0.5000';
+	my $prob = '0.50';
 
 	if (exists($probs{"$gvkey$date"})) {
 	    $prob = $probs{"$gvkey$date"};
