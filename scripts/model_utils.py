@@ -211,30 +211,35 @@ def _create_all_models_mlp(session,config,verbose=False):
       print("  num_hidden  = %d"% config.num_hidden)
       print("  num_outputs = %d"% config.num_outputs)
       print("  num_layers  = %d"% config.num_layers)
+      print("  inp_dropout = %s"% str(config.input_dropout))
+      print("  skip_cons   = %s"% str(config.skip_connections))
       print("  optimizer   = %s"% optimizer)
       print("  device      = %s"% config.default_gpu)
 
     # Training and validation graph
     with tf.variable_scope("model", reuse=None, initializer=initer), \
       tf.device(config.default_gpu):
-        mtrain = DeepMlpModel(num_layers     = config.num_layers,
-                              num_inputs     = config.num_inputs,
-                              num_hidden     = config.num_hidden,
-                              num_outputs    = config.num_outputs,
-                              num_unrollings = config.num_unrollings,
-                              batch_size     = config.batch_size,
-                              max_grad_norm  = config.max_grad_norm, 
-                              optimizer      = optimizer)
+        mtrain = DeepMlpModel(num_layers       = config.num_layers,
+                              num_inputs       = config.num_inputs,
+                              num_hidden       = config.num_hidden,
+                              num_outputs      = config.num_outputs,
+                              num_unrollings   = config.num_unrollings,
+                              batch_size       = config.batch_size,
+                              max_grad_norm    = config.max_grad_norm, 
+                              input_dropout    = config.input_dropout,
+                              skip_connections = config.skip_connections,
+                              optimizer        = optimizer)
 
     # Deployment / testing graph
     with tf.variable_scope("model", reuse=True, initializer=initer), \
       tf.device(config.default_gpu):
-        mdeploy = DeepMlpModel(num_layers     = config.num_layers,
-                               num_inputs     = config.num_inputs,
-                               num_hidden     = config.num_hidden,
-                               num_outputs    = config.num_outputs,
-                               num_unrollings = config.num_unrollings,
-                               batch_size     = 1)
+        mdeploy = DeepMlpModel(num_layers       = config.num_layers,
+                               num_inputs       = config.num_inputs,
+                               num_hidden       = config.num_hidden,
+                               num_outputs      = config.num_outputs,
+                               num_unrollings   = config.num_unrollings,
+                               skip_connections = config.skip_connections,
+                               batch_size       = 1)
 
     return mtrain, mdeploy
 

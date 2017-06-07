@@ -33,7 +33,9 @@ class DeepMlpModel(DeepNNModel):
   def __init__(self, num_layers, num_inputs, num_hidden, num_outputs,
                num_unrollings, batch_size,
                max_grad_norm=5.0,
-               input_dropout=False,optimizer='gd'):
+               input_dropout=False,
+               skip_connections=False,
+               optimizer='gd'):
       """
       Initialize the model
       Args:
@@ -68,11 +70,15 @@ class DeepMlpModel(DeepNNModel):
         self._train_mask.append(tf.placeholder(tf.float32, shape=[batch_size]))
         self._valid_mask.append(tf.placeholder(tf.float32, shape=[batch_size]))
 
-      outputs = tf.concat( self._inputs, 1 )
-
+      inputs = tf.reverse_sequence(tf.concat( self._inputs, 1 ),
+                                    self._seq_lengths*num_inputs,
+                                    seq_axis=1,batch_axis=0)
+      
       if input_dropout is True:
-        outputs = tf.nn.dropout(outputs, self._keep_prob)
+        inputs = tf.nn.dropout(inputs, self._keep_prob)
+
       num_prev = total_input_size
+      outputs = inputs
 
       for i in range(num_layers):
         weights = tf.get_variable("hidden_w_%d"%i,[num_prev, num_hidden])
@@ -81,26 +87,30 @@ class DeepMlpModel(DeepNNModel):
         outputs = tf.nn.dropout(outputs, self._keep_prob)
         num_prev = num_hidden
 
-      softmax_w = tf.get_variable("softmax_w", [num_prev, num_outputs])
-      softmax_b = tf.get_variable("softmax_b", [num_outputs])
+      if skip_connections is True:
+        num_prev = num_inputs+num_prev
+        skip_inputs = tf.slice(inputs, [0, 0], [batch_size, num_inputs] )
+        outputs  = tf.concat( [ skip_inputs, outputs], 1)
 
-      logits = tf.nn.xw_plus_b(outputs, softmax_w, softmax_b )
+      softmax_b = tf.get_variable("softmax_b", [num_outputs])
+      softmax_w = tf.get_variable("softmax_w", [num_prev, num_outputs])
+      logits = tf.nn.xw_plus_b(outputs, softmax_w, softmax_b)
 
       targets = tf.unstack(tf.reverse_sequence(tf.reshape(
         tf.concat(self._targets, 1),[batch_size,num_unrollings,num_outputs] ),
-        self._seq_lengths,1,0),axis=1)[0]
+        self._seq_lengths,seq_axis=1,batch_axis=0),axis=1)[0]
 
       agg_loss = tf.nn.softmax_cross_entropy_with_logits(labels=targets,logits=logits)
 
       train_mask = tf.unstack(tf.reverse_sequence(tf.transpose(
         tf.reshape( tf.concat(self._train_mask, 0 ),
         [num_unrollings, batch_size] ) ),
-        self._seq_lengths,1,0),axis=1)[0] 
+        self._seq_lengths,seq_axis=1,batch_axis=0),axis=1)[0] 
 
       valid_mask = tf.unstack(tf.reverse_sequence(tf.transpose(
         tf.reshape( tf.concat(self._valid_mask, 0),
         [num_unrollings, batch_size] ) ),
-        self._seq_lengths,1,0),axis=1)[0] 
+        self._seq_lengths,seq_axis=1,batch_axis=0),axis=1)[0] 
 
       train_loss = tf.multiply(agg_loss, train_mask)
       valid_loss = tf.multiply(agg_loss, valid_mask)

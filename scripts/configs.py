@@ -138,9 +138,10 @@ def get_configs():
     DEFINE_string("target_field", '',"Target column name header in datafile")
     DEFINE_string("data_dir",'',"The data directory")
     DEFINE_string("model_dir", '',"Model directory")
-    DEFINE_integer("num_unrollings",1,"Number of unrolling steps")
+    DEFINE_integer("num_unrollings",None,"Number of unrolling steps")
     DEFINE_integer("stride",1,"How many steps to skip per unrolling")
     DEFINE_integer("min_seq_length",1,"Min sequence legnth")
+    DEFINE_integer("max_seq_length",1,"Min sequence legnth")
     DEFINE_integer("batch_size",1,"Size of each batch")
     DEFINE_integer("num_layers",1, "Numer of RNN layers")
     DEFINE_integer("num_inputs",10,"Number of inputs")
@@ -150,13 +151,19 @@ def get_configs():
     DEFINE_float("max_grad_norm",10.0,"Gradient clipping")
     DEFINE_integer("end_date",210001,"Last date to train on as YYYYMM")
     DEFINE_float("keep_prob",1.0,"Keep probability for dropout")
-    DEFINE_boolean("use_fixed_k",True,"Sequences fixed at num_unrolling")
+    DEFINE_boolean("input_dropout",False,"Do dropout on input layer")
+    DEFINE_boolean("skip_connections",False,"Have direct connections between input and output in MLP")
     DEFINE_boolean("use_cache",True,"Load data for logreg from cache (vs processing from batch generator)")
 
     _global_parser.add_argument('--config', type=open,
                                     action=_LoadFromFile,
                                     help="File containing configuration")
 
-    return _ConfigValues()
+    c = _ConfigValues()
 
+    if c.num_unrollings is None:
+      assert(c.stride>0)
+      c.num_unrollings = c.max_seq_length//c.stride
+
+    return c
 

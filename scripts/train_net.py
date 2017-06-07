@@ -72,6 +72,7 @@ def run_epoch(session, model, dataset,
 
   for step in range(total_steps):
     batch = dataset.next_batch()
+
     (tcost, taccy, tevals,
      vcost, vaccy, vevals) = model.train_step(session, batch,
                                               keep_prob=keep_prob)

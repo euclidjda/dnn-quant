@@ -47,6 +47,8 @@ class BatchGenerator(object):
         self._stride = config.stride
         self._batch_size = batch_size
 
+        assert( self._stride >= 1 )
+
         self._rnn_loss_weight = None
         if hasattr(config,'rnn_loss_weight'):
             self._rnn_loss_weight = config.rnn_loss_weight
@@ -61,7 +63,7 @@ class BatchGenerator(object):
                 data = data.drop(data[data['date'] > config.end_date].index)
 
         self._end_date = data['date'].max()
-        self._start_date = data['data'].min()
+        self._start_date = data['date'].min()
         self._feature_start_idx = list(data.columns.values).index(target_name)+1
         self._key_idx = list(data.columns.values).index(key_name)
         self._target_idx = list(data.columns.values).index(target_name)
@@ -92,6 +94,7 @@ class BatchGenerator(object):
 
         # Setup indexes into the sequences
         min_seq_length = config.min_seq_length
+        max_seq_length = self._stride * num_unrollings
         self._start_indices = list()
         self._end_indices = list()
         last_key = ""
@@ -105,7 +108,7 @@ class BatchGenerator(object):
                 # TODO: HERE WE COULD OVER-SAMPLE BASED ON
                 # DATE TO MORE HEAVILY WEIGHT MORE RECENT
                 # 
-                seq_length = min(cur_length,num_unrollings) # TODO:  min(cur_length,num_unrollings*self._stride)  
+                seq_length = min(cur_length,max_seq_length)
                 self._end_indices.append(i)
                 self._start_indices.append(i-seq_length+1)
                 # print("%d %d %d"%(seq_length,i,i-seq_length+1))
@@ -146,13 +149,14 @@ class BatchGenerator(object):
         key_idx = self._key_idx
         target_idx = self._target_idx
         date_idx = self._date_idx
+        stride = self._stride
         for b in range(self._batch_size):
             cursor = self._cursor[b]
             start_idx = self._start_indices[cursor]
             end_idx = self._end_indices[cursor]
-            seq_lengths[b] = end_idx-start_idx+1 # TODO: int((end_idx-start_idx+1)//self._stride)
+            seq_lengths[b] = int((end_idx-start_idx+1)//stride)
             assert(seq_lengths[b]>0)
-            idx = start_idx + step # TODO: start_idx + (step*self._stride)
+            idx = start_idx + (step*stride)
             if (idx > end_idx):
                 x[b,:] = 0.0
                 y[b,:] = 0.0
@@ -168,14 +172,14 @@ class BatchGenerator(object):
                 key = data.iat[idx,key_idx]
                 attr.append((key,date))
                 if key in self._validation_set:
-                    if idx==end_idx:
+                    if idx+stride > end_idx:
                         valid_mask[b] = 1.0
                 else:
                     if self._rnn_loss_weight is None:
                         train_mask[b] = 1.0
                     else:
                         len_minus_one = seq_lengths[b]-1
-                        if (idx == end_idx):
+                        if idx+stride > end_idx:
                             train_mask[b] = self._rnn_loss_weight
                         else:
                             assert(len_minus_one > 0)
