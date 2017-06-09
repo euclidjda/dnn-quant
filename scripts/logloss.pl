@@ -14,9 +14,9 @@ while(<STDIN>) {
     chomp;
     my @fields = split ' ';
 
-    my $target = $fields[4];
-    my $p0 = $fields[2];
-    my $p1 = $fields[3];
+    my $target = int($fields[3]);
+    my $p1     = $fields[2];
+    my $p0     = 1.0 - $p1;
 
     my $term = 0.0;
 
@@ -29,12 +29,12 @@ while(<STDIN>) {
     $correct++ if ($target && ($p1>0.5)) || (!$target && ($p1<0.5));
     $count++;
 
-    #printf("%.4f %.4f %d\n",$total,$term,$count);
-    #die if $count > 10;
+    # printf("%.3f %.2f %.6f %.2f\n",$term,$target,$p1,$correct);
+    # die if $count > 20;
 }
 
-my $logloss = exp($total/$count);
+my $logloss = $total/$count;
 my $accy = $correct/$count;
 
-printf("%.8f %.8f\n",$accy,$logloss);
+printf("%.8f %.8f\n",1.0-$accy,$logloss);
 

@@ -29,9 +29,6 @@ NUM_STEPS=3
 
 def create_graph(g):
 
-    #g['t_weights'] = tf.Variable([[[1.0],[1.0]],[[2.0],[2.0]],[[3.0],[3.0]]])
-    #g['f_weights'] = tf.Variable([[[10.0, 100.0],[10.0, 100.0]]] ) 
-
     g['t_weights'] = tf.reshape(tf.Variable([1.0,1.0,1.0,1.0,2.0,2.0,2.0,2.0,3.0,3.0,3.0,3.0]),[NUM_STEPS,NUM_HIDDEN,1])
     g['f_weights'] = tf.reshape(tf.Variable([10.0, 10.0, 10.0, 10.0, 100.0, 100.0, 100.0, 1000.0]),[1,NUM_HIDDEN,NUM_INPUTS]) 
     

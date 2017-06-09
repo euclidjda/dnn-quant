@@ -147,11 +147,13 @@ def get_configs():
     DEFINE_integer("num_inputs",10,"Number of inputs")
     DEFINE_integer("num_outputs",2,"Number of classes (outputs)")
     DEFINE_integer("num_hidden",10,"Number of hidden layer units")
+    DEFINE_integer("embedding_size",0,"Number of embedding nodes (0=no embedding)")
     DEFINE_float("init_scale",0.1, "Initial scale for weights")
     DEFINE_float("max_grad_norm",10.0,"Gradient clipping")
     DEFINE_integer("end_date",210001,"Last date to train on as YYYYMM")
     DEFINE_float("keep_prob",1.0,"Keep probability for dropout")
     DEFINE_boolean("input_dropout",False,"Do dropout on input layer")
+    DEFINE_boolean("hidden_dropout",True,"Do dropout on hidden layers")
     DEFINE_boolean("skip_connections",False,"Have direct connections between input and output in MLP")
     DEFINE_boolean("use_cache",True,"Load data for logreg from cache (vs processing from batch generator)")
 

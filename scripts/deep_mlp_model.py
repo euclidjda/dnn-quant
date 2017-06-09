@@ -24,6 +24,8 @@ import numpy as np
 import tensorflow as tf
 
 from deep_nn_model import DeepNNModel
+from tensorflow.python.ops import math_ops
+from tensorflow.python.ops import random_ops
 
 class DeepMlpModel(DeepNNModel):
   """
@@ -31,10 +33,12 @@ class DeepMlpModel(DeepNNModel):
   arbitrary number of fixed width hidden layers.
   """
   def __init__(self, num_layers, num_inputs, num_hidden, num_outputs,
-               num_unrollings, batch_size,
+               num_unrollings,
                max_grad_norm=5.0,
+               hidden_dropout=True,
                input_dropout=False,
                skip_connections=False,
+               embedding_size=0,
                optimizer='gd'):
       """
       Initialize the model
@@ -49,12 +53,13 @@ class DeepMlpModel(DeepNNModel):
         max_grad_norm: max gardient norm size for gradient clipping
         input_dropout: perform dropout on input layer
       """
-      self._batch_size = batch_size
       self._num_unrollings = num_unrollings
+      self._num_inputs = num_inputs
 
       total_input_size = num_unrollings * num_inputs
 
-      self._seq_lengths = tf.placeholder(tf.int64, shape=[batch_size])
+      batch_size = self._batch_size = tf.placeholder(tf.int32, shape=[])
+      self._seq_lengths = tf.placeholder(tf.int64, shape=[None])
       self._keep_prob = tf.placeholder(tf.float32, shape=[])
 
       self._inputs = list()
@@ -64,27 +69,37 @@ class DeepMlpModel(DeepNNModel):
 
       for _ in range(num_unrollings):
         self._inputs.append( tf.placeholder(tf.float32,
-                                              shape=[batch_size,num_inputs]) )
+                                              shape=[None,num_inputs]) )
         self._targets.append( tf.placeholder(tf.float32,
-                                              shape=[batch_size,num_outputs]) )
-        self._train_mask.append(tf.placeholder(tf.float32, shape=[batch_size]))
-        self._valid_mask.append(tf.placeholder(tf.float32, shape=[batch_size]))
+                                              shape=[None,num_outputs]) )
+        self._train_mask.append(tf.placeholder(tf.float32, shape=[None]))
+        self._valid_mask.append(tf.placeholder(tf.float32, shape=[None]))
 
       inputs = tf.reverse_sequence(tf.concat( self._inputs, 1 ),
                                     self._seq_lengths*num_inputs,
                                     seq_axis=1,batch_axis=0)
       
-      if input_dropout is True:
-        inputs = tf.nn.dropout(inputs, self._keep_prob)
+      if input_dropout is True: inputs = self._input_dropout(inputs)
 
       num_prev = total_input_size
+
       outputs = inputs
+
+      if embedding_size > 0:
+        time_weights = tf.get_variable("t_weights",[num_unrollings,embedding_size,1])
+        feature_weights = tf.get_variable("f_weights",[1,embedding_size,num_inputs])
+        embedding_weights = tf.reshape( time_weights*feature_weights, 
+                                        [num_unrollings*num_inputs, embedding_size] )
+        biases = tf.get_variable("embedding_biases",[embedding_size])
+        outputs = tf.nn.relu(tf.nn.xw_plus_b(inputs,embedding_weights,biases))
+        num_prev = embedding_size
 
       for i in range(num_layers):
         weights = tf.get_variable("hidden_w_%d"%i,[num_prev, num_hidden])
         biases = tf.get_variable("hidden_b_%d"%i,[num_hidden])
         outputs = tf.nn.relu(tf.nn.xw_plus_b(outputs, weights, biases))
-        outputs = tf.nn.dropout(outputs, self._keep_prob)
+        if hidden_dropout is True:
+          outputs = tf.nn.dropout(outputs, self._keep_prob)
         num_prev = num_hidden
 
       if skip_connections is True:
@@ -125,7 +140,7 @@ class DeepMlpModel(DeepNNModel):
       self._valid_cst = tf.reduce_sum( valid_loss )
 
       self._predictions = tf.nn.softmax(logits)
-      #self._class_predictions = tf.floor( self._predictions + 0.5 )
+
       self._class_predictions = tf.one_hot(tf.argmax(self._predictions,1), 
                                            num_outputs, axis=-1)
 
@@ -165,3 +180,15 @@ class DeepMlpModel(DeepNNModel):
         raise RuntimeError("Unknown optimizer = %s"%optimizer)
 
       self._train_op = optim.apply_gradients(zip(grads, tvars))
+
+  def _input_dropout(self,inputs):
+    # This implementation of dropout dropouts an entire feature along the time dim
+    random_tensor = self._keep_prob
+    random_tensor += random_ops.random_uniform([self._batch_size,self._num_inputs],
+                                               dtype=inputs.dtype)
+    random_tensor = tf.tile(random_tensor,[1,self._num_unrollings])
+    binary_tensor = math_ops.floor(random_tensor)
+
+    ret = math_ops.div(inputs, self._keep_prob) * binary_tensor
+    ret.set_shape(inputs.get_shape())
+    return ret

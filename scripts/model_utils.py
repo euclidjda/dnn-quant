@@ -206,12 +206,13 @@ def _create_all_models_mlp(session,config,verbose=False):
       print("Model has the following geometry:")
       print("  num_unroll  = %d"% config.num_unrollings)
       print("  batch_size  = %d"% config.batch_size)
-      print("  evals/batch = %d"% (config.batch_size*config.num_unrollings))
       print("  num_inputs  = %d"% config.num_inputs)
       print("  num_hidden  = %d"% config.num_hidden)
       print("  num_outputs = %d"% config.num_outputs)
       print("  num_layers  = %d"% config.num_layers)
+      print("  embed_size  = %d"% config.embedding_size)
       print("  inp_dropout = %s"% str(config.input_dropout))
+      print("  hid_dropout = %s"% str(config.hidden_dropout))
       print("  skip_cons   = %s"% str(config.skip_connections))
       print("  optimizer   = %s"% optimizer)
       print("  device      = %s"% config.default_gpu)
@@ -224,25 +225,14 @@ def _create_all_models_mlp(session,config,verbose=False):
                               num_hidden       = config.num_hidden,
                               num_outputs      = config.num_outputs,
                               num_unrollings   = config.num_unrollings,
-                              batch_size       = config.batch_size,
+                              embedding_size   = config.embedding_size,
                               max_grad_norm    = config.max_grad_norm, 
                               input_dropout    = config.input_dropout,
+                              hidden_dropout   = config.hidden_dropout,
                               skip_connections = config.skip_connections,
                               optimizer        = optimizer)
 
-    # Deployment / testing graph
-    with tf.variable_scope("model", reuse=True, initializer=initer), \
-      tf.device(config.default_gpu):
-        mdeploy = DeepMlpModel(num_layers       = config.num_layers,
-                               num_inputs       = config.num_inputs,
-                               num_hidden       = config.num_hidden,
-                               num_outputs      = config.num_outputs,
-                               num_unrollings   = config.num_unrollings,
-                               skip_connections = config.skip_connections,
-                               batch_size       = 1)
-
-    return mtrain, mdeploy
-
+    return mtrain, mtrain
 
 def _create_all_models_logreg(session, config, verbose=False):
     pass

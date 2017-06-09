@@ -77,7 +77,7 @@ def main(_):
 
     #print("Loading model.")
 
-    model = model_utils.get_trained_model(session, config, verbose=True)
+    model = model_utils.get_trained_model(session, config, verbose=False)
 
     for i in range(num_data_points):
 

@@ -47,12 +47,12 @@ class DeepNNModel(object):
 
     feed_dict = self._get_feed_dict(batch,keep_prob)
 
-    #(x,y) = sess.run([self._inpts,self._skips],feed_dict)
-    #print(x)
-    #print("---------------")
-    #print(y)
-    #print("---------------")
-    #exit()
+#    (x,y) = sess.run([self._rt,self._bt],feed_dict)
+#    print(x)
+#    print("---------------")
+#    print(y)
+#    print("---------------")
+#    exit()
 
     (train_cst,train_accy, train_evals,
      valid_cst, valid_accy, valid_evals,
@@ -93,6 +93,7 @@ class DeepNNModel(object):
 
     feed_dict = dict()
 
+    feed_dict[self._batch_size] = batch.inputs[0].shape[0]
     feed_dict[self._keep_prob] = keep_prob
     feed_dict[self._seq_lengths] = batch.seq_lengths
     
